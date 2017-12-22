@@ -1,0 +1,27 @@
+{
+  "extends": ["airbnb", "airbnb-flow"],
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "globals": {
+    "modals": true
+  },
+  "rules": {
+    "arrow-body-style": 0,
+    "arrow-parens": 0,
+    "class-methods-use-this": 0,
+    "consistent-return": 0,
+    "curly": [2, "multi-or-nest", "consistent"],
+    "import/extensions": 0,
+    "import/no-unresolved": [2, { "ignore": ["^react-native-"] }],
+    "jsx-quotes": 0,
+    "linebreak-style": 0,
+    "max-len": 0,
+    "no-plusplus": 0,
+    "no-return-assign": 0,
+    "no-nested-ternary": 0,
+    "no-underscore-dangle": 0,
+    "no-unused-vars": 0,
+  }
+}

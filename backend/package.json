@@ -1,0 +1,32 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "IntoTheMansion backend",
+  "repository": "github:VinceBT/IntoTheMansion",
+  "scripts": {
+    "build": "babel src -d lib",
+    "check": "forever list",
+    "serve": "cross-env NODE_ENV=production forever start -a -l forever.log -o output.log -e error.log --no-colors lib/index.js",
+    "start": "cross-env NODE_ENV=development nodemon src/index.js --exec babel-node",
+    "devtool": "cross-env NODE_ENV=development nodemon src/index.js --exec devtool -r babel-register",
+    "stop": "forever stopall --no-colors",
+    "test": "cross-env NODE_ENV=test mocha test/**/*.js"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.23.0",
+    "cross-env": "^5.0.1",
+    "forever": "^0.15.3",
+    "socket.io": "^2.0.4"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-preset-react-native": "^1.9.2",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-flow": "^1.0.2",
+    "flow-bin": "^0.51.0",
+    "mocha": "^3.4.2",
+    "nodemon": "^1.11.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
