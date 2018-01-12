@@ -4,23 +4,18 @@
  * @author Nicolas Forget
  */
 
-// Import JQuery
 import $ from 'jquery/dist/jquery.min';
-
-// Import TUIOManager
 import TUIOManager from 'tuiomanager/core/TUIOManager';
 
-import { buildMenu } from './menu';
+import { buildScene } from './scene';
 
 /** TUIOManager starter **/
 const tuioManager = new TUIOManager();
 tuioManager.start();
 
 /** App Code **/
-
 const buildApp = () => {
-  $('#app').append('<div id="example-container"> </div>');
-  buildMenu();
+  buildScene($('#app'));
 };
 
 $(window).ready(() => {
