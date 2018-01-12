@@ -1,9 +1,7 @@
-/* eslint-disable one-var-declaration-per-line */
 import * as THREE from 'three';
+import WindowResize from 'three-window-resize';
 
 import mapData from '../assets/map/Apartment.json';
-
-const WindowResize = require('three-window-resize');
 
 function getRand(min, max) {
   return Math.floor(Math.random() * ((max - min) + 1)) + min;
@@ -41,8 +39,9 @@ export function buildScene($container) {
 
   camera.position.y = 5;
   camera.rotateX(-Math.PI / 2);
+
   map.forEach((elt, index) => {
-    // ajouter tous les murs
+    // Add walls
   });
 
   animate();
