@@ -10,7 +10,7 @@
     "start": "cross-env NODE_ENV=development nodemon src/index.js --exec babel-node",
     "devtool": "cross-env NODE_ENV=development nodemon src/index.js --exec devtool -r babel-register",
     "stop": "forever stopall --no-colors",
-    "test": "cross-env NODE_ENV=test mocha test/**/*.js"
+    "test": "cross-env NODE_ENV=test mocha test/**/*.js -t 10000 --compilers js:babel-register --require babel-polyfill"
   },
   "dependencies": {
     "babel-polyfill": "^6.23.0",
@@ -25,7 +25,8 @@
     "eslint-config-airbnb-flow": "^1.0.2",
     "flow-bin": "^0.51.0",
     "mocha": "^3.4.2",
-    "nodemon": "^1.11.0"
+    "nodemon": "^1.11.0",
+    "socket.io-client": "^2.0.4"
   },
   "author": "",
   "license": "ISC"
