@@ -8,8 +8,7 @@ import protocol from '../assets/protocol.json';
 const io = require('socket.io')();
 
 io.on('connection', (client) => {
-  const address = client.handshake.address;
-  console.log(`New connection from ${address.address}:${address.port}`);
+  console.log(`New connection from ${client.handshake.address}`);
 
   client.on(protocol.HI, () => {
     client.emit(protocol.HI);
@@ -28,8 +27,6 @@ io.on('connection', (client) => {
     console.log(callback);
     callback('ok position');
   });
-
-
 });
 
 io.listen(status.port);
