@@ -2,7 +2,8 @@
   "extends": ["airbnb", "airbnb-flow"],
   "env": {
     "browser": true,
-    "node": true
+    "node": true,
+    "mocha": true
   },
   "globals": {
     "modals": true
@@ -18,6 +19,7 @@
     "jsx-quotes": 0,
     "linebreak-style": 0,
     "max-len": 0,
+    "no-console": 0,
     "no-plusplus": 0,
     "no-return-assign": 0,
     "no-nested-ternary": 0,
