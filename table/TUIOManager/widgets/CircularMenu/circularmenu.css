@@ -1,0 +1,54 @@
+
+.selector {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+}
+  
+.selector .ulmenu {
+  position: absolute;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  top: -20px;
+  right: -20px;
+  bottom: -20px;
+  left: -20px;
+}
+
+.selector .limenu {
+  position: absolute;
+  width: 0;
+  height: 100%;
+  margin: 0 50%;
+  -webkit-transform: rotate(-360deg);
+}
+  
+.selector .limenu input { display: none; }
+
+.selector .limenu input + label {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  margin-left: 0;
+  background: #fff;
+  box-shadow: 1px 1px 12px #555;
+  border-radius: 50%;
+  text-align: center;
+  display: inline-block;
+  overflow: hidden;
+  width: 80px;
+  height: 80px;
+}
+
+.selector.open .limenu input + label {
+  width: 80px;
+  height: 80px;
+  /*line-height: 80px;*/
+  margin-left: -40px;
+  font-size: 14px;
+  word-wrap: break-word;
+  display: table-cell;
+  vertical-align: middle;
+
+}

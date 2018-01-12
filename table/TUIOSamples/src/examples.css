@@ -1,0 +1,145 @@
+
+@font-face {
+    font-family: Proxima;
+    src: url(../assets/fonts/Proxima.otf);
+}
+body
+{
+  font-family: Proxima;
+}
+
+h1
+{
+  text-align: center;
+}
+
+.menu-button
+{
+  border:none;
+  background-color:#E0F7FA;
+  color:#1ba1e2;
+  font-family: Proxima;
+  min-width:20%;
+  height: 55px;
+  display: table;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 1.3em;
+  transition-duration:0.35s;
+}
+
+.menu-button:hover
+{
+  background-color: #1ba1e2;
+  color:white;
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+
+.menu-button:active
+{
+  background-color: #0050ef;
+}
+
+
+#back-button
+{
+  position: absolute;
+  left:0;
+  bottom:0;
+  z-index: 99999;
+  width:10%;
+  border:none;
+  height:40px;
+  font-family: Proxima;
+  background-color: #f44336;
+  color:white;
+  transition-duration: 0.4s;
+}
+
+#back-button:hover
+{
+  font-size: 1.1em;
+  left:10px;
+  transition-duration: 0.5s;
+  cursor: pointer;
+}
+
+#main-container
+{
+  position:absolute;
+  left:0; right:0;
+  top:0; bottom:0;
+  margin:auto;
+
+  max-width:50%;
+  height:50%;
+  overflow:auto;
+}
+
+#music-container
+{
+  text-align: center;
+  margin-top: 10%;
+
+}
+
+
+#music-container > *
+{
+  position: relative;
+  margin-left: 5%;
+  margin-right: 5%;
+  display: inline-block;
+  width: 20%;
+}
+
+.music-target
+{
+  background-color: #BBDEFB;
+  height: 200px;
+
+}
+
+@keyframes rotate360 {
+  to { transform: rotate(360deg); }
+}
+#music-container img { animation: 30s rotate360 infinite linear; }
+
+#healthy-container
+{
+  float: left;
+  width:50%;
+  height: 100%;
+  color:#4caf50;
+  background-color:#E8F5E9;
+}
+
+#unhealthy-container
+{
+  float: left;
+  width: 50%;
+  height: 100%;
+
+  color:#f44336;
+  background-color:#FFEBEE;
+}
+
+.title-bottom
+{
+  //position: relative;
+ -ms-transform: rotate(180deg);
+  -webkit-transform: rotate(180deg);
+  transform: rotate(180deg);
+
+}
+
+.library-stack
+{
+  display: table;
+
+}
+.stack-element
+{
+//margin: auto;
+}
