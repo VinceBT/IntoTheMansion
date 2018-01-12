@@ -26,7 +26,9 @@ before((done) => {
 
 describe(`${status.name} server testing`, () => {
   describe('Noop verify', () => {
-    assert.equal([1, 2, 3].indexOf(4), -1);
+    it('should compute a simple problem', () => {
+      assert.equal([1, 2, 3].indexOf(4), -1);
+    });
   });
   describe('Basic communication', () => {
     it('should answer Hi back', (done) => {
