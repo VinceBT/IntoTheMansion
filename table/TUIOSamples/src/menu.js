@@ -12,6 +12,8 @@ import CircularMenu from 'tuiomanager/widgets/CircularMenu/CircularMenu';
 import LibraryStack from 'tuiomanager/widgets/Library/LibraryStack/LibraryStack'
 import MenuItem from 'tuiomanager/widgets/CircularMenu/MenuItem';
 import {buildNoobWork} from './dev-test';
+import mapData from '../assets/map/Apartment.json';
+import * as THREE from "three";
 
 let widgets = [];
 
@@ -295,6 +297,8 @@ export function buildMenu() {
   $('#example-container').append('<button id="music" class="menu-button"> Music (using VideoElementWidget) </button></br>');
   $('#example-container').append('<button id="development-test" class="menu-button"> Development test </button></br>');
   $('#example-container').append('<button id="user-test" class="menu-button"> User test </button></br>');
+  $('#example-container').append('<button id="map-test" class="menu-button"> Je suis la carte </button></br>');
+
 
 
   $('#development').on('click', () => {
@@ -318,4 +322,50 @@ export function buildMenu() {
   $('#user-test').on('click', () => {
     buildUserTest();
   });
+
+  $('#map-test').on('click', () => {
+    buildMap();
+  });
 }// buildMenu()
+
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+var renderer = new THREE.WebGLRenderer();
+
+function buildMap(){
+  let height = mapData.terrain.height;
+  let width = mapData.terrain.width;
+  let map = mapData.terrain.map;
+
+
+  $('#example-container').empty();
+  let $three = $('<div id="three"></div>');
+  $('#example-container').append($three);
+
+
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  $three[0].appendChild( renderer.domElement );
+
+  var geometry = new THREE.BoxGeometry( 1, 1, 0.2 );
+  var material = new THREE.MeshBasicMaterial( { color: 0xffffff } );
+  var wall = new THREE.Mesh(geometry, material);
+  scene.add( wall );
+
+  camera.y = 5;
+  camera.rotateX(-Math.PI/2);
+  map.forEach(function(elt, index) {
+    //ajouter tous les murs
+  });
+  console.log(mapData);
+
+  animate();
+}
+
+function animate() {
+
+  requestAnimationFrame( animate );
+
+  renderer.render( scene, camera );
+
+}
