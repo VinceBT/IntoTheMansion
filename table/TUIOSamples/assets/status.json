@@ -1,0 +1,6 @@
+{
+  "name": "IntoTheMansion",
+  "devRemote": "localhost",
+  "prodRemote": "localhost",
+  "port": 8080
+}

@@ -25,6 +25,7 @@ io.on('connection', (client) => {
     console.log('PLAYER POSITION');
     console.log(content);
     console.log(callback);
+    client.broadcast.emit('MAP_PLAYER_UPDATE', content);
     callback('ok position');
   });
 });

@@ -7,6 +7,8 @@ import WindowResize from 'three-window-resize';
 
 import mapData from '../assets/map/Apartment.json';
 
+import status from '../assets/status.json';
+
 /**
  * Main class to manage SceneWidget.
  *
@@ -14,6 +16,9 @@ import mapData from '../assets/map/Apartment.json';
  * @extends TUIOWidget
  */
 class SceneWidget extends TUIOWidget {
+
+
+
   /**
    * SceneWidget constructor.
    *
@@ -183,8 +188,31 @@ class SceneWidget extends TUIOWidget {
 
   buildScene() {
     let scene, camera, renderer, walls, floors, doors;
+  
+    function getRand(min, max) {
+      return Math.floor(Math.random() * ((max - min) + 1)) + min;
+    }
 
+    let displayPlayer = false;
+    var playerGeometry = new THREE.ConeGeometry( 2, 20, 8 );
+    var playerMaterial = new THREE.MeshBasicMaterial( {color: 0x00ffff} );
+    var player = new THREE.Mesh(playerGeometry, playerMaterial);
+
+    const fullRemote = `http://${status.devRemote}:${status.port}`;
+    const socket = require('socket.io-client')(fullRemote);
+    socket.on('MAP_PLAYER_UPDATE', (content) => {
+      player.position.x = content.x;
+      player.position.z = content.y;
+
+      if(!displayPlayer) {
+        displayPlayer = true;
+        scene.add(player);
+      }
+    });
+    
     function animate() {
+      
+        
       requestAnimationFrame(animate);
       // camera.rotation.x += 0.01;
       // walls.rotation.x += 0.01;
@@ -261,6 +289,7 @@ class SceneWidget extends TUIOWidget {
 
     animate();
   }
+  
 }
 
 export default SceneWidget;

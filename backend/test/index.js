@@ -37,4 +37,11 @@ describe(`${status.name} server testing`, () => {
       });
     });
   });
+    describe('Map communication', () => {
+        it('should answer Hi back', (done) => {
+            socket.emit(protocol.PLAYER_POSITION_UPDATE, {x: 3, y: 3, z: 3}, () => {
+                done();
+            });
+        });
+    });
 });
