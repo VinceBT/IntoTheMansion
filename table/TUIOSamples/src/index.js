@@ -23,7 +23,7 @@ const removeWidgets = () => {
 };
 
 const buildApp = () => {
-  const sceneWidget = new SceneWidget(200, 700, 110, 110);
+  const sceneWidget = new SceneWidget();
   addWidget(sceneWidget);
 };
 

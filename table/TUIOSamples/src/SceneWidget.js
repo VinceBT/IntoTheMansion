@@ -14,21 +14,16 @@ import mapData from '../assets/map/Apartment.json';
  * @extends TUIOWidget
  */
 class SceneWidget extends TUIOWidget {
+
   /**
    * SceneWidget constructor.
    *
    * @constructor
-   * @param {number} x - SceneWidget's upperleft coin abscissa.
-   * @param {number} y - SceneWidget's upperleft coin ordinate.
-   * @param {number} width - SceneWidget's width.
-   * @param {number} height - SceneWidget's height.
    */
-  constructor(x, y, width, height) {
-    super(x, y, width, height);
-
+  constructor() {
+    super(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     this._lastTouchesValues = {};
     this._lastTagsValues = {};
-
     this.buildScene();
   }
 
@@ -48,6 +43,7 @@ class SceneWidget extends TUIOWidget {
    * @param {TUIOTouch} tuioTouch - A TUIOTouch instance.
    */
   onTouchCreation(tuioTouch) {
+    // console.log(tuioTouch.x, tuioTouch.y);
     super.onTouchCreation(tuioTouch);
     if (this.isTouched(tuioTouch.x, tuioTouch.y)) {
       this._lastTouchesValues = {
@@ -71,26 +67,23 @@ class SceneWidget extends TUIOWidget {
       const lastTouchValue = this._lastTouchesValues[tuioTouch.id];
       const diffX = tuioTouch.x - lastTouchValue.x;
       const diffY = tuioTouch.y - lastTouchValue.y;
-
       let newX = this.x + diffX;
       let newY = this.y + diffY;
-
+      /*
       if (newX < 0) {
         newX = 0;
       }
-
       if (newX > (WINDOW_WIDTH - this.width)) {
+        console.log(WINDOW_WIDTH, this.width)
         newX = WINDOW_WIDTH - this.width;
       }
-
       if (newY < 0) {
         newY = 0;
       }
-
       if (newY > (WINDOW_HEIGHT - this.height)) {
         newY = WINDOW_HEIGHT - this.height;
       }
-
+      */
       this.moveTo(newX, newY);
       this._lastTouchesValues = {
         ...this._lastTouchesValues,
@@ -132,26 +125,20 @@ class SceneWidget extends TUIOWidget {
       const lastTagValue = this._lastTagsValues[tuioTag.id];
       const diffX = tuioTag.x - lastTagValue.x;
       const diffY = tuioTag.y - lastTagValue.y;
-
       let newX = this.x + diffX;
       let newY = this.y + diffY;
-
       if (newX < 0) {
         newX = 0;
       }
-
       if (newX > (WINDOW_WIDTH - this.width)) {
         newX = WINDOW_WIDTH - this.width;
       }
-
       if (newY < 0) {
         newY = 0;
       }
-
       if (newY > (WINDOW_HEIGHT - this.height)) {
         newY = WINDOW_HEIGHT - this.height;
       }
-
       this.moveTo(newX, newY, radToDeg(tuioTag.angle));
       this._lastTagsValues = {
         ...this._lastTagsValues,
@@ -174,26 +161,26 @@ class SceneWidget extends TUIOWidget {
   moveTo(x, y, angle = null) {
     this._x = x;
     this._y = y;
-    this._domElem.css('left', `${x}px`);
-    this._domElem.css('top', `${y}px`);
+    if (this.camera) {
+      this.camera.position.x = x;
+      this.camera.position.z = y;
+    }
     if (angle !== null) {
-      this._domElem.css('transform', `rotate(${angle}deg)`);
+      // this._domElem.css('transform', `rotate(${angle}deg)`);
     }
   }
 
   buildScene() {
-    let scene, camera, renderer, walls, floors, doors;
-
-    function animate() {
+    const animate = () => {
       requestAnimationFrame(animate);
       // camera.rotation.x += 0.01;
       // walls.rotation.x += 0.01;
-      renderer.render(scene, camera);
-    }
+      this.renderer.render(this.scene, this.camera);
+    };
 
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
 
 
     const height = mapData.terrain.height;
@@ -201,63 +188,57 @@ class SceneWidget extends TUIOWidget {
 
     const map = mapData.terrain.map;
 
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-    this._domElem = $(renderer.domElement);
+    this._domElem = $(this.renderer.domElement);
 
-    const windowResize = new WindowResize(renderer, camera);
+    const windowResize = new WindowResize(this.renderer, this.camera);
 
-    const wall_geometry = new THREE.BoxGeometry(1, 5, 1);
-    const wall_material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const wall = new THREE.Mesh(wall_geometry, wall_material);
+    const wallGeometry = new THREE.BoxGeometry(1, 5, 1);
+    const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
-    const floor_geometry = new THREE.BoxGeometry(1, 1, 1);
-    const floor_material = new THREE.MeshBasicMaterial({ color: 0xC5C5C5 });
-    const floor = new THREE.Mesh(wall_geometry, wall_material);
+    const floorGeometry = new THREE.BoxGeometry(1, 1, 1);
+    const floorMaterial = new THREE.MeshBasicMaterial({ color: 0xC5C5C5 });
 
-    const door_geometry = new THREE.BoxGeometry(1, 5, 1);
-    const door_material = new THREE.MeshBasicMaterial({ color: 0x703F00 });
-    const door = new THREE.Mesh(wall_geometry, wall_material);
+    const doorGeometry = new THREE.BoxGeometry(1, 5, 1);
+    const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x703F00 });
 
-    camera.position.y = 100;
-    camera.position.x = width / 2;
-    camera.position.z = height / 2;
+    this.camera.position.y = 100;
+    this.camera.position.x = width / 2;
+    this.camera.position.z = height / 2;
 
-    camera.rotation.x = -Math.PI / 2;
+    this.camera.rotation.x = -Math.PI / 2;
 
-    console.log(camera);
-
-    walls = new THREE.Group();
-    floors = new THREE.Group();
-    doors = new THREE.Group();
+    this.walls = new THREE.Group();
+    this.floors = new THREE.Group();
+    this.doors = new THREE.Group();
 
 
     map[0].forEach((elt, index) => {
       // Add walls, floor and doors
 
-      if (elt == 'W') {
-        const wall = new THREE.Mesh(wall_geometry, wall_material);
-        wall.position.x = index % width * 1;
-        wall.position.z = index / width * 1;
-        walls.add(wall);
-      } else if (elt == 'F') {
-        const floor = new THREE.Mesh(floor_geometry, floor_material);
-        floor.position.x = index % width * 1;
-        floor.position.z = index / width * 1;
-        floors.add(floor);
-      } else if (elt == 'D') {
+      if (elt === 'W') {
+        const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+        wall.position.x = index % width;
+        wall.position.z = index / width;
+        this.walls.add(wall);
+      } else if (elt === 'F') {
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.position.x = index % width;
+        floor.position.z = index / width;
+        this.floors.add(floor);
+      } else if (elt === 'D') {
         console.log('porte');
-        const door = new THREE.Mesh(door_geometry, door_material);
-        door.position.x = index % width * 1;
-        door.position.z = index / width * 1;
-        doors.add(door);
+        const door = new THREE.Mesh(doorGeometry, doorMaterial);
+        door.position.x = index % width;
+        door.position.z = index / width;
+        this.doors.add(door);
       }
     });
 
-    console.log(doors);
-    scene.add(walls);
-    scene.add(floors);
-    scene.add(doors);
+    this.scene.add(this.walls);
+    this.scene.add(this.floors);
+    this.scene.add(this.doors);
 
     animate();
   }

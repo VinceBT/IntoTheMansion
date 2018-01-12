@@ -9,7 +9,7 @@ import protocol from '../assets/protocol.json';
 
 const fullRemote = `http://${status.devRemote}:${status.port}`;
 
-console.log(`Connnecting to ${fullRemote}`);
+console.log(`Connecting to ${fullRemote}`);
 const socket = require('socket.io-client')(fullRemote);
 
 socket.on('disconnect', () => {
