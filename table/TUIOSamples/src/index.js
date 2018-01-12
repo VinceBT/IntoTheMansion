@@ -1,6 +1,6 @@
 import $ from 'jquery/dist/jquery.min';
 import TUIOManager from 'tuiomanager/core/TUIOManager';
-import SceneWidget from './SceneWidget';
+import SceneWidget from './widgets/SceneWidget';
 
 const tuioManager = new TUIOManager();
 tuioManager.start();
