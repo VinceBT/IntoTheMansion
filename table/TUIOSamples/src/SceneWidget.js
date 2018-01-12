@@ -1,55 +1,45 @@
-/**
- * @author Christian Brel <ch.brel@gmail.com>
- */
-
-// Import JQuery
 import $ from 'jquery/dist/jquery.min';
-
 import TUIOWidget from 'tuiomanager/core/TUIOWidget';
-import { WINDOW_WIDTH, WINDOW_HEIGHT } from 'tuiomanager/core/constants';
+import { WINDOW_HEIGHT, WINDOW_WIDTH } from 'tuiomanager/core/constants';
 import { radToDeg } from 'tuiomanager/core/helpers';
+import * as THREE from 'three';
+import WindowResize from 'three-window-resize';
+
+import mapData from '../assets/map/Apartment.json';
 
 /**
- * Main class to manage ImageWidget.
+ * Main class to manage SceneWidget.
  *
- * Note:
- * It's dummy implementation juste to give an example
- * about how to use TUIOManager framework.
- *
- * @class ImageWidget
+ * @class SceneWidget
  * @extends TUIOWidget
  */
-class ImageWidget extends TUIOWidget {
+class SceneWidget extends TUIOWidget {
   /**
-   * ImageWidget constructor.
+   * SceneWidget constructor.
    *
    * @constructor
-   * @param {number} x - ImageWidget's upperleft coin abscissa.
-   * @param {number} y - ImageWidget's upperleft coin ordinate.
-   * @param {number} width - ImageWidget's width.
-   * @param {number} height - ImageWidget's height.
+   * @param {number} x - SceneWidget's upperleft coin abscissa.
+   * @param {number} y - SceneWidget's upperleft coin ordinate.
+   * @param {number} width - SceneWidget's width.
+   * @param {number} height - SceneWidget's height.
    */
-  constructor(x, y, width, height, imgSrc) {
+  constructor(x, y, width, height) {
     super(x, y, width, height);
 
     this._lastTouchesValues = {};
     this._lastTagsValues = {};
 
-    this._domElem = $('<img>');
-    this._domElem.attr('src', imgSrc);
-    this._domElem.css('width', `${width}px`);
-    this._domElem.css('height', `${height}px`);
-    this._domElem.css('position', 'absolute');
-    this._domElem.css('left', `${x}px`);
-    this._domElem.css('top', `${y}px`);
+    this.buildScene();
   }
 
   /**
-   * ImageWidget's domElem.
+   * SceneWidget's domElem.
    *
-   * @returns {JQuery Object} ImageWidget's domElem.
+   * @returns {JQuery Object} SceneWidget's domElem.
    */
-  get domElem() { return this._domElem; }
+  get domElem() {
+    return this._domElem;
+  }
 
   /**
    * Call after a TUIOTouch creation.
@@ -174,12 +164,12 @@ class ImageWidget extends TUIOWidget {
   }
 
   /**
-   * Move ImageWidget.
+   * Move SceneWidget.
    *
    * @method moveTo
-   * @param {string/number} x - New ImageWidget's abscissa.
-   * @param {string/number} y - New ImageWidget's ordinate.
-   * @param {number} angle - New ImageWidget's angle.
+   * @param {string/number} x - New SceneWidget's abscissa.
+   * @param {string/number} y - New SceneWidget's ordinate.
+   * @param {number} angle - New SceneWidget's angle.
    */
   moveTo(x, y, angle = null) {
     this._x = x;
@@ -190,6 +180,45 @@ class ImageWidget extends TUIOWidget {
       this._domElem.css('transform', `rotate(${angle}deg)`);
     }
   }
+
+  buildScene() {
+    let scene, camera, renderer;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      camera.rotation.x += 0.1;
+      renderer.render(scene, camera);
+    }
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    renderer = new THREE.WebGLRenderer();
+
+    const height = mapData.terrain.height;
+    const width = mapData.terrain.width;
+
+    const map = mapData.terrain.map;
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    this._domElem = $(renderer.domElement);
+
+    const windowResize = new WindowResize(renderer, camera);
+
+    const geometry = new THREE.BoxGeometry(1, 1, 0.2);
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const wall = new THREE.Mesh(geometry, material);
+    scene.add(wall);
+
+    camera.position.y = 5;
+    camera.rotateX(-Math.PI / 2);
+
+    map.forEach((elt, index) => {
+      // Add walls
+    });
+
+    animate();
+  }
 }
 
-export default ImageWidget;
+export default SceneWidget;

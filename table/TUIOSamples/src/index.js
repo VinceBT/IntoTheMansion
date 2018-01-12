@@ -1,21 +1,30 @@
-/**
- * @author Christian Brel <ch.brel@gmail.com>
- * @author Vincent Forquet
- * @author Nicolas Forget
- */
-
 import $ from 'jquery/dist/jquery.min';
 import TUIOManager from 'tuiomanager/core/TUIOManager';
+import SceneWidget from './SceneWidget';
 
-import { buildScene } from './scene';
-
-/** TUIOManager starter **/
 const tuioManager = new TUIOManager();
 tuioManager.start();
 
-/** App Code **/
+const $app = $('#app');
+
+let widgets = [];
+
+const addWidget = (widget) => {
+  $app.append(widget.domElem);
+  widgets.push(widget);
+};
+
+const removeWidgets = () => {
+  $app.empty();
+  for (let i = 0; i < widgets.length; i += 1) {
+    widgets[i].deleteWidget();
+  }
+  widgets = [];
+};
+
 const buildApp = () => {
-  buildScene($('#app'));
+  const sceneWidget = new SceneWidget(200, 700, 110, 110);
+  addWidget(sceneWidget);
 };
 
 $(window).ready(() => {

@@ -10,8 +10,8 @@ const io = require('socket.io')();
 io.on('connection', (client) => {
   console.log(`New connection from ${client.handshake.address}`);
 
-  client.on(protocol.HI, () => {
-    client.emit(protocol.HI);
+  client.on(protocol.HI, (callback) => {
+    callback();
   });
 
   client.on(protocol.TEST, (x, y, z, callback) => {

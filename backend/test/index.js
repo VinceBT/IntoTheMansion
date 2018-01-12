@@ -32,10 +32,9 @@ describe(`${status.name} server testing`, () => {
   });
   describe('Basic communication', () => {
     it('should answer Hi back', (done) => {
-      socket.once(protocol.HI, () => {
+      socket.emit(protocol.HI, () => {
         done();
       });
-      socket.emit(protocol.HI);
     });
   });
 });
