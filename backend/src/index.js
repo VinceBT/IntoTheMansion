@@ -5,12 +5,15 @@
 import status from '../assets/status.json';
 import protocol from '../assets/protocol.json';
 import mansionSample from '../assets/mansion_sample.json';
+import Mansion from './Mansion';
 
 const io = require('socket.io')();
 
 const tablets = new Set();
 const tables = new Set();
 const vrs = new Set();
+
+const mansion = new Mansion();
 
 // https://www.npmjs.com/package/dungeon-generator
 
@@ -44,10 +47,16 @@ io.on('connection', (socket) => {
     else console.error(`Received incorrect type ${type}`);
   });
 
+  // GET_MAP_DEBUG
+  socket.on(protocol.GET_MAP_DEBUG, (callback) => {
+    console.log(`Received verb ${protocol.GET_MAP_DEBUG}`);
+    callback(mansionSample);
+  });
+
   // GET_MAP
   socket.on(protocol.GET_MAP, (callback) => {
     console.log(`Received verb ${protocol.GET_MAP}`);
-    callback(mansionSample);
+    callback(mansion.rawData);
   });
 
   // PLAYER_POSITION_UPDATE

@@ -15,12 +15,14 @@
   "dependencies": {
     "babel-polyfill": "^6.23.0",
     "cross-env": "^5.0.1",
+    "dungeon-generator": "0.0.1",
     "forever": "^0.15.3",
     "socket.io": "^2.0.4"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-preset-react-native": "^1.9.2",
+    "devtool": "^2.3.1",
     "eslint": "^3.19.0",
     "eslint-config-airbnb-flow": "^1.0.2",
     "flow-bin": "^0.51.0",

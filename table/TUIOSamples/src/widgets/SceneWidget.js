@@ -1,7 +1,7 @@
 import $ from 'jquery/dist/jquery.min';
 import TUIOWidget from 'tuiomanager/core/TUIOWidget';
-import {WINDOW_HEIGHT, WINDOW_WIDTH} from 'tuiomanager/core/constants';
-import {radToDeg} from 'tuiomanager/core/helpers';
+import { WINDOW_HEIGHT, WINDOW_WIDTH } from 'tuiomanager/core/constants';
+import { radToDeg } from 'tuiomanager/core/helpers';
 import * as THREE from 'three';
 import WindowResize from 'three-window-resize';
 
@@ -67,8 +67,8 @@ class SceneWidget extends TUIOWidget {
       const lastTouchValue = this._lastTouchesValues[tuioTouch.id];
       const diffX = tuioTouch.x - lastTouchValue.x;
       const diffY = tuioTouch.y - lastTouchValue.y;
-      let newX = this.x + diffX;
-      let newY = this.y + diffY;
+      const newX = this.x + diffX;
+      const newY = this.y + diffY;
       /*
       if (newX < 0) {
         newX = 0;
@@ -171,11 +171,10 @@ class SceneWidget extends TUIOWidget {
   }
 
   buildScene() {
-
     let displayPlayer = false;
-    let playerGeometry = new THREE.ConeGeometry(2, 20, 8);
-    let playerMaterial = new THREE.MeshBasicMaterial({color: 0x00ffff});
-    let player = new THREE.Mesh(playerGeometry, playerMaterial);
+    const playerGeometry = new THREE.ConeGeometry(2, 20, 8);
+    const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+    const player = new THREE.Mesh(playerGeometry, playerMaterial);
 
     const fullRemote = `http://${status.devRemote}:${status.port}`;
     const socket = require('socket.io-client')(fullRemote);
@@ -198,13 +197,13 @@ class SceneWidget extends TUIOWidget {
       this.doors = new THREE.Group();
 
       const wallGeometry = new THREE.BoxGeometry(1, 5, 1);
-      const wallMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
+      const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
       const carpetGeometry = new THREE.BoxGeometry(1, 1, 1);
-      const carpetMaterial = new THREE.MeshBasicMaterial({color: 0xC5C5C5});
+      const carpetMaterial = new THREE.MeshBasicMaterial({ color: 0xC5C5C5 });
 
       const doorGeometry = new THREE.BoxGeometry(1, 5, 1);
-      const doorMaterial = new THREE.MeshBasicMaterial({color: 0x703F00});
+      const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x703F00 });
 
       map[0].forEach((elt, index) => {
         const posX = Math.floor(index % mapWidth);
@@ -232,7 +231,6 @@ class SceneWidget extends TUIOWidget {
       this.floorOne.add(this.doors);
 
       this.mansion.add(this.floorOne);
-
     });
 
     socket.on(protocol.PLAYER_POSITION_UPDATE, (position) => {
@@ -253,7 +251,7 @@ class SceneWidget extends TUIOWidget {
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
-    this.renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setClearColor(0xffffff, 0);
 
     this.renderer.setSize(window.innerWidth, window.innerHeight);
