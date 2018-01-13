@@ -36,12 +36,25 @@ describe(`${status.name} server testing`, () => {
         done();
       });
     });
-  });
-    describe('Map communication', () => {
-        it('should answer Hi back', (done) => {
-            socket.emit(protocol.PLAYER_POSITION_UPDATE, {x: 3, y: 3, z: 3}, () => {
-                done();
-            });
-        });
+    it('should log [ 1, \'a\', {} ] in the server console', () => {
+      socket.emit(protocol.TEST, 1, 'a', {});
     });
+  });
+  describe('Map communication', () => {
+    it('should register as a TABLE', () => {
+      socket.emit(protocol.REGISTER, 'TABLE');
+    });
+    it('should get a player position update request when sending player position', (done) => {
+      socket.once(protocol.PLAYER_POSITION_UPDATE, () => {
+        done();
+      });
+      socket.emit(protocol.PLAYER_POSITION_UPDATE, { x: 3, y: 3, z: 3 });
+    });
+    it('should get the sample map back', (done) => {
+      socket.emit(protocol.GET_MAP, (map) => {
+        if (map) done();
+        else throw new Error('Map was not returned by the backend');
+      });
+    });
+  });
 });

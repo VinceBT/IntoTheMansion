@@ -4,29 +4,66 @@
 
 import status from '../assets/status.json';
 import protocol from '../assets/protocol.json';
+import mansionSample from '../assets/mansion_sample.json';
 
 const io = require('socket.io')();
 
-io.on('connection', (client) => {
-  console.log(`New connection from ${client.handshake.address}`);
+const tablets = new Set();
+const tables = new Set();
+const vrs = new Set();
 
-  client.on(protocol.HI, (callback) => {
+// https://www.npmjs.com/package/dungeon-generator
+
+io.on('connection', (socket) => {
+  console.log(`New connection from ${socket.handshake.address}`);
+
+  // HI
+  socket.on(protocol.HI, (callback) => {
+    console.log(`Received verb ${protocol.HI}`);
     callback();
   });
 
-  client.on(protocol.TEST, (x, y, z, callback) => {
-    console.log('TEST');
-    console.log(`${x},${y},${z}`);
-    console.log(callback);
-    callback('ok test');
+  // TEST
+  socket.on(protocol.TEST, (...args) => {
+    console.log(`Received verb ${protocol.TEST}`);
+    console.log(args);
   });
 
-  client.on(protocol.PLAYER_POSITION_UPDATE, (content, callback) => {
-    console.log('PLAYER POSITION');
-    console.log(content);
-    console.log(callback);
-    client.broadcast.emit('MAP_PLAYER_UPDATE', content);
-    callback('ok position');
+  // REGISTER
+  socket.on(protocol.REGISTER, (type) => {
+    console.log(`Received verb ${protocol.REGISTER} with type ${type}`);
+    tablets.delete(socket);
+    tables.delete(socket);
+    vrs.delete(socket);
+    if (type === 'TABLET')
+      tablets.add(socket);
+    else if (type === 'TABLE')
+      tables.add(socket);
+    else if (type === 'VR')
+      vrs.add(socket);
+    else console.error(`Received incorrect type ${type}`);
+  });
+
+  // GET_MAP
+  socket.on(protocol.GET_MAP, (callback) => {
+    console.log(`Received verb ${protocol.GET_MAP}`);
+    callback(mansionSample);
+  });
+
+  // PLAYER_POSITION_UPDATE
+  socket.on(protocol.PLAYER_POSITION_UPDATE, (position) => {
+    console.log(`Received verb ${protocol.PLAYER_POSITION_UPDATE}`);
+    Array.from(tables.values()).forEach(table => {
+      table.emit(protocol.PLAYER_POSITION_UPDATE, position);
+    });
+  });
+
+  // DISCONNECTION
+  socket.once('disconnect', () => {
+    tablets.delete(socket);
+    tables.delete(socket);
+    vrs.delete(socket);
+    console.log(`Disconnection from ${socket.handshake.address}`);
   });
 });
 
