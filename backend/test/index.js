@@ -48,7 +48,8 @@ describe(`${status.name} server testing`, () => {
       socket.once(protocol.PLAYER_POSITION_UPDATE, () => {
         done();
       });
-      socket.emit(protocol.PLAYER_POSITION_UPDATE, { x: 3, y: 3, z: 3 });
+      //Utilisation d'un angle par défaut pour l'instant
+      socket.emit(protocol.PLAYER_POSITION_UPDATE, { x: 3, y: 3, z: 3 }, 0.80);
     });
     it('should get the sample map back', (done) => {
       socket.emit(protocol.GET_MAP, (map) => {

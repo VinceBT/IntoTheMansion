@@ -60,10 +60,10 @@ io.on('connection', (socket) => {
   });
 
   // PLAYER_POSITION_UPDATE
-  socket.on(protocol.PLAYER_POSITION_UPDATE, (position) => {
+  socket.on(protocol.PLAYER_POSITION_UPDATE, (position, angle) => {
     console.log(`Received verb ${protocol.PLAYER_POSITION_UPDATE}`);
     Array.from(tables.values()).forEach(table => {
-      table.emit(protocol.PLAYER_POSITION_UPDATE, position);
+      table.emit(protocol.PLAYER_POSITION_UPDATE, position, angle);
     });
   });
 
