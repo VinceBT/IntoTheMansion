@@ -34,7 +34,9 @@ io.on('connection', (socket) => {
 
   // REGISTER
   socket.on(protocol.REGISTER, (type) => {
-    console.log(`Received verb ${protocol.REGISTER} with type ${type}`);
+    console.log(`Received verb ${protocol.REGISTER} with type ${typeof type}`);
+    console.log('Details: ');
+    console.log(type);
     tablets.delete(socket);
     tables.delete(socket);
     vrs.delete(socket);
@@ -42,7 +44,8 @@ io.on('connection', (socket) => {
       tablets.add(socket);
     else if (type === 'TABLE')
       tables.add(socket);
-    else if (type === 'VR')
+
+    else if (type.type === 'VR')
       vrs.add(socket);
     else console.error(`Received incorrect type ${type}`);
   });
@@ -62,6 +65,7 @@ io.on('connection', (socket) => {
   // PLAYER_POSITION_UPDATE
   socket.on(protocol.PLAYER_POSITION_UPDATE, (position) => {
     console.log(`Received verb ${protocol.PLAYER_POSITION_UPDATE}`);
+    console.log(position);
     Array.from(tables.values()).forEach(table => {
       table.emit(protocol.PLAYER_POSITION_UPDATE, position);
     });
