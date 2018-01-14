@@ -172,9 +172,11 @@ class SceneWidget extends TUIOWidget {
 
   buildScene() {
     let displayPlayer = false;
-    const playerGeometry = new THREE.ConeGeometry(2, 20, 8);
+    const playerGeometry = new THREE.ConeGeometry(0.5, 2, 8);
     const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
     const player = new THREE.Mesh(playerGeometry, playerMaterial);
+    player.position.y = 3;
+    player.rotation.z = Math.PI / 2;
 
     const fullRemote = `http://${status.devRemote}:${status.port}`;
     const socket = require('socket.io-client')(fullRemote);
@@ -233,9 +235,10 @@ class SceneWidget extends TUIOWidget {
       this.mansion.add(this.floorOne);
     });
 
-    socket.on(protocol.PLAYER_POSITION_UPDATE, (position) => {
+    socket.on(protocol.PLAYER_POSITION_UPDATE, (position, angle) => {
       player.position.x = position.x;
       player.position.z = position.y;
+      player.rotation.y = angle;
       if (!displayPlayer) {
         displayPlayer = true;
         this.mansion.add(player);
