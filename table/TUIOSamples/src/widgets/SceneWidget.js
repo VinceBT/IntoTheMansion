@@ -5,9 +5,9 @@ import { radToDeg } from 'tuiomanager/core/helpers';
 import * as THREE from 'three';
 import io from 'socket.io-client';
 import WindowResize from 'three-window-resize';
+import Protocol from '../Protocol';
 
 import status from '../../assets/status.json';
-import protocol from '../../assets/protocol.json';
 
 /**
  * Main class to manage SceneWidget.
@@ -182,9 +182,9 @@ class SceneWidget extends TUIOWidget {
     const fullRemote = `http://${status.devRemote}:${status.port}`;
     const socket = io(fullRemote);
 
-    socket.emit(protocol.REGISTER, 'TABLE');
+    socket.emit(Protocol.REGISTER, 'TABLE');
 
-    socket.emit(protocol.GET_MAP_DEBUG, (mapData) => {
+    socket.emit(Protocol.GET_MAPEBUG, (mapData) => {
       const mapHeight = mapData.terrain.height;
       const mapWidth = mapData.terrain.width;
 
@@ -236,7 +236,7 @@ class SceneWidget extends TUIOWidget {
       this.mansion.add(this.floorOne);
     });
 
-    socket.on(protocol.PLAYER_POSITION_UPDATE, (position, angle) => {
+    socket.on(Protocol.PLAYER_POSITION_UPDATE, (position, angle) => {
       player.position.x = position.x;
       player.position.z = position.y;
       player.rotation.y = angle;

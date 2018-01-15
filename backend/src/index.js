@@ -3,9 +3,9 @@
  */
 
 import status from '../assets/status.json';
-import protocol from '../assets/protocol.json';
 import mansionSample from '../assets/mansion_sample.json';
 import Mansion from './Mansion';
+import Protocol from './Protocol';
 
 const io = require('socket.io')();
 
@@ -19,20 +19,20 @@ io.on('connection', (socket) => {
   console.log(`New connection from ${socket.handshake.address}`);
 
   // HI
-  socket.on(protocol.HI, (callback) => {
-    console.log(`Received verb ${protocol.HI}`);
+  socket.on(Protocol.HI, (callback) => {
+    console.log(`Received verb ${Protocol.HI}`);
     callback();
   });
 
   // TEST
-  socket.on(protocol.TEST, (...args) => {
-    console.log(`Received verb ${protocol.TEST}`);
+  socket.on(Protocol.TEST, (...args) => {
+    console.log(`Received verb ${Protocol.TEST}`);
     console.log(args);
   });
 
   // REGISTER
-  socket.on(protocol.REGISTER, (type) => {
-    console.log(`Received verb ${protocol.REGISTER} with type ${JSON.stringify(type)}`);
+  socket.on(Protocol.REGISTER, (type) => {
+    console.log(`Received verb ${Protocol.REGISTER} with type ${JSON.stringify(type)}`);
     tablets.delete(socket);
     tables.delete(socket);
     vrs.delete(socket);
@@ -46,23 +46,23 @@ io.on('connection', (socket) => {
   });
 
   // GET_MAP_DEBUG
-  socket.on(protocol.GET_MAP_DEBUG, (callback) => {
-    console.log(`Received verb ${protocol.GET_MAP_DEBUG}`);
+  socket.on(Protocol.GET_MAP_DEBUG, (callback) => {
+    console.log(`Received verb ${Protocol.GET_MAP_DEBUG}`);
     callback(mansionSample);
   });
 
   // GET_MAP
-  socket.on(protocol.GET_MAP, (callback) => {
-    console.log(`Received verb ${protocol.GET_MAP}`);
+  socket.on(Protocol.GET_MAP, (callback) => {
+    console.log(`Received verb ${Protocol.GET_MAP}`);
     callback(mansion.rawData);
   });
 
   // PLAYER_POSITION_UPDATE
-  socket.on(protocol.PLAYER_POSITION_UPDATE, (position, angle) => {
-    console.log(`Received verb ${protocol.PLAYER_POSITION_UPDATE}`);
+  socket.on(Protocol.PLAYER_POSITION_UPDATE, (position, angle) => {
+    console.log(`Received verb ${Protocol.PLAYER_POSITION_UPDATE}`);
     console.log(position);
     Array.from(tables.values()).forEach(table => {
-      table.emit(protocol.PLAYER_POSITION_UPDATE, position, angle);
+      table.emit(Protocol.PLAYER_POSITION_UPDATE, position, angle);
     });
   });
 

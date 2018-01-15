@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import status from '../assets/status.json';
-import protocol from '../assets/protocol.json';
+import Protocol from '../src/Protocol';
 
 const fullRemote = `http://${status.devRemote}:${status.port}`;
 
@@ -32,29 +32,31 @@ describe(`${status.name} server testing`, () => {
   });
   describe('Basic communication', () => {
     it('should answer Hi back', (done) => {
-      socket.emit(protocol.HI, () => {
+      socket.emit(Protocol.HI, () => {
         done();
       });
     });
     it('should log [ 1, \'a\', {} ] in the server console', () => {
-      socket.emit(protocol.TEST, 1, 'a', {});
+      socket.emit(Protocol.TEST, 1, 'a', {});
     });
   });
   describe('Map communication', () => {
     it('should register as a TABLE', () => {
-      socket.emit(protocol.REGISTER, 'TABLE');
+      socket.emit(Protocol.REGISTER, 'TABLE');
     });
     it('should get a player position update request when sending player position', (done) => {
-      socket.once(protocol.PLAYER_POSITION_UPDATE, () => {
+      socket.once(Protocol.PLAYER_POSITION_UPDATE, () => {
         done();
       });
-      //Utilisation d'un angle par défaut pour l'instant
-      socket.emit(protocol.PLAYER_POSITION_UPDATE, { x: 3, y: 3, z: 3 }, 0.80);
+      // Utilisation d'un angle par défaut pour l'instant
+      socket.emit(Protocol.PLAYER_POSITION_UPDATE, { x: 3, y: 3, z: 3 }, { x: 0, y: 0, z: 0 });
     });
     it('should get the sample map back', (done) => {
-      socket.emit(protocol.GET_MAP, (map) => {
-        if (map) done();
-        else throw new Error('Map was not returned by the backend');
+      socket.emit(Protocol.GET_MAP, (map) => {
+        if (map)
+          done();
+        else
+          throw new Error('Map was not returned by the backend');
       });
     });
   });
