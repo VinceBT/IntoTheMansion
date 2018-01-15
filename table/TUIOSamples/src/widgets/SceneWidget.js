@@ -25,6 +25,9 @@ class SceneWidget extends TUIOWidget {
     super(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     this._lastTouchesValues = {};
     this._lastTagsValues = {};
+    this.raycaster = new THREE.Raycaster();
+    this.mouse = new THREE.Vector2();
+    this.simplePressed = false;
     this.buildScene();
   }
 
@@ -70,6 +73,11 @@ class SceneWidget extends TUIOWidget {
       const diffY = tuioTouch.y - lastTouchValue.y;
       const newX = this.x + diffX;
       const newY = this.y + diffY;
+      this.raycaster.setFromCamera(this.mouse, this.camera);
+      const intersects = this.raycaster.intersectObjects(this.scene.children);
+      for (const intersect of intersects) {
+        intersect.object.material.color.set(0xff0000);
+      }
       /*
       if (newX < 0) {
         newX = 0;
