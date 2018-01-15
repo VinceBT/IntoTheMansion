@@ -184,7 +184,7 @@ class SceneWidget extends TUIOWidget {
 
     socket.emit(Protocol.REGISTER, 'TABLE');
 
-    socket.emit(Protocol.GET_MAPEBUG, (mapData) => {
+    socket.emit(Protocol.GET_MAP_DEBUG, (mapData) => {
       const mapHeight = mapData.terrain.height;
       const mapWidth = mapData.terrain.width;
 
@@ -236,7 +236,7 @@ class SceneWidget extends TUIOWidget {
       this.mansion.add(this.floorOne);
     });
 
-    socket.on(protocol.PLAYER_POSITION_UPDATE, (data) => {
+    socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
       player.position.x = data.position.z;
       player.position.z = data.position.x;
 
