@@ -15,8 +15,6 @@ const vrs = new Set();
 
 const mansion = new Mansion();
 
-// https://www.npmjs.com/package/dungeon-generator
-
 io.on('connection', (socket) => {
   console.log(`New connection from ${socket.handshake.address}`);
 
@@ -34,9 +32,7 @@ io.on('connection', (socket) => {
 
   // REGISTER
   socket.on(protocol.REGISTER, (type) => {
-    console.log(`Received verb ${protocol.REGISTER} with type ${typeof type}`);
-    console.log('Details: ');
-    console.log(type);
+    console.log(`Received verb ${protocol.REGISTER} with type ${JSON.stringify(type)}`);
     tablets.delete(socket);
     tables.delete(socket);
     vrs.delete(socket);
@@ -44,7 +40,6 @@ io.on('connection', (socket) => {
       tablets.add(socket);
     else if (type === 'TABLE')
       tables.add(socket);
-
     else if (type.type === 'VR')
       vrs.add(socket);
     else console.error(`Received incorrect type ${type}`);

@@ -46,9 +46,13 @@ export default class Mansion {
       symmetric_rooms: true,
       interconnects: 1,
       max_interconnect_length: 1,
-      room_count: 50,
+      room_count: 20,
     });
-    floorDungeon.generate();
+    try {
+      floorDungeon.generate();
+    } catch (e) {
+      // Error
+    }
     // floorDungeon.print();
     const floorData = [];
     const floorSize = {

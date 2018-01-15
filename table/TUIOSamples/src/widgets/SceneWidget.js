@@ -3,6 +3,7 @@ import TUIOWidget from 'tuiomanager/core/TUIOWidget';
 import { WINDOW_HEIGHT, WINDOW_WIDTH } from 'tuiomanager/core/constants';
 import { radToDeg } from 'tuiomanager/core/helpers';
 import * as THREE from 'three';
+import io from 'socket.io-client';
 import WindowResize from 'three-window-resize';
 
 import status from '../../assets/status.json';
@@ -179,11 +180,11 @@ class SceneWidget extends TUIOWidget {
     player.rotation.z = Math.PI / 2;
 
     const fullRemote = `http://${status.devRemote}:${status.port}`;
-    const socket = require('socket.io-client')(fullRemote);
+    const socket = io(fullRemote);
 
     socket.emit(protocol.REGISTER, 'TABLE');
 
-    socket.emit(protocol.GET_MAP, (mapData) => {
+    socket.emit(protocol.GET_MAP_DEBUG, (mapData) => {
       const mapHeight = mapData.terrain.height;
       const mapWidth = mapData.terrain.width;
 
