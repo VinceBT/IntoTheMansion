@@ -49,6 +49,13 @@ class SceneWidget extends TUIOWidget {
   onTouchCreation(tuioTouch) {
     // console.log(tuioTouch.x, tuioTouch.y);
     super.onTouchCreation(tuioTouch);
+    this.mouse.x = ((tuioTouch.x / this.width) * 2) - 1;
+    this.mouse.y = -((tuioTouch.y / this.height) * 2) + 1;
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const intersects = this.raycaster.intersectObjects(this.walls.children);
+    for (const intersect of intersects) {
+      intersect.object.material.color.set(0xff0000);
+    }
     if (this.isTouched(tuioTouch.x, tuioTouch.y)) {
       this._lastTouchesValues = {
         ...this._lastTouchesValues,
@@ -73,11 +80,6 @@ class SceneWidget extends TUIOWidget {
       const diffY = tuioTouch.y - lastTouchValue.y;
       const newX = this.x + diffX;
       const newY = this.y + diffY;
-      this.raycaster.setFromCamera(this.mouse, this.camera);
-      const intersects = this.raycaster.intersectObjects(this.scene.children);
-      for (const intersect of intersects) {
-        intersect.object.material.color.set(0xff0000);
-      }
       /*
       if (newX < 0) {
         newX = 0;
@@ -93,7 +95,7 @@ class SceneWidget extends TUIOWidget {
         newY = WINDOW_HEIGHT - this.height;
       }
       */
-      this.moveTo(newX, newY);
+      // this.moveTo(newX, newY);
       this._lastTouchesValues = {
         ...this._lastTouchesValues,
         [tuioTouch.id]: {
@@ -220,7 +222,7 @@ class SceneWidget extends TUIOWidget {
         const posX = Math.floor(index % mapWidth);
         const posY = Math.floor(index / mapWidth);
         if (elt === 'W') {
-          const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+          const wall = new THREE.Mesh(wallGeometry, wallMaterial.clone());
           wall.position.x = posX;
           wall.position.z = posY;
           this.walls.add(wall);
