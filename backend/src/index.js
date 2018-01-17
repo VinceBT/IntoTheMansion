@@ -59,12 +59,21 @@ io.on('connection', (socket) => {
 
   // PLAYER_POSITION_UPDATE
   socket.on(Protocol.PLAYER_POSITION_UPDATE, (position, angle) => {
-    //console.log(`Received verb ${Protocol.PLAYER_POSITION_UPDATE}`);
-    //console.log(position);
+    console.log(`Received verb ${Protocol.PLAYER_POSITION_UPDATE}`);
+    console.log(position);
     Array.from(tables.values()).forEach(table => {
       table.emit(Protocol.PLAYER_POSITION_UPDATE, position, angle);
     });
   });
+
+  socket.on(Protocol.GHOST_POSITION_UPDATE, (position) => {
+    console.log(`Received verb ${Protocol.GHOST_POSITION_UPDATE}`);
+    console.log(position);
+
+    Array.from(tables.values()).forEach(table => {
+      table.emit(Protocol.GHOST_POSITION_UPDATE, position);
+    })
+  })
 
   socket.on(Protocol.DOOR_UPDATE, (data) => {
     console.log(`Received verb ${Protocol.DOOR_UPDATE}`);
