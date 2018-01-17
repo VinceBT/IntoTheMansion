@@ -10,7 +10,7 @@
     "start": "cross-env NODE_ENV=development nodemon src/index.js --exec babel-node",
     "devtool": "cross-env NODE_ENV=development nodemon src/index.js --exec devtool -r babel-register",
     "stop": "forever stopall --no-colors",
-    "test": "cross-env NODE_ENV=test mocha test/**/*.js -t 10000 --compilers js:babel-register --require babel-polyfill"
+    "test": "cross-env NODE_ENV=test mocha test/**/*.js -t 5000 --compilers js:babel-register --require babel-polyfill"
   },
   "dependencies": {
     "babel-polyfill": "^6.23.0",

@@ -4,59 +4,104 @@
  */
 
 import assert from 'assert';
-import status from '../assets/status.json';
+import io from 'socket.io-client';
+import serverStatus from '../assets/status.json';
 import Protocol from '../src/Protocol';
 
-const fullRemote = `http://${status.devRemote}:${status.port}`;
+const fullRemote = `http://${serverStatus.devRemote}:${serverStatus.port}`;
 
 console.log(`Connecting to ${fullRemote}`);
-const socket = require('socket.io-client')(fullRemote);
+const table = io(fullRemote);
+const tablet = io(fullRemote);
+const vr = io(fullRemote);
 
-socket.on('disconnect', () => {
-  console.log('Disconnected');
-});
+const generateProgress = (steps = 1, callback) => {
+  let currentStep = 0;
+  return () => {
+    if (++currentStep >= steps)
+      callback();
+  };
+};
 
 before((done) => {
   console.log('Before block initializing');
-  socket.on('connect', () => {
-    console.log(`Connnected to ${fullRemote}`);
+  const progress = generateProgress(3, () => {
     done();
+  });
+  table.on('connect', () => {
+    console.log(`Fake table connected to ${fullRemote}`);
+    progress();
+  });
+  tablet.on('connect', () => {
+    console.log(`Fake tablet connected to ${fullRemote}`);
+    progress();
+  });
+  vr.on('connect', () => {
+    console.log(`Fake VR connected to ${fullRemote}`);
+    progress();
   });
 });
 
-describe(`${status.name} server testing`, () => {
+describe(`${serverStatus.name} backend server`, () => {
   describe('Noop verify', () => {
     it('should compute a simple problem', () => {
       assert.equal([1, 2, 3].indexOf(4), -1);
     });
   });
   describe('Basic communication', () => {
-    it('should answer Hi back', (done) => {
-      socket.emit(Protocol.HI, () => {
+    it('should answer Hi back when sending Hi', (done) => {
+      table.once(Protocol.HI, () => {
+        done();
+      });
+      table.emit(Protocol.HI);
+    });
+    it('should log [ 1, \'a\', {}, Function ] in the server console and execute callback', (done) => {
+      table.emit(Protocol.TEST, 1, 'a', {}, () => {
         done();
       });
     });
-    it('should log [ 1, \'a\', {} ] in the server console', () => {
-      socket.emit(Protocol.TEST, 1, 'a', {});
+  });
+  describe('Component registration', () => {
+    it('should successfully register as a table', (done) => {
+      table.emit(Protocol.REGISTER, 'TABLE', (status) => {
+        if (status.success)
+          done();
+        else throw new Error(status.error);
+      });
+    });
+    it('should successfully register as a tablet', (done) => {
+      tablet.emit(Protocol.REGISTER, 'TABLET', (status) => {
+        if (status.success)
+          done();
+        else throw new Error(status.error);
+      });
+    });
+    it('should successfully register as a VR headset', (done) => {
+      vr.emit(Protocol.REGISTER, { type: 'VR' }, (status) => {
+        if (status.success)
+          done();
+        else throw new Error(status.error);
+      });
     });
   });
   describe('Map communication', () => {
-    it('should register as a TABLE', () => {
-      socket.emit(Protocol.REGISTER, 'TABLE');
-    });
-    it('should get a player position update request when sending player position', (done) => {
-      socket.once(Protocol.PLAYER_POSITION_UPDATE, () => {
+    it('should send the table and the tablet a position update when receiving one from the VR', (done) => {
+      const progress = generateProgress(2, () => {
         done();
       });
-      // Utilisation d'un angle par défaut pour l'instant
-      socket.emit(Protocol.PLAYER_POSITION_UPDATE, { x: 3, y: 3, z: 3 }, { x: 0, y: 0, z: 0 });
+      table.once(Protocol.PLAYER_POSITION_UPDATE, () => {
+        progress();
+      });
+      tablet.once(Protocol.PLAYER_POSITION_UPDATE, () => {
+        progress();
+      });
+      vr.emit(Protocol.PLAYER_POSITION_UPDATE, { x: 3, y: 3, z: 3 }, { x: 0, y: 0, z: 0 });
     });
     it('should get the sample map back', (done) => {
-      socket.emit(Protocol.GET_MAP, (map) => {
+      table.emit(Protocol.GET_MAP, (map) => {
         if (map)
           done();
-        else
-          throw new Error('Map was not returned by the backend');
+        else throw new Error('Map was not returned by the backend');
       });
     });
   });

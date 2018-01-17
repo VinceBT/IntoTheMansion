@@ -54,6 +54,7 @@ class SceneWidget extends TUIOWidget {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.raycaster.intersectObjects(this.walls.children);
     for (const intersect of intersects) {
+      console.log(intersect)
       intersect.object.material.color.set(0xff0000);
     }
     if (this.isTouched(tuioTouch.x, tuioTouch.y)) {

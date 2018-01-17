@@ -2,7 +2,7 @@
  * IntoTheMansion Restify backend
  */
 
-import status from '../assets/status.json';
+import serverStatus from '../assets/status.json';
 import mansionSample from '../assets/mansion_sample.json';
 import Mansion from './Mansion';
 import Protocol from './Protocol';
@@ -13,6 +13,12 @@ const tablets = new Set();
 const tables = new Set();
 const vrs = new Set();
 
+const emitTo = (set, ...args) => {
+  Array.from(set.values()).forEach(socket => {
+    socket.emit(...args);
+  });
+};
+
 const mansion = new Mansion();
 
 io.on('connection', (socket) => {
@@ -21,28 +27,37 @@ io.on('connection', (socket) => {
   // HI
   socket.on(Protocol.HI, (callback) => {
     console.log(`Received verb ${Protocol.HI}`);
-    callback();
+    socket.emit(Protocol.HI);
+    if (callback) callback();
   });
 
   // TEST
   socket.on(Protocol.TEST, (...args) => {
     console.log(`Received verb ${Protocol.TEST}`);
     console.log(args);
+    args.forEach((arg) => {
+      if (typeof arg === 'function') arg();
+    });
   });
 
   // REGISTER
-  socket.on(Protocol.REGISTER, (type) => {
+  socket.on(Protocol.REGISTER, (type, done) => {
     console.log(`Received verb ${Protocol.REGISTER} with type ${JSON.stringify(type)}`);
     tablets.delete(socket);
     tables.delete(socket);
     vrs.delete(socket);
-    if (type === 'TABLET')
+    console.log(done);
+    if (type === 'TABLET') {
       tablets.add(socket);
-    else if (type === 'TABLE')
+    } else if (type === 'TABLE') {
       tables.add(socket);
-    else if (type.type === 'VR')
+    } else if (type.type === 'VR') {
       vrs.add(socket);
-    else console.error(`Received incorrect type ${type}`);
+    } else {
+      if (done) done({ success: false, error: `Received incorrect type ${type}` });
+      return;
+    }
+    if (done) done({ success: true });
   });
 
   // GET_MAP_DEBUG
@@ -60,29 +75,22 @@ io.on('connection', (socket) => {
   // PLAYER_POSITION_UPDATE
   socket.on(Protocol.PLAYER_POSITION_UPDATE, (position, angle) => {
     console.log(`Received verb ${Protocol.PLAYER_POSITION_UPDATE}`);
-    console.log(position);
-    Array.from(tables.values()).forEach(table => {
-      table.emit(Protocol.PLAYER_POSITION_UPDATE, position, angle);
-    });
+    const args = [Protocol.PLAYER_POSITION_UPDATE, position, angle];
+    emitTo(tables, ...args);
+    emitTo(tablets, ...args);
   });
 
+  // GHOST_POSITION_UPDATE
   socket.on(Protocol.GHOST_POSITION_UPDATE, (position) => {
     console.log(`Received verb ${Protocol.GHOST_POSITION_UPDATE}`);
-    console.log(position);
+    emitTo(tables, Protocol.GHOST_POSITION_UPDATE, position);
+  });
 
-    Array.from(tables.values()).forEach(table => {
-      table.emit(Protocol.GHOST_POSITION_UPDATE, position);
-    })
-  })
-
+  // DOOR_UPDATE
   socket.on(Protocol.DOOR_UPDATE, (data) => {
     console.log(`Received verb ${Protocol.DOOR_UPDATE}`);
-    console.log(data);
-
-    Array.from(tables.values()).forEach(table => {
-      table.emit(Protocol.DOOR_UPDATE, data);
-    })
-  })
+    emitTo(tables, Protocol.DOOR_UPDATE, data);
+  });
 
   // DISCONNECTION
   socket.once('disconnect', () => {
@@ -93,5 +101,5 @@ io.on('connection', (socket) => {
   });
 });
 
-io.listen(status.port);
-console.log(`${status.name} server listening at ${status.devRemote}:${status.port}`);
+io.listen(serverStatus.port);
+console.log(`${serverStatus.name} server listening at ${serverStatus.devRemote}:${serverStatus.port}`);
