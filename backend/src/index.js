@@ -67,7 +67,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on(Protocol.GHOST_POSITION_UPDATE, (position) => {
-    console.log(`Received verb ${Protocol.GHOST_POSITION_UPDATE}`);
+   console.log(`Received verb ${Protocol.GHOST_POSITION_UPDATE}`);
     console.log(position);
 
     Array.from(tables.values()).forEach(table => {
@@ -81,6 +81,24 @@ io.on('connection', (socket) => {
 
     Array.from(tables.values()).forEach(table => {
       table.emit(Protocol.DOOR_UPDATE, data);
+    })
+  })
+
+  socket.on(Protocol.GAME_OVER, (data)=>{
+    console.log(`Received verb ${Protocol.GAME_OVER}`);
+    console.log(data);
+
+    Array.from(tables.values()).forEach(table => {
+      table.emit(Protocol.GAME_OVER, data);
+    })
+  })
+
+  socket.on(Protocol.TRAP_TRIGGERED, (data)=>{
+    console.log(`Received verb ${Protocol.TRAP_TRIGGERED}`);
+    console.log(data);
+
+    Array.from(tables.values()).forEach(table => {
+      table.emit(Protocol.TRAP_TRIGGERED, data);
     })
   })
 
