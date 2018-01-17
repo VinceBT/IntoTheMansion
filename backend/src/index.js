@@ -66,6 +66,24 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on(Protocol.GHOST_POSITION_UPDATE, (position) => {
+    console.log(`Received verb ${Protocol.GHOST_POSITION_UPDATE}`);
+    console.log(position);
+
+    Array.from(tables.values()).forEach(table => {
+      table.emit(Protocol.GHOST_POSITION_UPDATE, position);
+    })
+  })
+
+  socket.on(Protocol.DOOR_UPDATE, (data) => {
+    console.log(`Received verb ${Protocol.DOOR_UPDATE}`);
+    console.log(data);
+
+    Array.from(tables.values()).forEach(table => {
+      table.emit(Protocol.DOOR_UPDATE, data);
+    })
+  })
+
   // DISCONNECTION
   socket.once('disconnect', () => {
     tablets.delete(socket);
