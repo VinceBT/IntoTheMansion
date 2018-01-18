@@ -85,7 +85,21 @@ describe(`${serverStatus.name} backend server`, () => {
     });
   });
   describe('Map communication', () => {
-    it('should send the table and the tablet a position update when receiving one from the VR', (done) => {
+    it('should get the sample map back', (done) => {
+      table.emit(Protocol.GET_MAP_DEBUG, (map) => {
+        if (map)
+          done();
+        else throw new Error('Map was not returned by the backend');
+      });
+    });
+    it('should get the generated map back', (done) => {
+      table.emit(Protocol.GET_MAP, (map) => {
+        if (map)
+          done();
+        else throw new Error('Map was not returned by the backend');
+      });
+    });
+    it('should send the table and the tablet a player position update when receiving one from the VR', (done) => {
       const progress = generateProgress(2, () => {
         done();
       });
@@ -95,14 +109,19 @@ describe(`${serverStatus.name} backend server`, () => {
       tablet.once(Protocol.PLAYER_POSITION_UPDATE, () => {
         progress();
       });
-      vr.emit(Protocol.PLAYER_POSITION_UPDATE, { x: 3, y: 3, z: 3 }, { x: 0, y: 0, z: 0 });
+      vr.emit(Protocol.PLAYER_POSITION_UPDATE, { position: { x: 3, y: 3, z: 3 }, rotation: { x: 0, y: 0, z: 0 } });
     });
-    it('should get the sample map back', (done) => {
-      table.emit(Protocol.GET_MAP, (map) => {
-        if (map)
-          done();
-        else throw new Error('Map was not returned by the backend');
+    it('should send the table and the tablet a ghost position update when receiving one from the VR', (done) => {
+      const progress = generateProgress(2, () => {
+        done();
       });
+      table.once(Protocol.GHOST_POSITION_UPDATE, () => {
+        progress();
+      });
+      tablet.once(Protocol.GHOST_POSITION_UPDATE, () => {
+        progress();
+      });
+      vr.emit(Protocol.GHOST_POSITION_UPDATE, { position: { x: 4, y: 3, z: 3 }, rotation: { x: 0, y: 0, z: 0 } });
     });
   });
 });

@@ -46,7 +46,6 @@ io.on('connection', (socket) => {
     tablets.delete(socket);
     tables.delete(socket);
     vrs.delete(socket);
-    console.log(done);
     if (type === 'TABLET') {
       tablets.add(socket);
     } else if (type === 'TABLE') {
@@ -73,17 +72,17 @@ io.on('connection', (socket) => {
   });
 
   // PLAYER_POSITION_UPDATE
-  socket.on(Protocol.PLAYER_POSITION_UPDATE, (position, angle) => {
+  socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
     console.log(`Received verb ${Protocol.PLAYER_POSITION_UPDATE}`);
-    const args = [Protocol.PLAYER_POSITION_UPDATE, position, angle];
-    emitTo(tables, ...args);
-    emitTo(tablets, ...args);
+    emitTo(tables, Protocol.PLAYER_POSITION_UPDATE, data);
+    emitTo(tablets, Protocol.PLAYER_POSITION_UPDATE, data);
   });
 
   // GHOST_POSITION_UPDATE
-  socket.on(Protocol.GHOST_POSITION_UPDATE, (position) => {
+  socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
     console.log(`Received verb ${Protocol.GHOST_POSITION_UPDATE}`);
-    emitTo(tables, Protocol.GHOST_POSITION_UPDATE, position);
+    emitTo(tables, Protocol.GHOST_POSITION_UPDATE, data);
+    emitTo(tablets, Protocol.GHOST_POSITION_UPDATE, data);
   });
 
   // DOOR_UPDATE

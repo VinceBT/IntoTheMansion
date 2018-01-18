@@ -184,11 +184,18 @@ class SceneWidget extends TUIOWidget {
 
   buildScene() {
     let displayPlayer = false;
+    let displayGhost = false;
     const playerGeometry = new THREE.ConeGeometry(0.5, 2, 8);
     const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
     const player = new THREE.Mesh(playerGeometry, playerMaterial);
     player.position.y = 3;
     player.rotation.z = Math.PI / 2;
+
+    const ghostGeometry = new THREE.ConeGeometry(0.5, 2, 8);
+    const ghostMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const ghost = new THREE.Mesh(ghostGeometry, ghostMaterial);
+    ghost.position.y = 3;
+    ghost.rotation.z = Math.PI / 2;
 
     const fullRemote = `http://${status.devRemote}:${status.port}`;
     const socket = io(fullRemote);
@@ -239,25 +246,29 @@ class SceneWidget extends TUIOWidget {
           this.doors.add(door);
         }
       });
-
       this.floorOne.add(this.walls);
       this.floorOne.add(this.floors);
       this.floorOne.add(this.doors);
-
       this.mansion.add(this.floorOne);
     });
 
     socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
       player.position.x = data.position.z;
       player.position.z = data.position.x;
-
       player.rotation.y = -data.rotation.y;
-
-
-     // console.log(data.rotation.y);
       if (!displayPlayer) {
         displayPlayer = true;
         this.mansion.add(player);
+      }
+    });
+
+    socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
+      ghost.position.x = data.position.z;
+      ghost.position.z = data.position.x;
+      ghost.rotation.y = -data.rotation.y;
+      if (!displayGhost) {
+        displayGhost = true;
+        this.mansion.add(ghost);
       }
     });
 
