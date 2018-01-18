@@ -21,7 +21,8 @@
     "three": "^0.89.0",
     "three-window-resize": "^1.0.4",
     "throttle-debounce": "^1.0.1",
-    "tuiomanager": "^1.2.3"
+    "tuiomanager": "^1.2.3",
+    "tween.js": "^16.6.0"
   },
   "devDependencies": {
     "babel-cli": "6.18.0",

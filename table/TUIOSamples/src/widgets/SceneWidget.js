@@ -6,6 +6,12 @@ import WindowResize from 'three-window-resize';
 import debounce from 'throttle-debounce/debounce';
 
 import Protocol from '../Protocol';
+import { cunlerp } from '../utils';
+
+const trapGeometry = new THREE.BoxGeometry(1, 2, 1);
+const trapMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+const GHOST_RANGE_SIZE = 5;
 
 /**
  * Main class to manage SceneWidget.
@@ -164,8 +170,27 @@ class SceneWidget extends TUIOWidget {
     }
   }
 
+  onTagDeletion(tuioTagId) {
+    super.onTagDeletion(tuioTagId);
+    console.log(`Tag deleted (id: ${tuioTagId})`);
+    if (this.trapTags.has(tuioTagId)) {
+      const trap = this.trapTags.get(tuioTagId);
+      this.trapTags.delete(tuioTagId);
+      console.log(trap)
+      this.scene.remove(trap);
+    }
+  }
+
   handleTagMove = debounce(500, (tuioTag) => {
-    console.log('Tag released');
+    console.log(`Tag released (id: ${tuioTag.id})`);
+    let trap;
+    if (this.trapTags.has(tuioTag.id)) {
+      trap = this.trapTags.get(tuioTag.id);
+    } else {
+      trap = new THREE.Mesh(trapGeometry, trapMaterial);
+      this.scene.add(trap);
+      this.trapTags.set(tuioTag.id, trap);
+    }
     const viewPortCoord = new THREE.Vector2(
       ((tuioTag.x / this.width) * 2) - 1,
       -((tuioTag.y / this.height) * 2) + 1,
@@ -174,20 +199,13 @@ class SceneWidget extends TUIOWidget {
     const intersects = this.raycaster.intersectObjects(this.floors.children);
     console.log(intersects.length);
     if (intersects.length !== 0) {
-      console.log(3);
       const intersect = intersects[0];
-      const trapGeometry = new THREE.BoxGeometry(1, 2, 1);
-      const trapMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-      const trap = new THREE.Mesh(trapGeometry, trapMaterial);
       const flooredPosition = new THREE.Vector3(
         Math.floor(intersect.point.x),
         Math.floor(intersect.point.y),
         Math.floor(intersect.point.z),
       );
       trap.position.copy(flooredPosition);
-      console.log(flooredPosition);
-      this.scene.add(trap);
-      console.log(trap);
       this.socket.emit(Protocol.CREATE_TRAP, {
         x: flooredPosition.x,
         y: flooredPosition.y,
@@ -197,19 +215,31 @@ class SceneWidget extends TUIOWidget {
   });
 
   buildScene() {
-    let displayPlayer = false;
-    let displayGhost = false;
     const playerGeometry = new THREE.ConeGeometry(0.5, 2, 8);
-    const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+    const playerMaterial = new THREE.MeshBasicMaterial({
+      color: 0x00ffff,
+      opacity: 0,
+      transparent: true,
+    });
     const player = new THREE.Mesh(playerGeometry, playerMaterial);
     player.position.y = 3;
     player.rotation.z = Math.PI / 2;
 
     const ghostGeometry = new THREE.ConeGeometry(0.5, 2, 8);
-    const ghostMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const ghostMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     const ghost = new THREE.Mesh(ghostGeometry, ghostMaterial);
     ghost.position.y = 3;
     ghost.rotation.z = Math.PI / 2;
+
+    const ghostRangeGeometry = new THREE.CircleGeometry(GHOST_RANGE_SIZE, 16);
+    const ghostRangeMaterial = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+      opacity: 0.1,
+      transparent: true,
+      side: THREE.DoubleSide,
+    });
+    const ghostRange = new THREE.Mesh(ghostRangeGeometry, ghostRangeMaterial);
+    ghostRange.rotation.x = -Math.PI / 2;
 
     this.socket.emit(Protocol.REGISTER, 'TABLE');
 
@@ -229,6 +259,7 @@ class SceneWidget extends TUIOWidget {
       this.doors = new THREE.Group();
 
       const wallGeometry = new THREE.BoxGeometry(1, 5, 1);
+      // const texture = new THREE.TextureLoader().load('assets/lava_brick.jpg');
       const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
       const carpetGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -264,29 +295,26 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
-      player.position.x = data.position.z;
-      player.position.z = data.position.x;
+      player.position.x = data.position.x;
+      player.position.z = data.position.z;
       player.rotation.y = -data.rotation.y;
-      if (!displayPlayer) {
-        displayPlayer = true;
-        this.mansion.add(player);
-      }
+      this.mansion.add(player);
     });
 
     this.socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
-      ghost.position.x = data.position.z;
-      ghost.position.z = data.position.x;
+      ghost.position.x = data.position.x;
+      ghost.position.z = data.position.z;
+      ghostRange.position.copy(ghost.position);
       ghost.rotation.y = -data.rotation.y;
-      if (!displayGhost) {
-        displayGhost = true;
+      if (ghost.parent === null) {
         this.mansion.add(ghost);
+        this.mansion.add(ghostRange);
       }
     });
 
     const animate = () => {
       requestAnimationFrame(animate);
-      // this.camera.position.y += 0.02;
-      // this.floorOne.rotation.y += 0.01;
+      playerMaterial.opacity = 1 - cunlerp(GHOST_RANGE_SIZE - 2, GHOST_RANGE_SIZE, ghost.position.distanceTo(player.position));
       this.renderer.render(this.scene, this.camera);
     };
 
