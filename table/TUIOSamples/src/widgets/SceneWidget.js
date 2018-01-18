@@ -264,8 +264,8 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
-      player.position.x = data.position.z;
-      player.position.z = data.position.x;
+      player.position.x = data.position.x;
+      player.position.z = data.position.z;
       player.rotation.y = -data.rotation.y;
       if (!displayPlayer) {
         displayPlayer = true;
@@ -274,8 +274,8 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
-      ghost.position.x = data.position.z;
-      ghost.position.z = data.position.x;
+      ghost.position.x = data.position.x;
+      ghost.position.z = data.position.z;
       ghost.rotation.y = -data.rotation.y;
       if (!displayGhost) {
         displayGhost = true;
