@@ -1,4 +1,4 @@
-package com.intothemantion;
+package com.IntoTheMansion;
 
 import com.facebook.react.ReactActivity;
 
@@ -10,6 +10,6 @@ public class MainActivity extends ReactActivity {
      */
     @Override
     protected String getMainComponentName() {
-        return "IntoTheMantion";
+        return "IntoTheMansion";
     }
 }

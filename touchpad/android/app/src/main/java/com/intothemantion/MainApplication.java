@@ -1,4 +1,4 @@
-package com.intothemantion;
+package com.IntoTheMansion;
 
 import android.app.Application;
 

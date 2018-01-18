@@ -29,9 +29,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-               BuildableName = "IntoTheMantion-tvOS.app"
-               BlueprintName = "IntoTheMantion-tvOS"
-               ReferencedContainer = "container:IntoTheMantion.xcodeproj">
+               BuildableName = "IntoTheMansion-tvOS.app"
+               BlueprintName = "IntoTheMansion-tvOS"
+               ReferencedContainer = "container:IntoTheMansion.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -43,9 +43,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2D02E48F1E0B4A5D006451C7"
-               BuildableName = "IntoTheMantion-tvOSTests.xctest"
-               BlueprintName = "IntoTheMantion-tvOSTests"
-               ReferencedContainer = "container:IntoTheMantion.xcodeproj">
+               BuildableName = "IntoTheMansion-tvOSTests.xctest"
+               BlueprintName = "IntoTheMansion-tvOSTests"
+               ReferencedContainer = "container:IntoTheMansion.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -61,9 +61,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2D02E48F1E0B4A5D006451C7"
-               BuildableName = "IntoTheMantion-tvOSTests.xctest"
-               BlueprintName = "IntoTheMantion-tvOSTests"
-               ReferencedContainer = "container:IntoTheMantion.xcodeproj">
+               BuildableName = "IntoTheMansion-tvOSTests.xctest"
+               BlueprintName = "IntoTheMansion-tvOSTests"
+               ReferencedContainer = "container:IntoTheMansion.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -71,9 +71,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-            BuildableName = "IntoTheMantion-tvOS.app"
-            BlueprintName = "IntoTheMantion-tvOS"
-            ReferencedContainer = "container:IntoTheMantion.xcodeproj">
+            BuildableName = "IntoTheMansion-tvOS.app"
+            BlueprintName = "IntoTheMansion-tvOS"
+            ReferencedContainer = "container:IntoTheMansion.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -94,9 +94,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-            BuildableName = "IntoTheMantion-tvOS.app"
-            BlueprintName = "IntoTheMantion-tvOS"
-            ReferencedContainer = "container:IntoTheMantion.xcodeproj">
+            BuildableName = "IntoTheMansion-tvOS.app"
+            BlueprintName = "IntoTheMansion-tvOS"
+            ReferencedContainer = "container:IntoTheMansion.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -113,9 +113,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-            BuildableName = "IntoTheMantion-tvOS.app"
-            BlueprintName = "IntoTheMantion-tvOS"
-            ReferencedContainer = "container:IntoTheMantion.xcodeproj">
+            BuildableName = "IntoTheMansion-tvOS.app"
+            BlueprintName = "IntoTheMansion-tvOS"
+            ReferencedContainer = "container:IntoTheMansion.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
