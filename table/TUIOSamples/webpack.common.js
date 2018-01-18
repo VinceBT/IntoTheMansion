@@ -27,7 +27,7 @@ const copyWebpackPluginInstance = new CopyWebpackPlugin(
   {
     copyUnmodified: false,
     debug: 'debug',
-  }
+  },
 );
 
 module.exports = () => (
@@ -62,31 +62,22 @@ module.exports = () => (
           loader: combineLoaders([
             {
               loader: 'babel-loader',
-              query: {
-                babelrc: false,
-                presets: [
-                  'es2015',
-                ].map(dep => require.resolve(`babel-preset-${dep}`)),
-                plugins: [
-                  'transform-object-rest-spread',
-                ].map(dep => require.resolve(`babel-plugin-${dep}`)),
-              },
             },
-            /*{
+            /* {
               loader: 'eslint-loader',
             },*/
           ]),
-          include: includePaths
+          include: includePaths,
         },
         {
           test: /\.json$/,
-          loader: 'json-loader'
-        }
+          loader: 'json-loader',
+        },
       ],
     },
     plugins: [
       htmlWebpackPluginInstance,
-      copyWebpackPluginInstance
-    ]
+      copyWebpackPluginInstance,
+    ],
   }
 );

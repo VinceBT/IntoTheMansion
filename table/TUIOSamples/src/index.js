@@ -1,12 +1,17 @@
 import $ from 'jquery/dist/jquery.min';
 import TUIOManager from 'tuiomanager/core/TUIOManager';
+import io from "socket.io-client";
 import SceneWidget from './widgets/SceneWidget';
+import status from '../assets/status.json';
+
 
 const tuioManager = new TUIOManager();
 tuioManager.start();
 
-const $app = $('#app');
+const fullRemote = `http://${status.devRemote}:${status.port}`;
+const socket = io(fullRemote);
 
+const $app = $('#app');
 let widgets = [];
 
 const addWidget = (widget) => {
@@ -23,7 +28,7 @@ const removeWidgets = () => {
 };
 
 const buildApp = () => {
-  const sceneWidget = new SceneWidget();
+  const sceneWidget = new SceneWidget(socket);
   addWidget(sceneWidget);
 };
 

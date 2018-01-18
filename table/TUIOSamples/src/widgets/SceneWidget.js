@@ -1,13 +1,11 @@
 import $ from 'jquery/dist/jquery.min';
 import TUIOWidget from 'tuiomanager/core/TUIOWidget';
 import { WINDOW_HEIGHT, WINDOW_WIDTH } from 'tuiomanager/core/constants';
-import { radToDeg } from 'tuiomanager/core/helpers';
 import * as THREE from 'three';
-import io from 'socket.io-client';
 import WindowResize from 'three-window-resize';
-import Protocol from '../Protocol';
+import debounce from 'throttle-debounce/debounce';
 
-import status from '../../assets/status.json';
+import Protocol from '../Protocol';
 
 /**
  * Main class to manage SceneWidget.
@@ -21,12 +19,13 @@ class SceneWidget extends TUIOWidget {
    *
    * @constructor
    */
-  constructor() {
+  constructor(socket) {
     super(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    this.socket = socket;
     this._lastTouchesValues = {};
     this._lastTagsValues = {};
     this.raycaster = new THREE.Raycaster();
-    this.mouse = new THREE.Vector2();
+    this.trapTags = new Map();
     this.simplePressed = false;
     this.buildScene();
   }
@@ -47,16 +46,19 @@ class SceneWidget extends TUIOWidget {
    * @param {TUIOTouch} tuioTouch - A TUIOTouch instance.
    */
   onTouchCreation(tuioTouch) {
-    // console.log(tuioTouch.x, tuioTouch.y);
     super.onTouchCreation(tuioTouch);
-    this.mouse.x = ((tuioTouch.x / this.width) * 2) - 1;
-    this.mouse.y = -((tuioTouch.y / this.height) * 2) + 1;
-    this.raycaster.setFromCamera(this.mouse, this.camera);
+    /*
+    const viewPortCoord = new THREE.Vector2(
+      ((tuioTouch.x / this.width) * 2) - 1,
+      -((tuioTouch.y / this.height) * 2) + 1,
+    );
+    this.raycaster.setFromCamera(viewPortCoord, this.camera);
     const intersects = this.raycaster.intersectObjects(this.walls.children);
     for (const intersect of intersects) {
       console.log(intersect)
       intersect.object.material.color.set(0xff0000);
     }
+    */
     if (this.isTouched(tuioTouch.x, tuioTouch.y)) {
       this._lastTouchesValues = {
         ...this._lastTouchesValues,
@@ -76,12 +78,12 @@ class SceneWidget extends TUIOWidget {
    */
   onTouchUpdate(tuioTouch) {
     if (typeof (this._lastTouchesValues[tuioTouch.id]) !== 'undefined') {
+      /*
       const lastTouchValue = this._lastTouchesValues[tuioTouch.id];
       const diffX = tuioTouch.x - lastTouchValue.x;
       const diffY = tuioTouch.y - lastTouchValue.y;
       const newX = this.x + diffX;
       const newY = this.y + diffY;
-      /*
       if (newX < 0) {
         newX = 0;
       }
@@ -96,7 +98,6 @@ class SceneWidget extends TUIOWidget {
         newY = WINDOW_HEIGHT - this.height;
       }
       */
-      // this.moveTo(newX, newY);
       this._lastTouchesValues = {
         ...this._lastTouchesValues,
         [tuioTouch.id]: {
@@ -115,6 +116,7 @@ class SceneWidget extends TUIOWidget {
    */
   onTagCreation(tuioTag) {
     super.onTagCreation(tuioTag);
+    this.handleTagMove(tuioTag);
     if (this.isTouched(tuioTag.x, tuioTag.y)) {
       this._lastTagsValues = {
         ...this._lastTagsValues,
@@ -151,7 +153,7 @@ class SceneWidget extends TUIOWidget {
       if (newY > (WINDOW_HEIGHT - this.height)) {
         newY = WINDOW_HEIGHT - this.height;
       }
-      this.moveTo(newX, newY, radToDeg(tuioTag.angle));
+      this.handleTagMove(tuioTag);
       this._lastTagsValues = {
         ...this._lastTagsValues,
         [tuioTag.id]: {
@@ -162,25 +164,37 @@ class SceneWidget extends TUIOWidget {
     }
   }
 
-  /**
-   * Move SceneWidget.
-   *
-   * @method moveTo
-   * @param {string/number} x - New SceneWidget's abscissa.
-   * @param {string/number} y - New SceneWidget's ordinate.
-   * @param {number} angle - New SceneWidget's angle.
-   */
-  moveTo(x, y, angle = null) {
-    this._x = x;
-    this._y = y;
-    if (this.camera) {
-      this.camera.position.x = x;
-      this.camera.position.z = y;
+  handleTagMove = debounce(500, (tuioTag) => {
+    console.log('Tag released');
+    const viewPortCoord = new THREE.Vector2(
+      ((tuioTag.x / this.width) * 2) - 1,
+      -((tuioTag.y / this.height) * 2) + 1,
+    );
+    this.raycaster.setFromCamera(viewPortCoord, this.camera);
+    const intersects = this.raycaster.intersectObjects(this.floors.children);
+    console.log(intersects.length);
+    if (intersects.length !== 0) {
+      console.log(3);
+      const intersect = intersects[0];
+      const trapGeometry = new THREE.BoxGeometry(1, 2, 1);
+      const trapMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+      const trap = new THREE.Mesh(trapGeometry, trapMaterial);
+      const flooredPosition = new THREE.Vector3(
+        Math.floor(intersect.point.x),
+        Math.floor(intersect.point.y),
+        Math.floor(intersect.point.z),
+      );
+      trap.position.copy(flooredPosition);
+      console.log(flooredPosition);
+      this.scene.add(trap);
+      console.log(trap);
+      this.socket.emit(Protocol.CREATE_TRAP, {
+        x: flooredPosition.x,
+        y: flooredPosition.y,
+        z: flooredPosition.z,
+      }, 'DeathTrap');
     }
-    if (angle !== null) {
-      // this._domElem.css('transform', `rotate(${angle}deg)`);
-    }
-  }
+  });
 
   buildScene() {
     let displayPlayer = false;
@@ -197,12 +211,9 @@ class SceneWidget extends TUIOWidget {
     ghost.position.y = 3;
     ghost.rotation.z = Math.PI / 2;
 
-    const fullRemote = `http://${status.devRemote}:${status.port}`;
-    const socket = io(fullRemote);
+    this.socket.emit(Protocol.REGISTER, 'TABLE');
 
-    socket.emit(Protocol.REGISTER, 'TABLE');
-
-    socket.emit(Protocol.GET_MAP_DEBUG, (mapData) => {
+    this.socket.emit(Protocol.GET_MAP_DEBUG, (mapData) => {
       const mapHeight = mapData.terrain.height;
       const mapWidth = mapData.terrain.width;
 
@@ -252,7 +263,7 @@ class SceneWidget extends TUIOWidget {
       this.mansion.add(this.floorOne);
     });
 
-    socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
+    this.socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
       player.position.x = data.position.z;
       player.position.z = data.position.x;
       player.rotation.y = -data.rotation.y;
@@ -262,7 +273,7 @@ class SceneWidget extends TUIOWidget {
       }
     });
 
-    socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
+    this.socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
       ghost.position.x = data.position.z;
       ghost.position.z = data.position.x;
       ghost.rotation.y = -data.rotation.y;
