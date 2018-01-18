@@ -1,0 +1,30 @@
+{
+  "name": "IntoTheMantion",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "adb-packager": "adb reverse tcp:8081 tcp:8081",
+    "adb-backend": "adb reverse tcp:8080 tcp:8080",
+    "android": "cd android && ./gradlew clean && cd .. && react-native run-android",
+    "test": "jest"
+  },
+  "dependencies": {
+    "react": "16.2.0",
+    "react-native": "0.52.0",
+    "react-native-canvas": "^0.1.20",
+    "react-native-game-engine": "^0.8.1",
+    "react-timer-mixin": "^0.13.3",
+    "socket.io": "^2.0.4",
+    "socket.io-client": "^2.0.4"
+  },
+  "devDependencies": {
+    "babel-jest": "22.0.6",
+    "babel-preset-react-native": "4.0.0",
+    "jest": "22.0.6",
+    "react-test-renderer": "16.2.0"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
