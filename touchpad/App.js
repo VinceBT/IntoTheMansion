@@ -26,20 +26,20 @@ export default class App extends Component<{}> {
       super(props);
       this.client = new Client("http://localhost:8080");
       this.model = new Model(this.client);
+      this.ctx;
+
     }
 
 
     _onPressButton = () => {
-        this.client.init();
+        this.model.init();
+        this.model.addRenderer(this.canvas);
     }
 
     handleCanvas = (canvas) => {
-        canvas.width = Dimensions.get('window').width;
-        canvas.height = Dimensions.get('window').height;
-        ctx = canvas.getContext('2d');
-        this.model.addRenderer(ctx);
-        ctx.fillStyle = 'purple';
-        ctx.fillRect(0,0,Dimensions.get('window').width,Dimensions.get('window').height);
+        this.canvas = canvas;
+        this.canvas.height = Dimensions.get('window').height;
+        this.canvas.width = Dimensions.get('window').width;
     }
 
   render() {
@@ -47,8 +47,7 @@ export default class App extends Component<{}> {
         <View style={styles.container}>
             <View style={styles.canvas}>
                 <Canvas ref={this.handleCanvas}/>
-                <GameLoop style={styles.container} onUpdate={this.model.update}>
-                </GameLoop>
+
             </View>
             <View style={styles.buttonContainer}>
                 <Button
@@ -76,10 +75,13 @@ const styles = StyleSheet.create({
     },
     canvas: {
         ...full,
-        backgroundColor:"blue",
+        backgroundColor:"black",
         flex: 1
     },
+
     buttonContainer: {
-        margin: 20
+        position:"absolute",
+        margin: 20,
+        bottom:20
     }
 })

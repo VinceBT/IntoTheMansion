@@ -2,35 +2,59 @@ import React from 'react';
 import {Dimensions} from "react-native";
 
 export default class Renderer{
-    constructor(model,ctx){
+    ctx: null;
+    constructor(model,canvas){
         this.model = model;
-        this.ctx = ctx;
-        this.cpt = 5;
-        this.change = false;
+        this.canvas = canvas;
+        this.TILE_SIZE = 0;
+        this.ctx;
     }
-
-    draw = () => {
-        if(this.cpt > 0){
-            this.cpt--;
-        }
-        else{
-            if(this.change) {
-                this.ctx.fillStyle = 'purple';
-                this.change = false;
-            }else{
-                this.ctx.fillStyle = 'blue';
-                this.change = true;
-            }
-            this.cpt = 5;
-            this.ctx.clearRect(0, 0, Dimensions.get('window').width,Dimensions.get('window').height);
-            this.ctx.fillRect(0,0,Dimensions.get('window').width,Dimensions.get('window').height);
-        }
-        /*
+    initCanvas = () =>{
+        this.TILE_SIZE = Math.floor(Dimensions.get('window').width/Math.min(this.model.map.length,this.model.map[0].length));
+        this.ctx = this.canvas.getContext('2d');
+    }
+    drawMap = () => {
+        //this.ctx.clearRect(0, 0, Dimensions.get('window').width,Dimensions.get('window').height);
         for(let x = 0; x < this.model.map.length; x ++){
             for(let y = 0; y < this.model.map[0].length;y++){
-                //TODO
+                this.ctx.fillStyle = this.model.map[x][y].color;
+                this.ctx.fillRect(
+                    x * this.TILE_SIZE, y * this.TILE_SIZE,
+                    this.TILE_SIZE,this.TILE_SIZE
+                );
+
             }
         }
-        */
+    }
+    updatePlayer = () => {
+        this.ctx.clearRect(this.model.player.old_coord.x * this.TILE_SIZE, this.model.player.old_coord.y * this.TILE_SIZE, this.TILE_SIZE,this.TILE_SIZE);
+        this.ctx.fillStyle = this.model.map[this.model.player.old_coord.y][this.model.player.old_coord.x].color;
+        this.ctx.fillRect(
+            this.model.player.old_coord.x * this.TILE_SIZE, this.model.player.old_coord.y * this.TILE_SIZE,
+            this.TILE_SIZE,this.TILE_SIZE
+        );
+        this.ctx.fillStyle = this.model.player.color;
+        this.ctx.fillRect(
+            this.model.player.coord.x * this.TILE_SIZE,
+            this.model.player.coord.y * this.TILE_SIZE,
+            this.TILE_SIZE,
+            this.TILE_SIZE,
+        )
+    }
+
+    updateGhost = () => {
+        this.ctx.clearRect(this.model.ghost.old_coord.x * this.TILE_SIZE, this.model.ghost.old_coord.y * this.TILE_SIZE, this.TILE_SIZE,this.TILE_SIZE);
+        this.ctx.fillStyle = this.model.map[this.model.ghost.old_coord.y][this.model.ghost.old_coord.x].color;
+        this.ctx.fillRect(
+            this.model.ghost.old_coord.x * this.TILE_SIZE, this.model.ghost.old_coord.y * this.TILE_SIZE,
+            this.TILE_SIZE,this.TILE_SIZE
+        );
+        this.ctx.fillStyle = this.model.ghost.color;
+        this.ctx.fillRect(
+            this.model.ghost.coord.x * this.TILE_SIZE ,
+            this.model.ghost.coord.y * this.TILE_SIZE ,
+            this.TILE_SIZE,
+            this.TILE_SIZE,
+        )
     }
 }
