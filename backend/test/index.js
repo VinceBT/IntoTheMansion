@@ -117,4 +117,12 @@ describe(`${serverStatus.name} backend server`, () => {
       vr.emit(Protocol.GHOST_POSITION_UPDATE, { position: { x: 4, y: 3, z: 3 }, rotation: { x: 0, y: 0, z: 0 } });
     });
   });
+  describe('Doors management', () => {
+    it('should update a door as open', () => {
+      vr.emit(Protocol.DOOR_UPDATE, {
+        open: true,
+        name: 'door1',
+      });
+    });
+  });
 });
