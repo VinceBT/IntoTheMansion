@@ -3,6 +3,7 @@ import Coordinate from "./coordinate";
 import Map from "../model/map/map";
 import Wall from "../model/map/wall";
 import Floor from "../model/map/floor";
+import Door from "../model/map/door";
 
 export default class Parser{
     constructor(json){

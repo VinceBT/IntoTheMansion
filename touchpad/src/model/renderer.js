@@ -27,12 +27,15 @@ export default class Renderer{
         }
     }
     updatePlayer = () => {
+        /*
         this.ctx.clearRect(this.model.player.old_coord.x * this.TILE_SIZE, this.model.player.old_coord.y * this.TILE_SIZE, this.TILE_SIZE,this.TILE_SIZE);
         this.ctx.fillStyle = this.model.map[this.model.player.old_coord.y][this.model.player.old_coord.x].color;
         this.ctx.fillRect(
             this.model.player.old_coord.x * this.TILE_SIZE, this.model.player.old_coord.y * this.TILE_SIZE,
             this.TILE_SIZE,this.TILE_SIZE
         );
+        */
+        console.log("draw p");
         this.ctx.fillStyle = this.model.player.color;
         this.ctx.fillRect(
             this.model.player.coord.x * this.TILE_SIZE,
@@ -43,12 +46,17 @@ export default class Renderer{
     }
 
     updateGhost = () => {
+        /*
+        console.log("x: " + this.model.ghost.old_coord.x + ", y: " + this.model.ghost.old_coord.y)
         this.ctx.clearRect(this.model.ghost.old_coord.x * this.TILE_SIZE, this.model.ghost.old_coord.y * this.TILE_SIZE, this.TILE_SIZE,this.TILE_SIZE);
         this.ctx.fillStyle = this.model.map[this.model.ghost.old_coord.y][this.model.ghost.old_coord.x].color;
         this.ctx.fillRect(
             this.model.ghost.old_coord.x * this.TILE_SIZE, this.model.ghost.old_coord.y * this.TILE_SIZE,
             this.TILE_SIZE,this.TILE_SIZE
         );
+        */
+        console.log("draw g");
+
         this.ctx.fillStyle = this.model.ghost.color;
         this.ctx.fillRect(
             this.model.ghost.coord.x * this.TILE_SIZE ,

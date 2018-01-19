@@ -76,6 +76,7 @@ io.on('connection', (socket) => {
     console.log(`Received verb ${Protocol.PLAYER_POSITION_UPDATE}`);
     broadcast(tables, Protocol.PLAYER_POSITION_UPDATE, data);
     broadcast(tablets, Protocol.PLAYER_POSITION_UPDATE, data);
+    broadcast(vrs, Protocol.GHOST_SET_NEW_POSITION, data);
   });
 
   // GHOST_POSITION_UPDATE
