@@ -54,37 +54,39 @@ const $hud = $(`
 
 
 const GAME_OVER = 'Game over';
+const $hud = $('<div class="absolutefill hud">');
+
+const YOU_LOST = 'You lost';
 const EXPLORER_ESCAPED = 'The explorer managed to escape';
-const $gameover = $(`
-      <div class="absolutefill endscreen gameover">
-        <div class="status reversed">
-          <div class="title">${GAME_OVER}</div>
-          <div class="message">${EXPLORER_ESCAPED}</div>
-        </div>
-        <div class="status">
-          <div class="title">${GAME_OVER}</div>
-          <div class="message">${EXPLORER_ESCAPED}</div>
-        </div>
-      </div>
-    `);
-$gameover.hide();
+const $youlost = $(`
+<div class="absolutefill endscreen youlost">
+  <div class="status reversed">
+    <div class="title">${YOU_LOST}</div>
+    <div class="message">${EXPLORER_ESCAPED}</div>
+  </div>
+  <div class="status">
+    <div class="title">${YOU_LOST}</div>
+    <div class="message">${EXPLORER_ESCAPED}</div>
+  </div>
+</div>
+`);
+$youlost.hide();
+
 const YOU_WON = 'You won';
 const GHOSTS_HAVE_KILLED = 'The ghosts have killed the explorer';
 const $youwin = $(`
-      <div class="absolutefill endscreen youwin">
-        <div class="status reversed">
-          <div class="title">${YOU_WON}</div>
-          <div class="message">${GHOSTS_HAVE_KILLED}</div>
-        </div>
-        <div class="status">
-          <div class="title">${YOU_WON}</div>
-          <div class="message">${GHOSTS_HAVE_KILLED}</div>
-        </div>
-      </div>
-    `);
+<div class="absolutefill endscreen youwin">
+  <div class="status reversed">
+    <div class="title">${YOU_WON}</div>
+    <div class="message">${GHOSTS_HAVE_KILLED}</div>
+  </div>
+  <div class="status">
+    <div class="title">${YOU_WON}</div>
+    <div class="message">${GHOSTS_HAVE_KILLED}</div>
+  </div>
+</div>
+`);
 $youwin.hide();
-
-
 
 class SceneWidget extends TUIOWidget {
 
@@ -94,6 +96,7 @@ class SceneWidget extends TUIOWidget {
     this._lastTouchesValues = {};
     this._lastTagsValues = {};
     this.raycaster = new THREE.Raycaster();
+    this.doors = new Map();
     this.trapTags = new Map();
     this.simplePressed = false;
     const $scene = this.buildScene();
@@ -101,7 +104,7 @@ class SceneWidget extends TUIOWidget {
     $container.append($scene);
     $container.append($interactions);
     $container.append($hud);
-    $container.append($gameover);
+    $container.append($youlost);
     $container.append($youwin);
     this._domElem = $container;
   }
@@ -237,7 +240,7 @@ class SceneWidget extends TUIOWidget {
       -((tuioTag.y / this.height) * 2) + 1,
     );
     this.raycaster.setFromCamera(viewPortCoord, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.floors.children);
+    const intersects = this.raycaster.intersectObjects(this.floorsGroup.children);
     console.log(intersects.length);
     if (intersects.length !== 0) {
       const intersect = intersects[0];
@@ -256,7 +259,7 @@ class SceneWidget extends TUIOWidget {
   });
 
   buildScene() {
-    const playerGeometry = new THREE.ConeGeometry(0.5, 2, 8);
+    const playerGeometry = new THREE.ConeGeometry(1, 2, 8);
     const playerMaterial = new THREE.MeshBasicMaterial({
       color: 0x00ffff,
       opacity: 0,
@@ -264,15 +267,15 @@ class SceneWidget extends TUIOWidget {
     });
     const player = new THREE.Mesh(playerGeometry, playerMaterial);
     player.position.y = 3;
-    player.rotation.z = Math.PI / 2;
+    player.rotation.z = -Math.PI / 2;
 
-    const ghostGeometry = new THREE.ConeGeometry(0.5, 2, 8);
+    const ghostGeometry = new THREE.ConeGeometry(1, 2, 8);
     const ghostMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     const ghost = new THREE.Mesh(ghostGeometry, ghostMaterial);
     ghost.position.y = 3;
-    ghost.rotation.z = Math.PI / 2;
+    ghost.rotation.z = -Math.PI / 2;
 
-    const ghostRangeGeometry = new THREE.CircleGeometry(GHOST_RANGE_SIZE, 16);
+    const ghostRangeGeometry = new THREE.CircleGeometry(GHOST_RANGE_SIZE, 32);
     const ghostRangeMaterial = new THREE.MeshBasicMaterial({
       color: 0xff0000,
       opacity: 0.1,
@@ -295,9 +298,9 @@ class SceneWidget extends TUIOWidget {
 
       this.floorOne = new THREE.Group();
 
-      this.walls = new THREE.Group();
-      this.floors = new THREE.Group();
-      this.doors = new THREE.Group();
+      this.wallsGroup = new THREE.Group();
+      this.floorsGroup = new THREE.Group();
+      this.doorsGroup = new THREE.Group();
 
       const wallGeometry = new THREE.BoxGeometry(1, 5, 1);
       // const texture = new THREE.TextureLoader().load('assets/lava_brick.jpg');
@@ -306,7 +309,7 @@ class SceneWidget extends TUIOWidget {
       const carpetGeometry = new THREE.BoxGeometry(1, 1, 1);
       const carpetMaterial = new THREE.MeshBasicMaterial({ color: 0xC5C5C5 });
 
-      const doorGeometry = new THREE.BoxGeometry(1, 5, 1);
+      const doorGeometry = new THREE.BoxGeometry(1, 5, 0.3);
       const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x703F00 });
 
       map[0].forEach((elt, index) => {
@@ -316,22 +319,29 @@ class SceneWidget extends TUIOWidget {
           const wall = new THREE.Mesh(wallGeometry, wallMaterial.clone());
           wall.position.x = posX;
           wall.position.z = posY;
-          this.walls.add(wall);
-        } else if (elt === 'F') {
+          this.wallsGroup.add(wall);
+        } else if (elt === 'F' || elt === 'D') {
           const carpet = new THREE.Mesh(carpetGeometry, carpetMaterial);
           carpet.position.x = posX;
           carpet.position.z = posY;
-          this.floors.add(carpet);
-        } else if (elt === 'D') {
-          const door = new THREE.Mesh(doorGeometry, doorMaterial);
-          door.position.x = posX;
-          door.position.z = posY;
-          this.doors.add(door);
+          this.floorsGroup.add(carpet);
         }
       });
-      this.floorOne.add(this.walls);
-      this.floorOne.add(this.floors);
-      this.floorOne.add(this.doors);
+
+      mapData.objects.doors.forEach((doorData) => {
+        const door = new THREE.Mesh(doorGeometry, doorMaterial);
+        door.position.x = doorData.position[0];
+        door.position.z = doorData.position[1];
+        if (doorData.align === 'v') {
+          door.rotation.y = Math.PI / 2;
+        }
+        this.doors.set(doorData.id, door);
+        this.mansion.add(door);
+      });
+
+      this.floorOne.add(this.wallsGroup);
+      this.floorOne.add(this.floorsGroup);
+      this.floorOne.add(this.doorsGroup);
       this.mansion.add(this.floorOne);
     });
 
@@ -353,21 +363,25 @@ class SceneWidget extends TUIOWidget {
       }
     });
 
+    this.socket.on(Protocol.DOOR_UPDATE, (data) => {
+      this.doors.get(data.name).visible = !open;
+    });
+
     this.socket.on(Protocol.GAME_OVER, (data) => {
       if (data.won === true) {
-        $gameover.show();
+        $youlost.show();
         scores.Hunter1.value = scores.Hunter1.value + 1;
         $(".scoreValues").html(printScore());
       } else {
         $youwin.show();
         scores.Explorer.value = scores.Explorer.value + 1;
         $(".scoreValues").html(printScore());
-        
+
       }
     });
 
     this.socket.on(Protocol.RESTART, () => {
-      $gameover.hide();
+      $youlost.hide();
       $youwin.hide();
     });
 
