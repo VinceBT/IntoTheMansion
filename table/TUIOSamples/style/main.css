@@ -89,3 +89,27 @@ canvas {
 .reversed {
     transform: rotate(180deg);
 }
+
+.hud {
+    margin: 10px;
+    color: #fff;
+    font-family: Roboto;
+}
+
+.scoreText {
+    font-size: 50px;
+    font-weight: bold;
+
+}
+
+.scoreValue {
+    font-size: 20px;
+    
+    
+}
+
+.bottomAbsolute {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}

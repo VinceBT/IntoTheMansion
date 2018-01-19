@@ -13,8 +13,46 @@ const trapMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
 const GHOST_RANGE_SIZE = 5;
 
+var scores = {
+  Hunter1: {
+    color: "red",
+    value: 0,
+  },
+  Hunter2: {
+    color: "#99ff66",
+    value: 0,
+  },
+  Explorer: {
+    color: "#00ffff",
+    value: 0,
+  }
+}
+
+function printScore() {
+  return (`<div class="scoreValue" style="color:${scores.Hunter1.color}">Chasseur 1: ${scores.Hunter1.value}</div>
+  <div class="scoreValue" style="color:${scores.Hunter2.color}">Chasseur 2: ${scores.Hunter2.value}</div>
+  <div class="scoreValue" style="color:${scores.Explorer.color}">Explorateur: ${scores.Explorer.value}</div>`)
+}
+
 const $interactions = $('<div class="absolutefill interactions">');
-const $hud = $('<div class="absolutefill hud">');
+const $hud = $(`
+<div class="absolutefill hud">
+  <div class="scoreInfo">
+    <div class="scoreText">Score</div>
+    <div class="scoreValues">
+      ${printScore()}
+    </div>
+  </div>
+  <div class="scoreInfo reversed bottomAbsolute">
+    <div class="scoreText">Score</div>
+    <div class="scoreValues">
+      ${printScore()}
+    </div>
+  </div>
+</div>
+`);
+
+
 const GAME_OVER = 'Game over';
 const EXPLORER_ESCAPED = 'The explorer managed to escape';
 const $gameover = $(`
@@ -45,6 +83,8 @@ const $youwin = $(`
       </div>
     `);
 $youwin.hide();
+
+
 
 class SceneWidget extends TUIOWidget {
 
@@ -316,8 +356,13 @@ class SceneWidget extends TUIOWidget {
     this.socket.on(Protocol.GAME_OVER, (data) => {
       if (data.won === true) {
         $gameover.show();
+        scores.Hunter1.value = scores.Hunter1.value + 1;
+        $(".scoreValues").html(printScore());
       } else {
         $youwin.show();
+        scores.Explorer.value = scores.Explorer.value + 1;
+        $(".scoreValues").html(printScore());
+        
       }
     });
 
