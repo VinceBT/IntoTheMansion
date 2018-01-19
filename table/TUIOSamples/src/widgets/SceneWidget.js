@@ -15,35 +15,37 @@ const GHOST_RANGE_SIZE = 5;
 
 const $interactions = $('<div class="absolutefill interactions">');
 const $hud = $('<div class="absolutefill hud">');
-const GAME_OVER = 'Game over';
+
+const YOU_LOST = 'You lost';
 const EXPLORER_ESCAPED = 'The explorer managed to escape';
-const $gameover = $(`
-      <div class="absolutefill endscreen gameover">
-        <div class="status reversed">
-          <div class="title">${GAME_OVER}</div>
-          <div class="message">${EXPLORER_ESCAPED}</div>
-        </div>
-        <div class="status">
-          <div class="title">${GAME_OVER}</div>
-          <div class="message">${EXPLORER_ESCAPED}</div>
-        </div>
-      </div>
-    `);
-$gameover.hide();
+const $youlost = $(`
+<div class="absolutefill endscreen youlost">
+  <div class="status reversed">
+    <div class="title">${YOU_LOST}</div>
+    <div class="message">${EXPLORER_ESCAPED}</div>
+  </div>
+  <div class="status">
+    <div class="title">${YOU_LOST}</div>
+    <div class="message">${EXPLORER_ESCAPED}</div>
+  </div>
+</div>
+`);
+$youlost.hide();
+
 const YOU_WON = 'You won';
 const GHOSTS_HAVE_KILLED = 'The ghosts have killed the explorer';
 const $youwin = $(`
-      <div class="absolutefill endscreen youwin">
-        <div class="status reversed">
-          <div class="title">${YOU_WON}</div>
-          <div class="message">${GHOSTS_HAVE_KILLED}</div>
-        </div>
-        <div class="status">
-          <div class="title">${YOU_WON}</div>
-          <div class="message">${GHOSTS_HAVE_KILLED}</div>
-        </div>
-      </div>
-    `);
+<div class="absolutefill endscreen youwin">
+  <div class="status reversed">
+    <div class="title">${YOU_WON}</div>
+    <div class="message">${GHOSTS_HAVE_KILLED}</div>
+  </div>
+  <div class="status">
+    <div class="title">${YOU_WON}</div>
+    <div class="message">${GHOSTS_HAVE_KILLED}</div>
+  </div>
+</div>
+`);
 $youwin.hide();
 
 class SceneWidget extends TUIOWidget {
@@ -61,7 +63,7 @@ class SceneWidget extends TUIOWidget {
     $container.append($scene);
     $container.append($interactions);
     $container.append($hud);
-    $container.append($gameover);
+    $container.append($youlost);
     $container.append($youwin);
     this._domElem = $container;
   }
@@ -224,13 +226,13 @@ class SceneWidget extends TUIOWidget {
     });
     const player = new THREE.Mesh(playerGeometry, playerMaterial);
     player.position.y = 3;
-    player.rotation.z = Math.PI / 2;
+    player.rotation.z = -Math.PI / 2;
 
     const ghostGeometry = new THREE.ConeGeometry(0.5, 2, 8);
     const ghostMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     const ghost = new THREE.Mesh(ghostGeometry, ghostMaterial);
     ghost.position.y = 3;
-    ghost.rotation.z = Math.PI / 2;
+    ghost.rotation.z = -Math.PI / 2;
 
     const ghostRangeGeometry = new THREE.CircleGeometry(GHOST_RANGE_SIZE, 16);
     const ghostRangeMaterial = new THREE.MeshBasicMaterial({
@@ -315,14 +317,14 @@ class SceneWidget extends TUIOWidget {
 
     this.socket.on(Protocol.GAME_OVER, (data) => {
       if (data.won === true) {
-        $gameover.show();
+        $youlost.show();
       } else {
         $youwin.show();
       }
     });
 
     this.socket.on(Protocol.RESTART, () => {
-      $gameover.hide();
+      $youlost.hide();
       $youwin.hide();
     });
 

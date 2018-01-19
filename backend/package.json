@@ -11,7 +11,7 @@
     "devtool": "cross-env NODE_ENV=development nodemon src/index.js --exec devtool -r babel-register",
     "stop": "forever stopall --no-colors",
     "test": "cross-env NODE_ENV=test mocha test/**/*.js -t 5000 --compilers js:babel-register --require babel-polyfill",
-    "scenario": "cross-env NODE_ENV=development nodemon test/scenario.js --exec babel-node"
+    "scenario": "cross-env NODE_ENV=development nodemon scripts/scenario.js --exec babel-node"
   },
   "dependencies": {
     "babel-polyfill": "^6.23.0",

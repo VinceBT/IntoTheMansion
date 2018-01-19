@@ -42,7 +42,7 @@ canvas {
     flex-direction: column;
 }
 
-.gameover {
+.youlost {
     background-color: rgba(255, 0, 0, .2);
 }
 
@@ -70,7 +70,7 @@ canvas {
     text-align: center;
 }
 
-.gameover .status .title {
+.youlost .status .title {
     color: red;
 }
 
