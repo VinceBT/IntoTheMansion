@@ -211,10 +211,14 @@ class SceneWidget extends TUIOWidget {
       );
       trap.position.copy(flooredPosition);
       this.socket.emit(Protocol.CREATE_TRAP, {
-        x: flooredPosition.x,
-        y: flooredPosition.y,
-        z: flooredPosition.z,
-      }, 'DeathTrap');
+        position: {
+          x: flooredPosition.x,
+          y: flooredPosition.y,
+          z: flooredPosition.z,
+        },
+        name: tuioTag.id,
+        type: 'DeathTrap',
+      });
     }
   });
 
