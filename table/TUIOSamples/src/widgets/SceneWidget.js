@@ -213,12 +213,6 @@ class SceneWidget extends TUIOWidget {
   onTagDeletion(tuioTagId) {
     super.onTagDeletion(tuioTagId);
     console.log(`Tag deleted (id: ${tuioTagId})`);
-    if (this.trapTags.has(tuioTagId)) {
-      const trap = this.trapTags.get(tuioTagId);
-      this.trapTags.delete(tuioTagId);
-      console.log(trap);
-      this.scene.remove(trap);
-    }
   }
 
   handleTagMove = debounce(500, (tuioTag) => {
@@ -365,6 +359,14 @@ class SceneWidget extends TUIOWidget {
 
     this.socket.on(Protocol.DOOR_UPDATE, (data) => {
       this.doors.get(data.name).visible = !open;
+    });
+
+    this.socket.on(Protocol.TRAP_TRIGGERED, (data) => {
+      if (this.trapTags.has(data.trapId)) {
+        const trap = this.trapTags.get(data.trapId);
+        this.trapTags.delete(data.trapId);
+        this.scene.remove(trap);
+      }
     });
 
     this.socket.on(Protocol.GAME_OVER, (data) => {
