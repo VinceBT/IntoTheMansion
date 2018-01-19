@@ -47,18 +47,13 @@ export default class Model{
 
 
     playerUpdate = (json) => {
-        console.log(json);
-      //  console.log("player update");
-        this.player.updateCoordinate(json.position.x, json.position.y, json.position.z);
-       // console.log(this.player.coord.x,this.player.coord.y,this.player.coord.z);
+        console.log("player update");
+        this.player.updateCoordinate(json.position.x, json.position.z,json.position.y);
         this.renderer.updatePlayer();
     }
     ghostUpdate = (json) => {
-        console.log(json);
-
-     //   console.log("ghost update");
-        this.ghost.updateCoordinate(json.position.x, json.position.y, json.position.z);
-     //   console.log(this.ghost.coord.x,this.ghost.coord.y,this.ghost.coord.z);
+        console.log("ghost update");
+        this.ghost.updateCoordinate(json.position.x, json.position.z,json.position.y);
         this.renderer.updateGhost();
     }
 }

@@ -9,13 +9,13 @@ export default class Coordinate{
         this.direction;
     }
 
-    update(x,y,z){
+    update = (x,y,z) => {
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
-    copy(coord){
+    copy = (coord) => {
         this.x = coord.x;
         this.y = coord.y;
         this.z = coord.z;
