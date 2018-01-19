@@ -382,7 +382,12 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.RESTART, () => {
-      Array.from(this.doors.values()).forEach(door => door.visible = true);
+      Array.from(this.doors.values()).forEach((door) => { door.visible = true; });
+      Array.from(this.trapTags.keys()).forEach((trapId) => {
+        const trap = this.trapTags.get(trapId);
+        this.trapTags.delete(trapId);
+        this.scene.remove(trap);
+      });
       $youlost.hide();
       $youwin.hide();
     });
