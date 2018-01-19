@@ -13,25 +13,25 @@ const trapMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
 const GHOST_RANGE_SIZE = 5;
 
-var scores = {
+const scores = {
   Hunter1: {
-    color: "red",
+    color: 'red',
     value: 0,
   },
   Hunter2: {
-    color: "#99ff66",
+    color: '#99ff66',
     value: 0,
   },
   Explorer: {
-    color: "#00ffff",
+    color: '#00ffff',
     value: 0,
-  }
-}
+  },
+};
 
 function printScore() {
   return (`<div class="scoreValue" style="color:${scores.Hunter1.color}">Chasseur 1: ${scores.Hunter1.value}</div>
   <div class="scoreValue" style="color:${scores.Hunter2.color}">Chasseur 2: ${scores.Hunter2.value}</div>
-  <div class="scoreValue" style="color:${scores.Explorer.color}">Explorateur: ${scores.Explorer.value}</div>`)
+  <div class="scoreValue" style="color:${scores.Explorer.color}">Explorateur: ${scores.Explorer.value}</div>`);
 }
 
 const $interactions = $('<div class="absolutefill interactions">');
@@ -293,8 +293,8 @@ class SceneWidget extends TUIOWidget {
 
       const map = mapData.terrain.map;
 
-      this.mansion.position.x = -mapWidth / 2;
-      this.mansion.position.z = -mapHeight / 2;
+      this.camera.position.x = mapWidth / 2;
+      this.camera.position.z = mapHeight / 2;
 
       this.floorOne = new THREE.Group();
 
@@ -371,12 +371,11 @@ class SceneWidget extends TUIOWidget {
       if (data.won === true) {
         $youlost.show();
         scores.Hunter1.value = scores.Hunter1.value + 1;
-        $(".scoreValues").html(printScore());
+        $('.scoreValues').html(printScore());
       } else {
         $youwin.show();
         scores.Explorer.value = scores.Explorer.value + 1;
-        $(".scoreValues").html(printScore());
-
+        $('.scoreValues').html(printScore());
       }
     });
 
