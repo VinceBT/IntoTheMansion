@@ -30,7 +30,7 @@ export default class Model{
 
     init = () =>{
         this.client.socket.emit('REGISTER','TABLET');
-        this.client.socket.emit('GET_MAP',this.startGame);
+        this.client.socket.emit('GET_MAP_DEBUG',this.startGame);
         this.client.socket.on('PLAYER_POSITION_UPDATE',this.playerUpdate);
         this.client.socket.on('GHOST_POSITION_UPDATE',this.ghostUpdate);
         this.client.socket.on('DOOR_UPDATE',this.doorUpdate);
@@ -47,15 +47,18 @@ export default class Model{
 
 
     playerUpdate = (json) => {
-        console.log("player update");
+        console.log(json);
+      //  console.log("player update");
         this.player.updateCoordinate(json.position.x, json.position.y, json.position.z);
-        console.log(this.player.coord.x,this.player.coord.y,this.player.coord.z);
+       // console.log(this.player.coord.x,this.player.coord.y,this.player.coord.z);
         this.renderer.updatePlayer();
     }
     ghostUpdate = (json) => {
-        console.log("ghost update");
+        console.log(json);
+
+     //   console.log("ghost update");
         this.ghost.updateCoordinate(json.position.x, json.position.y, json.position.z);
-        console.log(this.ghost.coord.x,this.ghost.coord.y,this.ghost.coord.z);
+     //   console.log(this.ghost.coord.x,this.ghost.coord.y,this.ghost.coord.z);
         this.renderer.updateGhost();
     }
 }
