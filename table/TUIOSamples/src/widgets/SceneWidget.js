@@ -52,10 +52,6 @@ const $hud = $(`
 </div>
 `);
 
-
-const GAME_OVER = 'Game over';
-const $hud = $('<div class="absolutefill hud">');
-
 const YOU_LOST = 'You lost';
 const EXPLORER_ESCAPED = 'The explorer managed to escape';
 const $youlost = $(`
