@@ -259,7 +259,7 @@ class SceneWidget extends TUIOWidget {
   });
 
   buildScene() {
-    const playerGeometry = new THREE.ConeGeometry(1, 2, 8);
+    const playerGeometry = new THREE.ConeGeometry(0.65, 2.2, 8);
     const playerMaterial = new THREE.MeshBasicMaterial({
       color: 0x00ffff,
       opacity: 0,
@@ -269,7 +269,7 @@ class SceneWidget extends TUIOWidget {
     player.position.y = 3;
     player.rotation.z = -Math.PI / 2;
 
-    const ghostGeometry = new THREE.ConeGeometry(1, 2, 8);
+    const ghostGeometry = new THREE.ConeGeometry(0.65, 2.2, 8);
     const ghostMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     const ghost = new THREE.Mesh(ghostGeometry, ghostMaterial);
     ghost.position.y = 3;
@@ -381,6 +381,7 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.RESTART, () => {
+      Array.from(this.doors.values()).forEach(door => door.visible = true);
       $youlost.hide();
       $youwin.hide();
     });
