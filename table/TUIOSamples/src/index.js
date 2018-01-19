@@ -1,9 +1,8 @@
 import $ from 'jquery/dist/jquery.min';
 import TUIOManager from 'tuiomanager/core/TUIOManager';
-import io from "socket.io-client";
+import io from 'socket.io-client';
 import SceneWidget from './widgets/SceneWidget';
 import status from '../assets/status.json';
-
 
 const tuioManager = new TUIOManager();
 tuioManager.start();

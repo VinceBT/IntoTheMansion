@@ -91,16 +91,24 @@ io.on('connection', (socket) => {
     broadcast(tables, Protocol.DOOR_UPDATE, data);
   });
 
+  // TRAP_TRIGGERED
+  socket.on(Protocol.TRAP_TRIGGERED, (data) => {
+    console.log(`Received verb ${Protocol.TRAP_TRIGGERED}`);
+    console.log(data);
+    broadcast(tables, Protocol.TRAP_TRIGGERED, data);
+  });
+
+  // GAME_OVER
   socket.on(Protocol.GAME_OVER, (data) => {
     console.log(`Received verb ${Protocol.GAME_OVER}`);
     console.log(data);
     broadcast(tables, Protocol.GAME_OVER, data);
   });
 
-  socket.on(Protocol.TRAP_TRIGGERED, (data) => {
-    console.log(`Received verb ${Protocol.TRAP_TRIGGERED}`);
-    console.log(data);
-    broadcast(tables, Protocol.TRAP_TRIGGERED, data);
+  // RESTART
+  socket.on(Protocol.RESTART, () => {
+    broadcast(tables, Protocol.RESTART);
+    broadcast(tablets, Protocol.RESTART);
   });
 
   // DISCONNECTION

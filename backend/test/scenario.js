@@ -32,6 +32,7 @@ const init = async () => {
   let intervalId;
   const progress = generateProgress(2, () => {
     clearInterval(intervalId);
+    vr.emit(Protocol.GAME_OVER, { won: false });
     console.log('Scenario finished');
   });
   const tweenPlayer = new TWEEN.Tween(playerCoords)
