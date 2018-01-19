@@ -7,6 +7,7 @@ import assert from 'assert';
 import io from 'socket.io-client';
 import serverStatus from '../assets/status.json';
 import Protocol from '../src/Protocol';
+import { generateProgress } from '../src/utils';
 
 const fullRemote = `http://${serverStatus.devRemote}:${serverStatus.port}`;
 
@@ -14,14 +15,6 @@ console.log(`Connecting to ${fullRemote}`);
 const table = io(fullRemote);
 const tablet = io(fullRemote);
 const vr = io(fullRemote);
-
-const generateProgress = (steps = 1, callback) => {
-  let currentStep = 0;
-  return () => {
-    if (++currentStep >= steps)
-      callback();
-  };
-};
 
 before((done) => {
   console.log('Before block initializing');

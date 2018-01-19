@@ -6,7 +6,11 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-image: url('http://static.allbackgrounds.com/bg/wood.jpg');
+    background-color: #555;
+    background-image: url('../assets/bricks.jpg');
+    -webkit-box-shadow: inset 0 0 2000px rgba(0, 0, 0, .7);
+    -moz-box-shadow: inset 0 0 2000px rgba(0, 0, 0, .7);
+    box-shadow: inset 0 0 2000px rgba(0, 0, 0, .7);
 }
 
 canvas {

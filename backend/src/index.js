@@ -13,7 +13,7 @@ const tablets = new Set();
 const tables = new Set();
 const vrs = new Set();
 
-const emitTo = (set, ...args) => {
+const broadcast = (set, ...args) => {
   Array.from(set.values()).forEach(socket => {
     socket.emit(...args);
   });
@@ -74,33 +74,33 @@ io.on('connection', (socket) => {
   // PLAYER_POSITION_UPDATE
   socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
     console.log(`Received verb ${Protocol.PLAYER_POSITION_UPDATE}`);
-    emitTo(tables, Protocol.PLAYER_POSITION_UPDATE, data);
-    emitTo(tablets, Protocol.PLAYER_POSITION_UPDATE, data);
+    broadcast(tables, Protocol.PLAYER_POSITION_UPDATE, data);
+    broadcast(tablets, Protocol.PLAYER_POSITION_UPDATE, data);
   });
 
   // GHOST_POSITION_UPDATE
   socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
     console.log(`Received verb ${Protocol.GHOST_POSITION_UPDATE}`);
-    emitTo(tables, Protocol.GHOST_POSITION_UPDATE, data);
-    emitTo(tablets, Protocol.GHOST_POSITION_UPDATE, data);
+    broadcast(tables, Protocol.GHOST_POSITION_UPDATE, data);
+    broadcast(tablets, Protocol.GHOST_POSITION_UPDATE, data);
   });
 
   // DOOR_UPDATE
   socket.on(Protocol.DOOR_UPDATE, (data) => {
     console.log(`Received verb ${Protocol.DOOR_UPDATE}`);
-    emitTo(tables, Protocol.DOOR_UPDATE, data);
+    broadcast(tables, Protocol.DOOR_UPDATE, data);
   });
 
   socket.on(Protocol.GAME_OVER, (data) => {
     console.log(`Received verb ${Protocol.GAME_OVER}`);
     console.log(data);
-    emitTo(tables, Protocol.GAME_OVER, data);
+    broadcast(tables, Protocol.GAME_OVER, data);
   });
 
   socket.on(Protocol.TRAP_TRIGGERED, (data) => {
     console.log(`Received verb ${Protocol.TRAP_TRIGGERED}`);
     console.log(data);
-    emitTo(tables, Protocol.TRAP_TRIGGERED, data);
+    broadcast(tables, Protocol.TRAP_TRIGGERED, data);
   });
 
   // DISCONNECTION
