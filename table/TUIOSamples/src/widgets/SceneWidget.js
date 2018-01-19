@@ -13,18 +13,43 @@ const trapMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
 const GHOST_RANGE_SIZE = 5;
 
-/**
- * Main class to manage SceneWidget.
- *
- * @class SceneWidget
- * @extends TUIOWidget
- */
+const $interactions = $('<div class="absolutefill interactions">');
+const $hud = $('<div class="absolutefill hud">');
+
+const YOU_LOST = 'You lost';
+const EXPLORER_ESCAPED = 'The explorer managed to escape';
+const $youlost = $(`
+<div class="absolutefill endscreen youlost">
+  <div class="status reversed">
+    <div class="title">${YOU_LOST}</div>
+    <div class="message">${EXPLORER_ESCAPED}</div>
+  </div>
+  <div class="status">
+    <div class="title">${YOU_LOST}</div>
+    <div class="message">${EXPLORER_ESCAPED}</div>
+  </div>
+</div>
+`);
+$youlost.hide();
+
+const YOU_WON = 'You won';
+const GHOSTS_HAVE_KILLED = 'The ghosts have killed the explorer';
+const $youwin = $(`
+<div class="absolutefill endscreen youwin">
+  <div class="status reversed">
+    <div class="title">${YOU_WON}</div>
+    <div class="message">${GHOSTS_HAVE_KILLED}</div>
+  </div>
+  <div class="status">
+    <div class="title">${YOU_WON}</div>
+    <div class="message">${GHOSTS_HAVE_KILLED}</div>
+  </div>
+</div>
+`);
+$youwin.hide();
+
 class SceneWidget extends TUIOWidget {
-  /**
-   * SceneWidget constructor.
-   *
-   * @constructor
-   */
+
   constructor(socket) {
     super(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     this.socket = socket;
@@ -33,24 +58,20 @@ class SceneWidget extends TUIOWidget {
     this.raycaster = new THREE.Raycaster();
     this.trapTags = new Map();
     this.simplePressed = false;
-    this.buildScene();
+    const $scene = this.buildScene();
+    const $container = $('<div class="container">');
+    $container.append($scene);
+    $container.append($interactions);
+    $container.append($hud);
+    $container.append($youlost);
+    $container.append($youwin);
+    this._domElem = $container;
   }
 
-  /**
-   * SceneWidget's domElem.
-   *
-   * @returns {JQuery Object} SceneWidget's domElem.
-   */
   get domElem() {
     return this._domElem;
   }
 
-  /**
-   * Call after a TUIOTouch creation.
-   *
-   * @method onTouchCreation
-   * @param {TUIOTouch} tuioTouch - A TUIOTouch instance.
-   */
   onTouchCreation(tuioTouch) {
     super.onTouchCreation(tuioTouch);
     /*
@@ -76,12 +97,6 @@ class SceneWidget extends TUIOWidget {
     }
   }
 
-  /**
-   * Call after a TUIOTouch update.
-   *
-   * @method onTouchUpdate
-   * @param {TUIOTouch} tuioTouch - A TUIOTouch instance.
-   */
   onTouchUpdate(tuioTouch) {
     if (typeof (this._lastTouchesValues[tuioTouch.id]) !== 'undefined') {
       /*
@@ -114,12 +129,6 @@ class SceneWidget extends TUIOWidget {
     }
   }
 
-  /**
-   * Call after a TUIOTag creation.
-   *
-   * @method onTagCreation
-   * @param {TUIOTag} tuioTag - A TUIOTag instance.
-   */
   onTagCreation(tuioTag) {
     super.onTagCreation(tuioTag);
     this.handleTagMove(tuioTag);
@@ -134,12 +143,6 @@ class SceneWidget extends TUIOWidget {
     }
   }
 
-  /**
-   * Call after a TUIOTag update.
-   *
-   * @method onTagUpdate
-   * @param {TUIOTag} tuioTag - A TUIOTag instance.
-   */
   onTagUpdate(tuioTag) {
     if (typeof (this._lastTagsValues[tuioTag.id]) !== 'undefined') {
       const lastTagValue = this._lastTagsValues[tuioTag.id];
@@ -176,7 +179,7 @@ class SceneWidget extends TUIOWidget {
     if (this.trapTags.has(tuioTagId)) {
       const trap = this.trapTags.get(tuioTagId);
       this.trapTags.delete(tuioTagId);
-      console.log(trap)
+      console.log(trap);
       this.scene.remove(trap);
     }
   }
@@ -223,13 +226,13 @@ class SceneWidget extends TUIOWidget {
     });
     const player = new THREE.Mesh(playerGeometry, playerMaterial);
     player.position.y = 3;
-    player.rotation.z = Math.PI / 2;
+    player.rotation.z = -Math.PI / 2;
 
     const ghostGeometry = new THREE.ConeGeometry(0.5, 2, 8);
     const ghostMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     const ghost = new THREE.Mesh(ghostGeometry, ghostMaterial);
     ghost.position.y = 3;
-    ghost.rotation.z = Math.PI / 2;
+    ghost.rotation.z = -Math.PI / 2;
 
     const ghostRangeGeometry = new THREE.CircleGeometry(GHOST_RANGE_SIZE, 16);
     const ghostRangeMaterial = new THREE.MeshBasicMaterial({
@@ -312,6 +315,19 @@ class SceneWidget extends TUIOWidget {
       }
     });
 
+    this.socket.on(Protocol.GAME_OVER, (data) => {
+      if (data.won === true) {
+        $youlost.show();
+      } else {
+        $youwin.show();
+      }
+    });
+
+    this.socket.on(Protocol.RESTART, () => {
+      $youlost.hide();
+      $youwin.hide();
+    });
+
     const animate = () => {
       requestAnimationFrame(animate);
       playerMaterial.opacity = 1 - cunlerp(GHOST_RANGE_SIZE - 2, GHOST_RANGE_SIZE, ghost.position.distanceTo(player.position));
@@ -325,8 +341,6 @@ class SceneWidget extends TUIOWidget {
 
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-    this._domElem = $(this.renderer.domElement);
-
     new WindowResize(this.renderer, this.camera);
 
     this.camera.position.y = 100;
@@ -336,6 +350,8 @@ class SceneWidget extends TUIOWidget {
     this.scene.add(this.mansion);
 
     animate();
+
+    return $(this.renderer.domElement);
   }
 
 }
