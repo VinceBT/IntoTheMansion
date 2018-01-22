@@ -29,9 +29,9 @@ const scores = {
 };
 
 function printScore() {
-  return (`<div class="scoreValue" style="color:${scores.Hunter1.color}">Chasseur 1: ${scores.Hunter1.value}</div>
-  <div class="scoreValue" style="color:${scores.Hunter2.color}">Chasseur 2: ${scores.Hunter2.value}</div>
-  <div class="scoreValue" style="color:${scores.Explorer.color}">Explorateur: ${scores.Explorer.value}</div>`);
+  return (`<div class="scoreValue" style="color:${scores.Hunter1.color}; background-color: rgba(255, 0, 0, 0.2)"><div class="avatarHunter1"/><p>Chasseur 1: ${scores.Hunter1.value}</p></div>
+  <div class="scoreValue" style="color:${scores.Hunter2.color}; background-color: rgba(0, 255, 0, 0.2)"><div class="avatarHunter2"/><p>Chasseur 2: ${scores.Hunter2.value}</p></div>
+  <div class="scoreValue" style="color:${scores.Explorer.color}; background-color: rgba(0, 255, 255, 0.2)"><div class="avatarExplorer"/><p>Explorateur: ${scores.Explorer.value}</p></div>`);
 }
 
 const $interactions = $('<div class="absolutefill interactions">');
@@ -391,11 +391,11 @@ class SceneWidget extends TUIOWidget {
     this.socket.on(Protocol.GAME_OVER, (data) => {
       if (data.won === true) {
         $youlost.show();
-        scores.Hunter1.value = scores.Hunter1.value + 1;
+        scores.Hunter1.value = scores.Explorer.value + 1;
         $('.scoreValues').html(printScore());
       } else {
         $youwin.show();
-        scores.Explorer.value = scores.Explorer.value + 1;
+        scores.Explorer.value = scores.Hunter1.value + 1;
         $('.scoreValues').html(printScore());
       }
     });
