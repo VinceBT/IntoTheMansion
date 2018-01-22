@@ -92,7 +92,6 @@ io.on('connection', (socket) => {
     console.log(`Received verb ${Protocol.GHOST_POSITION_UPDATE}`);
     broadcast(tables, Protocol.GHOST_POSITION_UPDATE, data);
     broadcast(tablets, Protocol.GHOST_POSITION_UPDATE, data);
-
   });
 
   // DOOR_UPDATE

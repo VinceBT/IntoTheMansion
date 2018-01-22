@@ -264,10 +264,29 @@ class SceneWidget extends TUIOWidget {
     player.rotation.z = -Math.PI / 2;
 
     const ghostGeometry = new THREE.ConeGeometry(0.65, 2.2, 8);
-    const ghostMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    const ghost = new THREE.Mesh(ghostGeometry, ghostMaterial);
+    const ghostMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.7 });
+    let ghost = new THREE.Mesh(ghostGeometry, ghostMaterial);
     ghost.position.y = 3;
     ghost.rotation.z = -Math.PI / 2;
+
+    const loader = new THREE.JSONLoader();
+    loader.load('assets/ghost.json',
+      (geometry) => {
+        const oldGhost = ghost;
+        const isInScene = oldGhost.parent !== null;
+        this.scene.remove(oldGhost);
+        ghost = new THREE.Mesh(geometry, ghostMaterial);
+        ghost.position.copy(oldGhost.position);
+        ghost.rotation.copy(oldGhost.rotation);
+        ghost.rotation.z = 0;
+        ghost.scale.set(3, 3, 3);
+        if (isInScene) this.scene.add(ghost);
+      }, (xhr) => {
+        console.log(`Loading ghost ${xhr.loaded / xhr.total * 100}% loaded`);
+      }, (err) => {
+        console.log('An error happened');
+      },
+    );
 
     const ghostRangeGeometry = new THREE.CircleGeometry(GHOST_RANGE_SIZE, 32);
     const ghostRangeMaterial = new THREE.MeshBasicMaterial({
