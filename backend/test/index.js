@@ -102,7 +102,7 @@ describe(`${serverStatus.name} backend server`, () => {
       tablet.once(Protocol.PLAYER_POSITION_UPDATE, () => {
         progress();
       });
-      vr.emit(Protocol.PLAYER_POSITION_UPDATE, { position: { x: 3, y: 3, z: 3 }, rotation: { x: 0, y: 0, z: 0 } });
+      vr.emit(Protocol.PLAYER_POSITION_UPDATE, { position: { x: 7, y: 3, z: 7 }, rotation: { x: 0, y: 1.3, z: 0 } });
     });
     it('should send the table and the tablet a ghost position update when receiving one from the VR', (done) => {
       const progress = generateProgress(2, () => {
@@ -114,7 +114,19 @@ describe(`${serverStatus.name} backend server`, () => {
       tablet.once(Protocol.GHOST_POSITION_UPDATE, () => {
         progress();
       });
-      vr.emit(Protocol.GHOST_POSITION_UPDATE, { position: { x: 4, y: 3, z: 3 }, rotation: { x: 0, y: 0, z: 0 } });
+      vr.emit(Protocol.GHOST_POSITION_UPDATE, { position: { x: 7, y: 3, z: 3 }, rotation: { x: 0, y: 0.5, z: 0 } });
+    });
+    it('should update the second player too', (done) => {
+      const progress = generateProgress(2, () => {
+        done();
+      });
+      table.once(Protocol.GHOST_POSITION_UPDATE, () => {
+        progress();
+      });
+      tablet.once(Protocol.GHOST_POSITION_UPDATE, () => {
+        progress();
+      });
+      vr.emit(Protocol.GHOST_POSITION_UPDATE, { id: 1, position: { x: 3, y: 7, z: 3 }, rotation: { x: 0, y: 1, z: 0 } });
     });
   });
   describe('Doors management', () => {

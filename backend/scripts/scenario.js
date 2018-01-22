@@ -37,9 +37,13 @@ const init = async () => {
       vr.emit(Protocol.RESTART);
       setTimeout(() => {
         vr.emit(Protocol.GAME_OVER, { won: false });
-        console.log('Scenario finished');
-      }, 2000);
-    }, 2000);
+        setTimeout(() => {
+          vr.emit(Protocol.RESTART);
+          console.log('Scenario finished');
+          vr.disconnect();
+        }, 1000);
+      }, 1000);
+    }, 1000);
   });
   const tweenPlayer = new TWEEN.Tween(playerCoords)
     .to({ x: 12, y: 0, z: 12 }, 5000)

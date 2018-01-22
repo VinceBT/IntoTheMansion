@@ -76,8 +76,7 @@ io.on('connection', (socket) => {
     console.log(`Received verb ${Protocol.CREATE_TRAP}`);
     broadcast(vrs, Protocol.CREATE_TRAP, data);
     broadcast(tablets, Protocol.CREATE_TRAP, data);
-
-  })
+  });
 
   // PLAYER_POSITION_UPDATE
   socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
