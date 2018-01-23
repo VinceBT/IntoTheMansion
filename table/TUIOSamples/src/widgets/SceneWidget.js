@@ -31,9 +31,9 @@ const scores = {
 };
 
 function printScore() {
-  return (`<div class="scoreValue" style="color:${scores.Hunter1.color}; background-color: rgba(255, 0, 0, 0.2)"><div class="avatarHunter1"/><p>Chasseur 1: ${scores.Hunter1.value}</p></div>
-  <div class="scoreValue" style="color:${scores.Hunter2.color}; background-color: rgba(0, 255, 0, 0.2)"><div class="avatarHunter2"/><p>Chasseur 2: ${scores.Hunter2.value}</p></div>
-  <div class="scoreValue" style="color:${scores.Explorer.color}; background-color: rgba(0, 255, 255, 0.2)"><div class="avatarExplorer"/><p>Explorateur: ${scores.Explorer.value}</p></div>`);
+  return (`<div class="scoreValue" style="color:${scores.Hunter1.color}; background-color: rgba(255, 0, 0, 0.2)"><div class="avatar avatarHunter1"/><p>Ghost 1: ${scores.Hunter1.value}</p></div>
+  <div class="scoreValue" style="color:${scores.Hunter2.color}; background-color: rgba(0, 255, 0, 0.2)"><div class="avatar avatarHunter2"/><p>Ghost 2: ${scores.Hunter2.value}</p></div>
+  <div class="scoreValue" style="color:${scores.Explorer.color}; background-color: rgba(0, 255, 255, 0.2)"><div class="avatar avatarExplorer"/><p>Explorer: ${scores.Explorer.value}</p></div>`);
 }
 
 const $interactions = $('<div class="absolutefill interactions">');
@@ -291,7 +291,7 @@ class SceneWidget extends TUIOWidget {
     playerGroup.conePlayer = conePlayer;
     playerGroup.add(conePlayer);
 
-    jsonLoader.load('assets/player.json',
+    jsonLoader.load('assets/models/player.json',
       (flashLightGeometry) => {
         const modelPlayer = new THREE.Mesh(flashLightGeometry, playerMaterial);
         modelPlayer.position.y = 3;
@@ -339,7 +339,7 @@ class SceneWidget extends TUIOWidget {
       ghostGroup.position.x = (ghostGroups.indexOf(ghostGroup) + 1) * 3;
     }
 
-    jsonLoader.load('assets/ghost.json',
+    jsonLoader.load('assets/models/ghost.json',
       (ghostGeometry) => {
         for (const ghostGroup of ghostGroups) {
           const modelGhost = new THREE.Mesh(ghostGeometry, ghostGroup.ghostCone.material);
@@ -366,7 +366,6 @@ class SceneWidget extends TUIOWidget {
       this.camera.position.z = mapHeight / 2;
 
       const wallGeometry = new THREE.BoxGeometry(1, 5, 1);
-      // const texture = new THREE.TextureLoader().load('assets/lava_brick.jpg');
       const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
       const carpetGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -437,11 +436,11 @@ class SceneWidget extends TUIOWidget {
     this.socket.on(Protocol.GAME_OVER, (data) => {
       if (data.won === true) {
         $youlost.show();
-        scores.Hunter1.value = scores.Explorer.value + 1;
+        scores.Explorer.value++;
         $('.scoreValues').html(printScore());
       } else {
         $youwin.show();
-        scores.Explorer.value = scores.Hunter1.value + 1;
+        scores.Hunter1.value++;
         $('.scoreValues').html(printScore());
       }
     });
