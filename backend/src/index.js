@@ -71,6 +71,13 @@ io.on('connection', (socket) => {
     callback(mansion.rawData);
   });
 
+  // CREATE_TRAP
+  socket.on(Protocol.CREATE_TRAP, (data) => {
+    console.log(`Received verb ${Protocol.CREATE_TRAP}`);
+    broadcast(vrs, Protocol.CREATE_TRAP, data);
+    broadcast(tablets, Protocol.CREATE_TRAP, data);
+  });
+
   // PLAYER_POSITION_UPDATE
   socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
     console.log(`Received verb ${Protocol.PLAYER_POSITION_UPDATE}`);
@@ -108,6 +115,7 @@ io.on('connection', (socket) => {
 
   // RESTART
   socket.on(Protocol.RESTART, () => {
+    console.log(`Received verb ${Protocol.RESTART}`);
     broadcast(tables, Protocol.RESTART);
     broadcast(tablets, Protocol.RESTART);
   });

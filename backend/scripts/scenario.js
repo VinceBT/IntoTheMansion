@@ -28,7 +28,7 @@ const init = async () => {
   await connect();
   await register();
   const playerCoords = { x: 3, y: 0, z: 3 };
-  const ghostCoords = { x: 20, y: 0, z: 20 };
+  const ghostCoords = { x: 20, y: 0, z: 20, r: 0 };
   let intervalId;
   const moveProgress = generateProgress(2, () => {
     clearInterval(intervalId);
@@ -37,9 +37,13 @@ const init = async () => {
       vr.emit(Protocol.RESTART);
       setTimeout(() => {
         vr.emit(Protocol.GAME_OVER, { won: false });
-        console.log('Scenario finished');
-      }, 2000);
-    }, 2000);
+        setTimeout(() => {
+          vr.emit(Protocol.RESTART);
+          console.log('Scenario finished');
+          vr.disconnect();
+        }, 1000);
+      }, 1000);
+    }, 1000);
   });
   const tweenPlayer = new TWEEN.Tween(playerCoords)
     .to({ x: 12, y: 0, z: 12 }, 5000)
@@ -51,9 +55,9 @@ const init = async () => {
     })
     .start();
   const tweenGhost = new TWEEN.Tween(ghostCoords)
-    .to({ x: 12, y: 0, z: 12 }, 5000)
+    .to({ x: 12, y: 0, z: 12, r: Math.PI * 2 * 10 }, 5000)
     .onUpdate(() => {
-      vr.emit(Protocol.GHOST_POSITION_UPDATE, { position: ghostCoords, rotation: { x: 0, y: 0, z: 0 } });
+      vr.emit(Protocol.GHOST_POSITION_UPDATE, { position: ghostCoords, rotation: { x: 0, y: ghostCoords.r, z: 0 } });
     })
     .onComplete(() => {
       moveProgress();

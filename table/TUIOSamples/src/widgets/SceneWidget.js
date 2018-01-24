@@ -12,26 +12,28 @@ const trapGeometry = new THREE.BoxGeometry(1, 2, 1);
 const trapMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
 const GHOST_RANGE_SIZE = 5;
+const GHOST_NUMBER = 2;
+const GHOST_COLORS = [0xff0000, 0x00ff00];
 
-var scores = {
+const scores = {
   Hunter1: {
-    color: "red",
+    color: 'red',
     value: 0,
   },
   Hunter2: {
-    color: "#99ff66",
+    color: '#99ff66',
     value: 0,
   },
   Explorer: {
-    color: "#00ffff",
+    color: '#00ffff',
     value: 0,
-  }
-}
+  },
+};
 
 function printScore() {
-  return (`<div class="scoreValue" style="color:${scores.Hunter1.color}">Chasseur 1: ${scores.Hunter1.value}</div>
-  <div class="scoreValue" style="color:${scores.Hunter2.color}">Chasseur 2: ${scores.Hunter2.value}</div>
-  <div class="scoreValue" style="color:${scores.Explorer.color}">Explorateur: ${scores.Explorer.value}</div>`)
+  return (`<div class="scoreValue" style="color:${scores.Hunter1.color}; background-color: rgba(255, 0, 0, 0.2)"><div class="avatar avatarHunter1"/><p>Ghost 1: ${scores.Hunter1.value}</p></div>
+  <div class="scoreValue" style="color:${scores.Hunter2.color}; background-color: rgba(0, 255, 0, 0.2)"><div class="avatar avatarHunter2"/><p>Ghost 2: ${scores.Hunter2.value}</p></div>
+  <div class="scoreValue" style="color:${scores.Explorer.color}; background-color: rgba(0, 255, 255, 0.2)"><div class="avatar avatarExplorer"/><p>Explorer: ${scores.Explorer.value}</p></div>`);
 }
 
 const $interactions = $('<div class="absolutefill interactions">');
@@ -92,7 +94,7 @@ class SceneWidget extends TUIOWidget {
     this._lastTouchesValues = {};
     this._lastTagsValues = {};
     this.raycaster = new THREE.Raycaster();
-    this.doors = new Map();
+    this.doorsMap = new Map();
     this.trapTags = new Map();
     this.simplePressed = false;
     const $scene = this.buildScene();
@@ -213,12 +215,6 @@ class SceneWidget extends TUIOWidget {
   onTagDeletion(tuioTagId) {
     super.onTagDeletion(tuioTagId);
     console.log(`Tag deleted (id: ${tuioTagId})`);
-    if (this.trapTags.has(tuioTagId)) {
-      const trap = this.trapTags.get(tuioTagId);
-      this.trapTags.delete(tuioTagId);
-      console.log(trap);
-      this.scene.remove(trap);
-    }
   }
 
   handleTagMove = debounce(500, (tuioTag) => {
@@ -236,10 +232,11 @@ class SceneWidget extends TUIOWidget {
       -((tuioTag.y / this.height) * 2) + 1,
     );
     this.raycaster.setFromCamera(viewPortCoord, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.floorsGroup.children);
+    const intersects = this.raycaster.intersectObjects(this.scene.children);
     console.log(intersects.length);
     if (intersects.length !== 0) {
       const intersect = intersects[0];
+      if (!intersect.carpet) return;
       const flooredPosition = new THREE.Vector3(
         Math.floor(intersect.point.x),
         Math.floor(intersect.point.y),
@@ -259,31 +256,103 @@ class SceneWidget extends TUIOWidget {
   });
 
   buildScene() {
-    const playerGeometry = new THREE.ConeGeometry(0.65, 2.2, 8);
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    this.renderer.setClearColor(0xffffff, 0);
+
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+    new WindowResize(this.renderer, this.camera);
+
+    this.camera.position.y = 100;
+    this.camera.rotation.x = -Math.PI / 2;
+
+    this.walls = [];
+    this.carpets = [];
+    this.doors = [];
+
+    const playerGroup = new THREE.Group();
+    const ghostGroups = new Array(GHOST_NUMBER).fill(null).map(() => new THREE.Group());
+
+    const jsonLoader = new THREE.JSONLoader();
+
+    const playerConeGeometry = new THREE.ConeGeometry(0.3, 1.5, 8);
     const playerMaterial = new THREE.MeshBasicMaterial({
       color: 0x00ffff,
-      opacity: 0,
       transparent: true,
+      opacity: 0.7,
     });
-    const player = new THREE.Mesh(playerGeometry, playerMaterial);
-    player.position.y = 3;
-    player.rotation.z = -Math.PI / 2;
+    const conePlayer = new THREE.Mesh(playerConeGeometry, playerMaterial);
+    conePlayer.position.x = 3;
+    conePlayer.position.y = 3;
+    conePlayer.rotation.z = -Math.PI / 2;
 
-    const ghostGeometry = new THREE.ConeGeometry(0.65, 2.2, 8);
-    const ghostMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    const ghost = new THREE.Mesh(ghostGeometry, ghostMaterial);
-    ghost.position.y = 3;
-    ghost.rotation.z = -Math.PI / 2;
+    playerGroup.conePlayer = conePlayer;
+    playerGroup.add(conePlayer);
 
+    jsonLoader.load('assets/models/player.json',
+      (flashLightGeometry) => {
+        const modelPlayer = new THREE.Mesh(flashLightGeometry, playerMaterial);
+        modelPlayer.position.y = 3;
+        modelPlayer.scale.set(1.2, 1.2, 1.2);
+        playerGroup.add(modelPlayer);
+      }, (xhr) => {
+        console.log(`Loading player ${xhr.loaded / xhr.total * 100}% loaded`);
+      }, (err) => {
+        console.log('An error happened');
+      },
+    );
+
+    this.scene.add(playerGroup);
+
+    const ghostConeGeometry = new THREE.ConeGeometry(0.3, 1.5, 8);
     const ghostRangeGeometry = new THREE.CircleGeometry(GHOST_RANGE_SIZE, 32);
-    const ghostRangeMaterial = new THREE.MeshBasicMaterial({
-      color: 0xff0000,
-      opacity: 0.1,
-      transparent: true,
-      side: THREE.DoubleSide,
-    });
-    const ghostRange = new THREE.Mesh(ghostRangeGeometry, ghostRangeMaterial);
-    ghostRange.rotation.x = -Math.PI / 2;
+
+    for (const ghostGroup of ghostGroups) {
+      const ghostColor = GHOST_COLORS[ghostGroups.indexOf(ghostGroup)];
+      const ghostMaterial = new THREE.MeshBasicMaterial({
+        color: ghostColor,
+        transparent: true,
+        opacity: 0.7,
+      });
+      const ghostCone = new THREE.Mesh(ghostConeGeometry, ghostMaterial);
+      ghostCone.position.x = 3;
+      ghostCone.position.y = 3;
+      ghostCone.rotation.z = -Math.PI / 2;
+
+      ghostGroup.ghostCone = ghostCone;
+      ghostGroup.add(ghostCone);
+
+      const ghostRangeMaterial = new THREE.MeshBasicMaterial({
+        color: ghostColor,
+        opacity: 0.1,
+        transparent: true,
+        side: THREE.DoubleSide,
+      });
+      const ghostRange = new THREE.Mesh(ghostRangeGeometry, ghostRangeMaterial);
+      ghostRange.position.y = 3;
+      ghostRange.rotation.x = -Math.PI / 2;
+      ghostGroup.ghostRange = ghostRange;
+      ghostGroup.add(ghostRange);
+      this.scene.add(ghostGroup);
+      ghostGroup.position.x = (ghostGroups.indexOf(ghostGroup) + 1) * 3;
+    }
+
+    jsonLoader.load('assets/models/ghost.json',
+      (ghostGeometry) => {
+        for (const ghostGroup of ghostGroups) {
+          const modelGhost = new THREE.Mesh(ghostGeometry, ghostGroup.ghostCone.material);
+          modelGhost.position.y = 3;
+          modelGhost.scale.set(1.2, 1.2, 1.2);
+          ghostGroup.add(modelGhost);
+        }
+      }, (xhr) => {
+        console.log(`Loading ghost ${xhr.loaded / xhr.total * 100}% loaded`);
+      }, (err) => {
+        console.log('An error happened');
+      },
+    );
 
     this.socket.emit(Protocol.REGISTER, 'TABLE');
 
@@ -293,17 +362,10 @@ class SceneWidget extends TUIOWidget {
 
       const map = mapData.terrain.map;
 
-      this.mansion.position.x = -mapWidth / 2;
-      this.mansion.position.z = -mapHeight / 2;
-
-      this.floorOne = new THREE.Group();
-
-      this.wallsGroup = new THREE.Group();
-      this.floorsGroup = new THREE.Group();
-      this.doorsGroup = new THREE.Group();
+      this.camera.position.x = mapWidth / 2;
+      this.camera.position.z = mapHeight / 2;
 
       const wallGeometry = new THREE.BoxGeometry(1, 5, 1);
-      // const texture = new THREE.TextureLoader().load('assets/lava_brick.jpg');
       const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
       const carpetGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -319,12 +381,16 @@ class SceneWidget extends TUIOWidget {
           const wall = new THREE.Mesh(wallGeometry, wallMaterial.clone());
           wall.position.x = posX;
           wall.position.z = posY;
-          this.wallsGroup.add(wall);
+          wall.wall = true;
+          this.scene.add(wall);
+          this.walls.push(wall);
         } else if (elt === 'F' || elt === 'D') {
           const carpet = new THREE.Mesh(carpetGeometry, carpetMaterial);
           carpet.position.x = posX;
           carpet.position.z = posY;
-          this.floorsGroup.add(carpet);
+          carpet.carpet = true;
+          this.scene.add(carpet);
+          this.carpets.push(carpet);
         }
       });
 
@@ -335,77 +401,72 @@ class SceneWidget extends TUIOWidget {
         if (doorData.align === 'v') {
           door.rotation.y = Math.PI / 2;
         }
-        this.doors.set(doorData.id, door);
-        this.mansion.add(door);
+        this.doorsMap.set(doorData.id, door);
+        this.scene.add(door);
+        this.doors.push(door);
       });
-
-      this.floorOne.add(this.wallsGroup);
-      this.floorOne.add(this.floorsGroup);
-      this.floorOne.add(this.doorsGroup);
-      this.mansion.add(this.floorOne);
     });
 
     this.socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
-      player.position.x = data.position.x;
-      player.position.z = data.position.z;
-      player.rotation.y = -data.rotation.y;
-      this.mansion.add(player);
+      playerGroup.position.x = data.position.x;
+      playerGroup.position.z = data.position.z;
+      playerGroup.rotation.y = -data.rotation.y;
     });
 
     this.socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
-      ghost.position.x = data.position.x;
-      ghost.position.z = data.position.z;
-      ghostRange.position.copy(ghost.position);
-      ghost.rotation.y = -data.rotation.y;
-      if (ghost.parent === null) {
-        this.mansion.add(ghost);
-        this.mansion.add(ghostRange);
-      }
+      const id = data.id || 0;
+      const ghostGroup = ghostGroups[id];
+      ghostGroup.position.x = data.position.x;
+      ghostGroup.position.z = data.position.z;
+      ghostGroup.rotation.y = -data.rotation.y;
     });
 
     this.socket.on(Protocol.DOOR_UPDATE, (data) => {
       this.doors.get(data.name).visible = !open;
     });
 
+    this.socket.on(Protocol.TRAP_TRIGGERED, (data) => {
+      if (this.trapTags.has(data.trapId)) {
+        const trap = this.trapTags.get(data.trapId);
+        this.trapTags.delete(data.trapId);
+        this.scene.remove(trap);
+      }
+    });
+
     this.socket.on(Protocol.GAME_OVER, (data) => {
       if (data.won === true) {
         $youlost.show();
-        scores.Hunter1.value = scores.Hunter1.value + 1;
-        $(".scoreValues").html(printScore());
+        scores.Explorer.value++;
+        $('.scoreValues').html(printScore());
       } else {
         $youwin.show();
-        scores.Explorer.value = scores.Explorer.value + 1;
-        $(".scoreValues").html(printScore());
-
+        scores.Hunter1.value++;
+        $('.scoreValues').html(printScore());
       }
     });
 
     this.socket.on(Protocol.RESTART, () => {
-      Array.from(this.doors.values()).forEach(door => door.visible = true);
+      Array.from(this.doorsMap.values()).forEach((door) => {
+        door.visible = true;
+      });
+      Array.from(this.trapTags.keys()).forEach((trapId) => {
+        const trap = this.trapTags.get(trapId);
+        this.trapTags.delete(trapId);
+        this.scene.remove(trap);
+      });
       $youlost.hide();
       $youwin.hide();
     });
 
     const animate = () => {
       requestAnimationFrame(animate);
-      playerMaterial.opacity = 1 - cunlerp(GHOST_RANGE_SIZE - 2, GHOST_RANGE_SIZE, ghost.position.distanceTo(player.position));
+      let closestDistanceToPlayer = Infinity;
+      for (const ghostGroup of ghostGroups) {
+        closestDistanceToPlayer = Math.min(closestDistanceToPlayer, ghostGroup.position.distanceTo(playerGroup.position));
+      }
+      playerMaterial.opacity = 1 - cunlerp(GHOST_RANGE_SIZE - 2, GHOST_RANGE_SIZE, closestDistanceToPlayer);
       this.renderer.render(this.scene, this.camera);
     };
-
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    this.renderer.setClearColor(0xffffff, 0);
-
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-
-    new WindowResize(this.renderer, this.camera);
-
-    this.camera.position.y = 100;
-    this.camera.rotation.x = -Math.PI / 2;
-
-    this.mansion = new THREE.Group();
-    this.scene.add(this.mansion);
 
     animate();
 
