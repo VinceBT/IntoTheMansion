@@ -1,12 +1,10 @@
 [
   {
-    "id": 0,
     "trap": "16",
     "light": "3F",
     "direction": "20"
   },
   {
-    "id": 1,
     "trap": "34",
     "light": "85",
     "direction": "24"

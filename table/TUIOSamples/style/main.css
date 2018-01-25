@@ -138,12 +138,10 @@ canvas {
 
 .avatarHunter1 {
     background-image: url("../assets/images/ghost.png");
-    opacity: 0.7;
 }
 
 .avatarHunter2 {
     background-image: url("../assets/images/ghost.png");
-    opacity: 0.7;
 }
 
 .scoreValue p {
