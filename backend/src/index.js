@@ -120,6 +120,13 @@ io.on('connection', (socket) => {
     broadcast(tablets, Protocol.RESTART);
   });
 
+  // REQUEST GHOST MOVEMENT
+  socket.on(Protocol.REQUEST_GHOST_MOVEMENT, (data) => {
+      console.log(`Received verb ${Protocol.REQUEST_GHOST_MOVEMENT}`);
+      console.log(data);
+      //TODO Broadcast un nouveau event pour que le fantome se deplace dans le jeu
+  });
+
   // DISCONNECTION
   socket.once('disconnect', () => {
     tablets.delete(socket);

@@ -7,9 +7,11 @@ import debounce from 'throttle-debounce/debounce';
 
 import Protocol from '../Protocol';
 import { cunlerp } from '../utils';
+import tags from '../../assets/tags.json'
 
-const trapGeometry = new THREE.BoxGeometry(1, 2, 1);
-const trapMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+
+
 
 const GHOST_RANGE_SIZE = 5;
 const GHOST_NUMBER = 2;
@@ -217,16 +219,23 @@ class SceneWidget extends TUIOWidget {
     console.log(`Tag deleted (id: ${tuioTagId})`);
   }
 
-  handleTagMove = debounce(500, (tuioTag) => {
-    console.log(`Tag released (id: ${tuioTag.id})`);
-    let trap;
-    if (this.trapTags.has(tuioTag.id)) {
-      trap = this.trapTags.get(tuioTag.id);
-    } else {
-      trap = new THREE.Mesh(trapGeometry, trapMaterial);
-      this.scene.add(trap);
-      this.trapTags.set(tuioTag.id, trap);
+  associateTag = (tuioTag) => {
+    console.log(tuioTag.id)
+    for (let player of tags) {
+      for (let key of Object.keys(player)) {
+        if(player[key] == tuioTag.id){
+          return {
+            player: player.id,
+            type: key
+
+          }
+        }
+      }
     }
+    return null;
+  }
+
+  tagToScenePosition = (tuioTag) => {
     const viewPortCoord = new THREE.Vector2(
       ((tuioTag.x / this.width) * 2) - 1,
       -((tuioTag.y / this.height) * 2) + 1,
@@ -236,22 +245,96 @@ class SceneWidget extends TUIOWidget {
     console.log(intersects.length);
     if (intersects.length !== 0) {
       const intersect = intersects[0];
-      if (!intersect.carpet) return;
+      if (!intersect.object.carpet) return null;
       const flooredPosition = new THREE.Vector3(
         Math.floor(intersect.point.x),
         Math.floor(intersect.point.y),
         Math.floor(intersect.point.z),
       );
-      trap.position.copy(flooredPosition);
-      this.socket.emit(Protocol.CREATE_TRAP, {
-        position: {
-          x: flooredPosition.x,
-          y: flooredPosition.y,
-          z: flooredPosition.z,
-        },
-        name: tuioTag.id,
-        type: 'DeathTrap',
-      });
+      return flooredPosition;
+    }
+    return null;
+  
+  }
+
+  handleTagMove = debounce(500, (tuioTag) => {
+    let tagData = this.associateTag(tuioTag);
+    console.log(tagData);
+
+    console.log(`Tag released (id: ${tuioTag.id})`);
+
+    if(tagData !== null) {
+        if (tagData.type === "direction") {
+            const ghostDirectionGeometry = new THREE.ConeGeometry(2, 5, 8);
+            const ghostDirectionMaterial = new THREE.MeshBasicMaterial({color: GHOST_COLORS[tagData.player]});
+            const ghostDirection = new THREE.Mesh(ghostDirectionGeometry, ghostDirectionMaterial);
+            const flooredPosition = this.tagToScenePosition(tuioTag);
+            if (flooredPosition !== null) {
+                this.scene.add(ghostDirection);
+
+                ghostDirection.position.copy(flooredPosition);
+
+                /* On emet l'event de deplacement de fantome */
+                this.socket.emit(Protocol.REQUEST_GHOST_MOVEMENT, {
+                    position: {
+                        x: flooredPosition.x,
+                        y: flooredPosition.y,
+                        z: flooredPosition.z,
+                    },
+                    player: tagData.player,
+                    name: tuioTag.id,
+                });
+            }
+        }
+
+        if (tagData.type == "trap") {
+
+            let trap;
+            if (this.trapTags.has(tuioTag.id)) {
+                trap = this.trapTags.get(tuioTag.id);
+            } else {
+
+                const trapGeometry = new THREE.BoxGeometry(1, 2, 1);
+                const trapMaterial = new THREE.MeshBasicMaterial({color: GHOST_COLORS[tagData.player]});
+                trap = new THREE.Mesh(trapGeometry, trapMaterial);
+
+            }
+
+            const flooredPosition = this.tagToScenePosition(tuioTag);
+
+            if (flooredPosition !== null) {
+                this.scene.add(trap);
+                this.trapTags.set(tuioTag.id, trap);
+                trap.position.copy(flooredPosition);
+                this.socket.emit(Protocol.CREATE_TRAP, {
+                    position: {
+                        id: tagData.player,
+                        x: flooredPosition.x,
+                        y: flooredPosition.y,
+                        z: flooredPosition.z,
+                    },
+                    name: tuioTag.id,
+                    type: 'DeathTrap',
+                });
+            }
+            /*const viewPortCoord = new THREE.Vector2(
+              ((tuioTag.x / this.width) * 2) - 1,
+              -((tuioTag.y / this.height) * 2) + 1,
+            );
+            this.raycaster.setFromCamera(viewPortCoord, this.camera);
+            const intersects = this.raycaster.intersectObjects(this.scene.children);
+            console.log(intersects.length);
+            if (intersects.length !== 0) {
+              const intersect = intersects[0];
+              if (!intersect.carpet) return;
+              const flooredPosition = new THREE.Vector3(
+                Math.floor(intersect.point.x),
+                Math.floor(intersect.point.y),
+                Math.floor(intersect.point.z),
+              );
+              */
+
+        }
     }
   });
 
