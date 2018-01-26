@@ -89,17 +89,13 @@ const $youwin = $(`
 $youwin.hide();
 
 
-function endScreenMessage(playerId, deathType){
-
-  if(deathType === 'trap'){
+function endScreenMessage(playerId, deathType) {
+  if (deathType === 'trap') {
     return (`Hunter ${playerId} has killed the explorer with a trap`);
-  }
-  else {
+  } else {
     return (`Ghost ${playerId} has killed the explorer`);
   }
-
 }
-
 
 
 class SceneWidget extends TUIOWidget {
@@ -518,11 +514,15 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.TRAP_TRIGGERED, (data) => {
+      /*this.playerEntities.forEach((currPlayerEntities) => {
+        currPlayerEntities.traps = currPlayerEntities.traps.filter(trap => {
+
+      });
       if (this.trapTags.has(data.trapId)) {
         const trap = this.trapTags.get(data.trapId);
         this.trapTags.delete(data.trapId);
-        this.scene.remove(trap);
-      }
+
+      }*/
     });
 
     this.socket.on(Protocol.GAME_OVER, (data) => {
@@ -532,10 +532,9 @@ class SceneWidget extends TUIOWidget {
         $('.scoreValues')
           .html(printScore());
       } else {
-        if(data.killedBy === 0){
+        if (data.killedBy === 0) {
           scores.Hunter1.value++;
-        }
-        else if(data.killedBy === 1){
+        } else if (data.killedBy === 1) {
           scores.Hunter2.value++;
         }
         $youwin.find('.message').text(endScreenMessage(data.killedBy + 1, data.deathType));
@@ -551,12 +550,12 @@ class SceneWidget extends TUIOWidget {
         .forEach((door) => {
           door.visible = true;
         });
-      Array.from(this.trapTags.keys())
-        .forEach((trapId) => {
-          const trap = this.trapTags.get(trapId);
-          this.trapTags.delete(trapId);
-          this.scene.remove(trap);
+      this.playerEntities.forEach((currPlayerEntities) => {
+        currPlayerEntities.traps.forEach((trap) => {
+          this.scene.remove(trap.mesh);
         });
+        currPlayerEntities.traps = [];
+      });
       $youlost.hide();
       $youwin.hide();
     });
