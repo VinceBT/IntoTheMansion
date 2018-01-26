@@ -78,6 +78,13 @@ io.on('connection', (socket) => {
     broadcast(tablets, Protocol.CREATE_TRAP, data);
   });
 
+  // CREATE_WALL
+  socket.on(Protocol.CREATE_WALL, (data) => {
+    console.log(`Received verb ${Protocol.CREATE_WALL}`);
+    broadcast(vrs, Protocol.CREATE_WALL, data);
+    broadcast(tablets, Protocol.CREATE_WALL, data);
+  });
+
   // PLAYER_POSITION_UPDATE
   socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
     console.log(`Received verb ${Protocol.PLAYER_POSITION_UPDATE}`);

@@ -27,14 +27,25 @@ const register = () => new Promise((resolve, reject) => {
 const init = async () => {
   await connect();
   await register();
-  const playerCoords = { x: 3, y: 0, z: 3 };
-  const ghostCoords = { x: 20, y: 0, z: 20, r: 0 };
+  const playerCoords = { x: 3, y: 0, z: 3, r: 0 };
+  const ghost1Coords = { x: 20, y: 0, z: 20, r: 0 };
+  const ghost2Coords = { x: 30, y: 0, z: 30, r: 0 };
   let intervalId;
   const moveProgress = generateProgress(2, () => {
     clearInterval(intervalId);
     vr.emit(Protocol.GAME_OVER, { won: true });
     setTimeout(() => {
       vr.emit(Protocol.RESTART);
+      vr.emit(Protocol.CREATE_TRAP, {
+        name: '3F',
+        player: 0,
+        position: {
+          x: 3,
+          y: 3,
+          z: 3,
+        },
+        type: 'DeathTrap',
+      });
       setTimeout(() => {
         vr.emit(Protocol.GAME_OVER, { won: false });
         setTimeout(() => {
@@ -46,18 +57,38 @@ const init = async () => {
     }, 1000);
   });
   const tweenPlayer = new TWEEN.Tween(playerCoords)
-    .to({ x: 12, y: 0, z: 12 }, 5000)
+    .to({ x: 12, y: 0, z: 12, r: Math.PI * 2 * 10 }, 5000)
     .onUpdate(() => {
-      vr.emit(Protocol.PLAYER_POSITION_UPDATE, { position: playerCoords, rotation: { x: 0, y: 0, z: 0 } });
+      vr.emit(Protocol.PLAYER_POSITION_UPDATE, {
+        position: { x: playerCoords.x, y: playerCoords.y, z: playerCoords.z },
+        rotation: { x: 0, y: playerCoords.r, z: 0 },
+      });
     })
     .onComplete(() => {
       moveProgress();
     })
     .start();
-  const tweenGhost = new TWEEN.Tween(ghostCoords)
+  const tweenGhost1 = new TWEEN.Tween(ghost1Coords)
     .to({ x: 12, y: 0, z: 12, r: Math.PI * 2 * 10 }, 5000)
     .onUpdate(() => {
-      vr.emit(Protocol.GHOST_POSITION_UPDATE, { position: ghostCoords, rotation: { x: 0, y: ghostCoords.r, z: 0 } });
+      vr.emit(Protocol.GHOST_POSITION_UPDATE, {
+        player: 0,
+        position: { x: ghost1Coords.x, y: ghost1Coords.y, z: ghost1Coords.z },
+        rotation: { x: 0, y: ghost1Coords.r, z: 0 },
+      });
+    })
+    .onComplete(() => {
+      moveProgress();
+    })
+    .start();
+  const tweenGhost2 = new TWEEN.Tween(ghost2Coords)
+    .to({ x: 13, y: 0, z: 13, r: Math.PI * 2 * 10 }, 5000)
+    .onUpdate(() => {
+      vr.emit(Protocol.GHOST_POSITION_UPDATE, {
+        player: 1,
+        position: { x: ghost2Coords.x, y: ghost2Coords.y, z: ghost2Coords.z },
+        rotation: { x: 0, y: ghost2Coords.r, z: 0 },
+      });
     })
     .onComplete(() => {
       moveProgress();
