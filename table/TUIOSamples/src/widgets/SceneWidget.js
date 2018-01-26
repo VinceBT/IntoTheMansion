@@ -7,9 +7,8 @@ import debounce from 'throttle-debounce/debounce';
 
 import Protocol from '../Protocol';
 import { cunlerp } from '../utils';
+import playerconfigs from '../../assets/playerconfigs.json';
 
-const trapGeometry = new THREE.BoxGeometry(1, 2, 1);
-const trapMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
 const GHOST_RANGE_SIZE = 5;
 const GHOST_NUMBER = 2;
@@ -96,6 +95,7 @@ class SceneWidget extends TUIOWidget {
     this.raycaster = new THREE.Raycaster();
     this.doorsMap = new Map();
     this.trapTags = new Map();
+    this.directionTags = new Map();
     this.simplePressed = false;
     const $scene = this.buildScene();
     const $container = $('<div class="container">');
@@ -217,41 +217,96 @@ class SceneWidget extends TUIOWidget {
     console.log(`Tag deleted (id: ${tuioTagId})`);
   }
 
-  handleTagMove = debounce(500, (tuioTag) => {
-    console.log(`Tag released (id: ${tuioTag.id})`);
-    let trap;
-    if (this.trapTags.has(tuioTag.id)) {
-      trap = this.trapTags.get(tuioTag.id);
-    } else {
-      trap = new THREE.Mesh(trapGeometry, trapMaterial);
-      this.scene.add(trap);
-      this.trapTags.set(tuioTag.id, trap);
+  associateTag = (tuioTag) => {
+    for (let i = 0; i < playerconfigs.length; i++) {
+      const playerconfig = playerconfigs[i];
+      for (const key of Object.keys(playerconfig)) {
+        if (playerconfig[key].toString() === tuioTag.id.toString()) {
+          return {
+            player: i,
+            type: key,
+          };
+        }
+      }
     }
+    return null;
+  };
+
+  tagToScenePosition = (tuioTag, floored = false) => {
     const viewPortCoord = new THREE.Vector2(
       ((tuioTag.x / this.width) * 2) - 1,
       -((tuioTag.y / this.height) * 2) + 1,
     );
     this.raycaster.setFromCamera(viewPortCoord, this.camera);
     const intersects = this.raycaster.intersectObjects(this.scene.children);
-    console.log(intersects.length);
+    // console.log(intersects.length);
     if (intersects.length !== 0) {
       const intersect = intersects[0];
-      if (!intersect.carpet) return;
+      if (!intersect.object.carpet) return null;
+      if (!floored) return intersect.point.clone();
       const flooredPosition = new THREE.Vector3(
         Math.floor(intersect.point.x),
         Math.floor(intersect.point.y),
         Math.floor(intersect.point.z),
       );
-      trap.position.copy(flooredPosition);
-      this.socket.emit(Protocol.CREATE_TRAP, {
-        position: {
-          x: flooredPosition.x,
-          y: flooredPosition.y,
-          z: flooredPosition.z,
-        },
-        name: tuioTag.id,
-        type: 'DeathTrap',
-      });
+      return flooredPosition;
+    }
+    return null;
+  };
+
+  handleTagMove = debounce(500, (tuioTag) => {
+    console.log(`Tag released (id: ${tuioTag.id})`);
+    const tagData = this.associateTag(tuioTag);
+    console.log('Tag data', tagData);
+    if (tagData !== null) {
+      if (tagData.type === 'direction') {
+        const intersectPosition = this.tagToScenePosition(tuioTag);
+        if (intersectPosition === null) return;
+        let ghostDirection;
+        if (this.directionTags.has(tuioTag.id)) {
+          ghostDirection = this.directionTags.get(tuioTag.id);
+        } else {
+          const ghostDirectionGeometry = new THREE.ConeGeometry(2, 5, 8);
+          const ghostDirectionMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player] });
+          ghostDirection = new THREE.Mesh(ghostDirectionGeometry, ghostDirectionMaterial);
+          this.scene.add(ghostDirection);
+          this.directionTags.set(tuioTag.id, ghostDirection);
+        }
+        ghostDirection.position.copy(intersectPosition);
+        this.socket.emit(Protocol.REQUEST_GHOST_MOVEMENT, {
+          position: {
+            x: intersectPosition.x,
+            y: intersectPosition.y,
+            z: intersectPosition.z,
+          },
+          player: tagData.player,
+          name: tuioTag.id,
+        });
+      } else if (tagData.type === 'trap') {
+        const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
+        if (flooredIntersectPosition === null) return;
+        let ghostTrap;
+        if (this.trapTags.has(tuioTag.id)) {
+          ghostTrap = this.trapTags.get(tuioTag.id);
+        } else {
+          const trapGeometry = new THREE.BoxGeometry(1, 2, 1);
+          const trapMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player] });
+          ghostTrap = new THREE.Mesh(trapGeometry, trapMaterial);
+          this.scene.add(ghostTrap);
+          this.trapTags.set(tuioTag.id, ghostTrap);
+        }
+        ghostTrap.position.copy(flooredIntersectPosition);
+        this.socket.emit(Protocol.CREATE_TRAP, {
+          position: {
+            id: tagData.player,
+            x: flooredIntersectPosition.x,
+            y: flooredIntersectPosition.y,
+            z: flooredIntersectPosition.z,
+          },
+          name: tuioTag.id,
+          type: 'DeathTrap',
+        });
+      }
     }
   });
 
@@ -273,7 +328,8 @@ class SceneWidget extends TUIOWidget {
     this.doors = [];
 
     const playerGroup = new THREE.Group();
-    const ghostGroups = new Array(GHOST_NUMBER).fill(null).map(() => new THREE.Group());
+    const ghostGroups = new Array(GHOST_NUMBER).fill(null)
+      .map(() => new THREE.Group());
 
     const jsonLoader = new THREE.JSONLoader();
 
@@ -437,23 +493,27 @@ class SceneWidget extends TUIOWidget {
       if (data.won === true) {
         $youlost.show();
         scores.Explorer.value++;
-        $('.scoreValues').html(printScore());
+        $('.scoreValues')
+          .html(printScore());
       } else {
         $youwin.show();
         scores.Hunter1.value++;
-        $('.scoreValues').html(printScore());
+        $('.scoreValues')
+          .html(printScore());
       }
     });
 
     this.socket.on(Protocol.RESTART, () => {
-      Array.from(this.doorsMap.values()).forEach((door) => {
-        door.visible = true;
-      });
-      Array.from(this.trapTags.keys()).forEach((trapId) => {
-        const trap = this.trapTags.get(trapId);
-        this.trapTags.delete(trapId);
-        this.scene.remove(trap);
-      });
+      Array.from(this.doorsMap.values())
+        .forEach((door) => {
+          door.visible = true;
+        });
+      Array.from(this.trapTags.keys())
+        .forEach((trapId) => {
+          const trap = this.trapTags.get(trapId);
+          this.trapTags.delete(trapId);
+          this.scene.remove(trap);
+        });
       $youlost.hide();
       $youwin.hide();
     });

@@ -120,6 +120,13 @@ io.on('connection', (socket) => {
     broadcast(tablets, Protocol.RESTART);
   });
 
+  // REQUEST GHOST MOVEMENT
+  socket.on(Protocol.REQUEST_GHOST_MOVEMENT, (data) => {
+    console.log(`Received verb ${Protocol.REQUEST_GHOST_MOVEMENT}`);
+    console.log(data);
+    broadcast(vrs, Protocol.REQUEST_GHOST_MOVEMENT, data);
+  });
+
   // DISCONNECTION
   socket.once('disconnect', () => {
     tablets.delete(socket);

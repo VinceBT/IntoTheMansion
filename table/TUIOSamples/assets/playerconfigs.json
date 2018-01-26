@@ -1,0 +1,12 @@
+[
+  {
+    "trap": "16",
+    "light": "3F",
+    "direction": "20"
+  },
+  {
+    "trap": "34",
+    "light": "85",
+    "direction": "24"
+  }
+]
