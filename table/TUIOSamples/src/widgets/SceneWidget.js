@@ -292,7 +292,7 @@ class SceneWidget extends TUIOWidget {
             z: flooredIntersectPosition.z,
           },
           player: tagData.player,
-          name: tuioTag.id,
+          name: hash,
         });
       } else if (tagData.type === 'trap') {
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
@@ -312,7 +312,7 @@ class SceneWidget extends TUIOWidget {
           });
         }
         this.socket.emit(Protocol.CREATE_TRAP, {
-          name: tuioTag.id,
+          name: hash,
           player: tagData.player,
           position: {
             x: flooredIntersectPosition.x,
