@@ -111,6 +111,7 @@ io.on('connection', (socket) => {
     console.log(`Received verb ${Protocol.GAME_OVER}`);
     console.log(data);
     broadcast(tables, Protocol.GAME_OVER, data);
+    broadcast(tablets, Protocol.GAME_OVER, data);
   });
 
   // RESTART
