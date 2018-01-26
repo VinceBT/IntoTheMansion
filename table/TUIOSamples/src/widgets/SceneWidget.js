@@ -274,13 +274,13 @@ class SceneWidget extends TUIOWidget {
         }
         ghostDirection.position.copy(intersectPosition);
         this.socket.emit(Protocol.REQUEST_GHOST_MOVEMENT, {
+          name: tuioTag.id,
+          player: tagData.player,
           position: {
             x: intersectPosition.x,
             y: intersectPosition.y,
             z: intersectPosition.z,
           },
-          player: tagData.player,
-          name: tuioTag.id,
         });
       } else if (tagData.type === 'trap') {
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
@@ -297,13 +297,13 @@ class SceneWidget extends TUIOWidget {
         }
         ghostTrap.position.copy(flooredIntersectPosition);
         this.socket.emit(Protocol.CREATE_TRAP, {
+          name: tuioTag.id,
+          player: tagData.player,
           position: {
-            id: tagData.player,
             x: flooredIntersectPosition.x,
             y: flooredIntersectPosition.y,
             z: flooredIntersectPosition.z,
           },
-          name: tuioTag.id,
           type: 'DeathTrap',
         });
       }
