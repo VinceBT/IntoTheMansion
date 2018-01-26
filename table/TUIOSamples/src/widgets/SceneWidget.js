@@ -14,6 +14,9 @@ const GHOST_RANGE_SIZE = 5;
 const GHOST_NUMBER = 2;
 const GHOST_COLORS = [0xff0000, 0x00ff00];
 
+let ghostDirectionGeometry = new THREE.ConeGeometry(2, 5, 20);
+let trapGeometry = new THREE.BoxGeometry(1, 2, 1);
+
 const scores = {
   Hunter1: {
     color: 'red',
@@ -237,11 +240,11 @@ class SceneWidget extends TUIOWidget {
       if (tagData.type === 'direction') {
         const intersectPosition = this.tagToScenePosition(tuioTag);
         if (intersectPosition === null) return;
+        intersectPosition.setY(1);
         let ghostDirection;
         if (this.directionTags.has(tuioTag.id)) {
           ghostDirection = this.directionTags.get(tuioTag.id);
         } else {
-          const ghostDirectionGeometry = new THREE.ConeGeometry(2, 5, 20);
           const ghostDirectionMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player] });
           ghostDirection = new THREE.Mesh(ghostDirectionGeometry, ghostDirectionMaterial);
           this.scene.add(ghostDirection);
@@ -260,6 +263,7 @@ class SceneWidget extends TUIOWidget {
       } else if (tagData.type === 'wall') {
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
         if (flooredIntersectPosition === null) return;
+        flooredIntersectPosition.setY(1);
         const fakeWallGeometry = new THREE.BoxGeometry(1, 5, 1);
         const fakeWallMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player], transparent: true, opacity: 0.7 });
         const fakeWall = new THREE.Mesh(fakeWallGeometry, fakeWallMaterial);
@@ -283,9 +287,10 @@ class SceneWidget extends TUIOWidget {
       } else if (tagData.type === 'trap') {
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
         if (flooredIntersectPosition === null) return;
-        const trapGeometry = new THREE.BoxGeometry(1, 2, 1);
+        flooredIntersectPosition.setY(1);
         const trapMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player] });
         const ghostTrap = new THREE.Mesh(trapGeometry, trapMaterial);
+        ghostTrap.position.copy(flooredIntersectPosition);
         this.scene.add(ghostTrap);
         const currentPlayerEntities = this.playerEntities[tagData.player];
         currentPlayerEntities.traps.unshift({ id: hash, tagId: tuioTag.id, mesh: ghostTrap });
@@ -293,7 +298,6 @@ class SceneWidget extends TUIOWidget {
           const oldTrap = currentPlayerEntities.traps.pop();
           this.scene.remove(oldTrap.mesh);
         }
-        ghostTrap.position.copy(flooredIntersectPosition);
         this.socket.emit(Protocol.CREATE_TRAP, {
           name: tuioTag.id,
           player: tagData.player,
@@ -346,8 +350,8 @@ class SceneWidget extends TUIOWidget {
     playerGroup.add(conePlayer);
 
     jsonLoader.load('assets/models/player.json',
-      (flashLightGeometry) => {
-        const modelPlayer = new THREE.Mesh(flashLightGeometry, playerMaterial);
+      (geometry) => {
+        const modelPlayer = new THREE.Mesh(geometry, playerMaterial);
         modelPlayer.position.y = 3;
         modelPlayer.scale.set(1.2, 1.2, 1.2);
         playerGroup.add(modelPlayer);
@@ -394,15 +398,35 @@ class SceneWidget extends TUIOWidget {
     }
 
     jsonLoader.load('assets/models/ghost.json',
-      (ghostGeometry) => {
+      (geometry) => {
         for (const ghostGroup of ghostGroups) {
-          const modelGhost = new THREE.Mesh(ghostGeometry, ghostGroup.ghostCone.material);
+          const modelGhost = new THREE.Mesh(geometry, ghostGroup.ghostCone.material);
           modelGhost.position.y = 3;
           modelGhost.scale.set(1.2, 1.2, 1.2);
           ghostGroup.add(modelGhost);
         }
       }, (xhr) => {
         console.log(`Loading ghost ${xhr.loaded / xhr.total * 100}% loaded`);
+      }, (err) => {
+        console.log('An error happened');
+      },
+    );
+
+    jsonLoader.load('assets/models/direction.json',
+      (geometry) => {
+        ghostDirectionGeometry = geometry;
+      }, (xhr) => {
+        console.log(`Loading direction ${xhr.loaded / xhr.total * 100}% loaded`);
+      }, (err) => {
+        console.log('An error happened');
+      },
+    );
+
+    jsonLoader.load('assets/models/trap.json',
+      (geometry) => {
+        trapGeometry = geometry;
+      }, (xhr) => {
+        console.log(`Loading direction ${xhr.loaded / xhr.total * 100}% loaded`);
       }, (err) => {
         console.log('An error happened');
       },
