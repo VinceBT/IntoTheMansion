@@ -98,6 +98,14 @@ class SceneWidget extends TUIOWidget {
     this.directionTags = new Map();
     this.wallTags = new Map();
 
+    this.traps = [];
+    for (let i = 0; i < GHOST_NUMBER; i++) {
+      traps.push({
+        traps: [],
+        walls: [],
+      })
+    }
+  
     this.simplePressed = false;
     const $scene = this.buildScene();
     const $container = $('<div class="container">');
@@ -288,6 +296,7 @@ class SceneWidget extends TUIOWidget {
           ghostTrap = new THREE.Mesh(trapGeometry, trapMaterial);
           this.scene.add(ghostTrap);
           this.trapTags.set(tuioTag.id, ghostTrap);
+        
         }
         ghostTrap.position.copy(flooredIntersectPosition);
         this.socket.emit(Protocol.CREATE_TRAP, {
