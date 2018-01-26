@@ -6,7 +6,7 @@ import WindowResize from 'three-window-resize';
 import debounce from 'throttle-debounce/debounce';
 
 import Protocol from '../Protocol';
-import { cunlerp } from '../utils';
+import {cunlerp, randomHash} from '../utils';
 import playerconfigs from '../../assets/playerconfigs.json';
 
 
@@ -229,6 +229,7 @@ class SceneWidget extends TUIOWidget {
     const tagData = this.associateTag(tuioTag);
     console.log('Tag data', tagData);
     if (tagData !== null) {
+      const hash = randomHash();
       if (tagData.type === 'direction') {
         const intersectPosition = this.tagToScenePosition(tuioTag);
         if (intersectPosition === null) return;
