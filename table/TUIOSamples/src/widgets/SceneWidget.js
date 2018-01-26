@@ -96,6 +96,8 @@ class SceneWidget extends TUIOWidget {
     this.doorsMap = new Map();
     this.trapTags = new Map();
     this.directionTags = new Map();
+    this.wallTags = new Map();
+
     this.simplePressed = false;
     const $scene = this.buildScene();
     const $container = $('<div class="container">');
@@ -266,7 +268,7 @@ class SceneWidget extends TUIOWidget {
         if (this.directionTags.has(tuioTag.id)) {
           ghostDirection = this.directionTags.get(tuioTag.id);
         } else {
-          const ghostDirectionGeometry = new THREE.ConeGeometry(2, 5, 8);
+          const ghostDirectionGeometry = new THREE.ConeGeometry(2, 5, 20);
           const ghostDirectionMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player] });
           ghostDirection = new THREE.Mesh(ghostDirectionGeometry, ghostDirectionMaterial);
           this.scene.add(ghostDirection);
@@ -282,6 +284,31 @@ class SceneWidget extends TUIOWidget {
             z: intersectPosition.z,
           },
         });
+      } else if (tagData.type === 'wall') {
+        const intersectPosition = this.tagToScenePosition(tuioTag);
+        if (intersectPosition === null) return;
+        let fakeWall;
+        if (this.wallTags.has(tuioTag.id)) {
+          fakeWall = this.wallTags.get(tuioTag.id);
+        } else {
+          
+          const fakeWallGeometry = new THREE.BoxGeometry(1, 5, 1);  
+          const fakeWallMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player], transparent: true, opacity: 0.7 });
+          fakeWall = new THREE.Mesh(fakeWallGeometry, fakeWallMaterial);
+          this.scene.add(fakeWall);
+          this.wallTags.set(tuioTag.id, fakeWall);
+        }
+        fakeWall.position.copy(intersectPosition);
+        this.socket.emit(Protocol.CREATE_WALL, {
+          position: {
+            x: intersectPosition.x,
+            y: intersectPosition.y,
+            z: intersectPosition.z,
+          },
+          player: tagData.player,
+          name: tuioTag.id,
+        });
+        
       } else if (tagData.type === 'trap') {
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
         if (flooredIntersectPosition === null) return;
