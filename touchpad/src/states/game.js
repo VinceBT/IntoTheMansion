@@ -9,12 +9,6 @@ IntoTheMansion.Game = function() {
 };
 IntoTheMansion.Game.prototype = {
     preload: function() {
-        this.load.image('tiles', 'img/set.gif');
-        this.load.image('player', 'img/ball.png');
-        this.load.image('ghost', 'img/hole.png');
-        this.load.image('trap', 'img/trap.png');
-        this.load.spritesheet('remove-trap', 'img/remove-trap.png', 80, 80);
-        this.load.spritesheet('remove-trap-active', 'img/remove-trap-active.png', 80, 80);
         var model = this;
         this.skillmanager = new SkillManager();
 

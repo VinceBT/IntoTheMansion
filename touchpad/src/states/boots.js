@@ -12,8 +12,8 @@ IntoTheMansion.Boot.prototype = {
         this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
         this.game.scale.pageAlignHorizontally = true;
         this.game.scale.pageAlignVertically = true;
-        this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
-        this.game.scale.startFullScreen(false);
+        //this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
+        //this.game.scale.startFullScreen(false);
         this.game.state.start('Preload');
 
     }
