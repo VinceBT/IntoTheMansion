@@ -80,15 +80,15 @@ io.on('connection', (socket) => {
 
   // PLAYER_POSITION_UPDATE
   socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
-    console.log(`Received verb ${Protocol.PLAYER_POSITION_UPDATE}`);
+   // console.log(`Received verb ${Protocol.PLAYER_POSITION_UPDATE}`);
     broadcast(tables, Protocol.PLAYER_POSITION_UPDATE, data);
     broadcast(tablets, Protocol.PLAYER_POSITION_UPDATE, data);
-    broadcast(vrs, Protocol.GHOST_SET_NEW_POSITION, data);
+    broadcast(vrs, Protocol.REQUEST_GHOST_MOVEMENT, data);
   });
 
   // GHOST_POSITION_UPDATE
   socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
-    console.log(`Received verb ${Protocol.GHOST_POSITION_UPDATE}`);
+   // console.log(`Received verb ${Protocol.GHOST_POSITION_UPDATE}`);
     broadcast(tables, Protocol.GHOST_POSITION_UPDATE, data);
     broadcast(tablets, Protocol.GHOST_POSITION_UPDATE, data);
   });
