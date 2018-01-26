@@ -85,6 +85,20 @@ const $youwin = $(`
 `);
 $youwin.hide();
 
+
+function endScreenMessage(playerId, deathType){
+
+  if(deathType === 'trap'){
+    return (`Hunter ${playerId} has killed the explorer with a trap`);
+  }
+  else {
+    return (`Ghost ${playerId} has killed the explorer`);
+  }
+
+}
+
+
+
 class SceneWidget extends TUIOWidget {
 
   constructor(socket) {
@@ -494,8 +508,15 @@ class SceneWidget extends TUIOWidget {
         $('.scoreValues')
           .html(printScore());
       } else {
+        if(data.killedBy === 0){
+          scores.Hunter1.value++;
+        }
+        else if(data.killedBy === 1){
+          scores.Hunter2.value++;
+        }
+        $youwin.find('.message').text(endScreenMessage(data.killedBy + 1, data.deathType));
         $youwin.show();
-        scores.Hunter1.value++;
+
         $('.scoreValues')
           .html(printScore());
       }
