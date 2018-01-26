@@ -114,7 +114,7 @@ describe(`${serverStatus.name} backend server`, () => {
       tablet.once(Protocol.GHOST_POSITION_UPDATE, () => {
         progress();
       });
-      vr.emit(Protocol.GHOST_POSITION_UPDATE, { position: { x: 7, y: 3, z: 3 }, rotation: { x: 0, y: 0.5, z: 0 } });
+      vr.emit(Protocol.GHOST_POSITION_UPDATE, { player: 0, position: { x: 7, y: 3, z: 3 }, rotation: { x: 0, y: 0.5, z: 0 } });
     });
     it('should update the second player too', (done) => {
       const progress = generateProgress(2, () => {
@@ -126,7 +126,7 @@ describe(`${serverStatus.name} backend server`, () => {
       tablet.once(Protocol.GHOST_POSITION_UPDATE, () => {
         progress();
       });
-      vr.emit(Protocol.GHOST_POSITION_UPDATE, { id: 1, position: { x: 3, y: 7, z: 3 }, rotation: { x: 0, y: 1, z: 0 } });
+      vr.emit(Protocol.GHOST_POSITION_UPDATE, { player: 1, position: { x: 3, y: 7, z: 3 }, rotation: { x: 0, y: 1, z: 0 } });
     });
   });
   describe('Doors management', () => {
