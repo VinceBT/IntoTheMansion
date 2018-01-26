@@ -307,6 +307,9 @@ class SceneWidget extends TUIOWidget {
         if (currentPlayerEntities.traps.length > 3) {
           const oldTrap = currentPlayerEntities.traps.pop();
           this.scene.remove(oldTrap.mesh);
+          this.socket.emit(Protocol.REMOVE_TRAP, {
+            id: oldTrap.id,
+          });
         }
         this.socket.emit(Protocol.CREATE_TRAP, {
           name: tuioTag.id,
@@ -513,16 +516,14 @@ class SceneWidget extends TUIOWidget {
       this.doors.get(data.name).visible = !open;
     });
 
-    this.socket.on(Protocol.TRAP_TRIGGERED, (data) => {
-      /*this.playerEntities.forEach((currPlayerEntities) => {
-        currPlayerEntities.traps = currPlayerEntities.traps.filter(trap => {
-
+    this.socket.on(Protocol.REMOVE_TRAP, (data) => {
+      this.playerEntities.forEach((currPlayerEntities) => {
+        const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === data.id);
+        trapsToDelete.forEach((trapToDelete) => {
+          this.scene.remove(trapToDelete);
+        });
+        currPlayerEntities.traps = currPlayerEntities.traps.filter(trap => trap.id !== data.id);
       });
-      if (this.trapTags.has(data.trapId)) {
-        const trap = this.trapTags.get(data.trapId);
-        this.trapTags.delete(data.trapId);
-
-      }*/
     });
 
     this.socket.on(Protocol.GAME_OVER, (data) => {
@@ -546,6 +547,10 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.RESTART, () => {
+      Array.from(this.directionTags.values()).forEach((direction) => {
+        this.scene.remove(direction);
+      });
+      this.directionTags.clear();
       Array.from(this.doorsMap.values())
         .forEach((door) => {
           door.visible = true;
