@@ -110,6 +110,15 @@ io.on('connection', (socket) => {
     console.log(`Received verb ${Protocol.TRAP_TRIGGERED}`);
     console.log(data);
     broadcast(tables, Protocol.TRAP_TRIGGERED, data);
+    broadcast(tablets, Protocol.TRAP_TRIGGERED, data);
+  });
+
+  // REMOVE_TRAP
+  socket.on(Protocol.REMOVE_TRAP, (data) => {
+    console.log(`Received verb ${Protocol.REMOVE_TRAP}`);
+    console.log(data);
+    broadcast(tables, Protocol.REMOVE_TRAP, data);
+    broadcast(vrs, Protocol.REMOVE_TRAP, data);
   });
 
   // GAME_OVER
@@ -117,6 +126,7 @@ io.on('connection', (socket) => {
     console.log(`Received verb ${Protocol.GAME_OVER}`);
     console.log(data);
     broadcast(tables, Protocol.GAME_OVER, data);
+    broadcast(tablets, Protocol.GAME_OVER, data);
   });
 
   // RESTART

@@ -8,7 +8,12 @@ export default class Entity{
     }
 
     updateCoordinate = (x,y,z) => {
-        this.old_coord.copy(this.coord);
+        if(this.coord.x == 0 && this.coord.y == 0 && this.coord.z == 0){
+            this.old_coord.update(x,y,z);
+        }
+        else{
+            this.old_coord.copy(this.coord);
+        }
         this.coord.update(x,y,z);
     }
 
