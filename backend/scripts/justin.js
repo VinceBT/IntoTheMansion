@@ -6,28 +6,27 @@ import Protocol from '../src/Protocol';
 const fullRemote = `http://${serverStatus.devRemote}:${serverStatus.port}`;
 
 console.log(`Connecting to ${fullRemote}`);
-const vr = io(fullRemote);
+const table = io(fullRemote);
 
 const connect = () => new Promise((resolve, reject) => {
-  vr.on('connect', () => {
+  table.on('connect', () => {
     resolve();
   });
 });
 
 const register = () => new Promise((resolve, reject) => {
-  vr.emit(Protocol.REGISTER, {type: 'VR'}, (status) => {
-    if (status.success) {
+  table.emit(Protocol.REGISTER, 'TABLE', (status) => {
+    if (status.success)
       resolve();
-    } else {
+    else
       throw new Error(status.error);
-    }
   });
 });
 
 const init = async () => {
   await connect();
   await register();
-  vr.emit(Protocol.CREATE_TRAP, {
+  table.emit(Protocol.CREATE_TRAP, {
     name: '3F',
     player: 0,
     position: {
