@@ -29,7 +29,7 @@ const init = async () => {
   await register();
   const playerCoords = { x: 3, y: 0, z: 3, r: 0 };
   const ghost1Coords = { x: 20, y: 0, z: 20, r: 0 };
-  const ghost2Coords = { x: 30, y: 0, z: 30, r: 0 };
+  const ghost2Coords = { x: 3, y: 0, z: 30, r: 0 };
   let intervalId;
   const moveProgress = generateProgress(2, () => {
     clearInterval(intervalId);
@@ -82,7 +82,7 @@ const init = async () => {
     })
     .start();
   const tweenGhost2 = new TWEEN.Tween(ghost2Coords)
-    .to({ x: 13, y: 0, z: 13, r: Math.PI * 2 * 10 }, 5000)
+    .to({ x: 10, y: 0, z: 13, r: Math.PI * 2 * 10 }, 5000)
     .onUpdate(() => {
       vr.emit(Protocol.GHOST_POSITION_UPDATE, {
         player: 1,

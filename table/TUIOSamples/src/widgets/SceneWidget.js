@@ -115,18 +115,6 @@ class SceneWidget extends TUIOWidget {
 
   onTouchCreation(tuioTouch) {
     super.onTouchCreation(tuioTouch);
-    /*
-    const viewPortCoord = new THREE.Vector2(
-      ((tuioTouch.x / this.width) * 2) - 1,
-      -((tuioTouch.y / this.height) * 2) + 1,
-    );
-    this.raycaster.setFromCamera(viewPortCoord, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.walls.children);
-    for (const intersect of intersects) {
-      console.log(intersect)
-      intersect.object.material.color.set(0xff0000);
-    }
-    */
     if (this.isTouched(tuioTouch.x, tuioTouch.y)) {
       this._lastTouchesValues = {
         ...this._lastTouchesValues,
@@ -140,26 +128,6 @@ class SceneWidget extends TUIOWidget {
 
   onTouchUpdate(tuioTouch) {
     if (typeof (this._lastTouchesValues[tuioTouch.id]) !== 'undefined') {
-      /*
-      const lastTouchValue = this._lastTouchesValues[tuioTouch.id];
-      const diffX = tuioTouch.x - lastTouchValue.x;
-      const diffY = tuioTouch.y - lastTouchValue.y;
-      const newX = this.x + diffX;
-      const newY = this.y + diffY;
-      if (newX < 0) {
-        newX = 0;
-      }
-      if (newX > (WINDOW_WIDTH - this.width)) {
-        console.log(WINDOW_WIDTH, this.width)
-        newX = WINDOW_WIDTH - this.width;
-      }
-      if (newY < 0) {
-        newY = 0;
-      }
-      if (newY > (WINDOW_HEIGHT - this.height)) {
-        newY = WINDOW_HEIGHT - this.height;
-      }
-      */
       this._lastTouchesValues = {
         ...this._lastTouchesValues,
         [tuioTouch.id]: {
@@ -291,8 +259,7 @@ class SceneWidget extends TUIOWidget {
         if (this.wallTags.has(tuioTag.id)) {
           fakeWall = this.wallTags.get(tuioTag.id);
         } else {
-          
-          const fakeWallGeometry = new THREE.BoxGeometry(1, 5, 1);  
+          const fakeWallGeometry = new THREE.BoxGeometry(1, 5, 1);
           const fakeWallMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player], transparent: true, opacity: 0.7 });
           fakeWall = new THREE.Mesh(fakeWallGeometry, fakeWallMaterial);
           this.scene.add(fakeWall);
@@ -308,7 +275,6 @@ class SceneWidget extends TUIOWidget {
           player: tagData.player,
           name: tuioTag.id,
         });
-        
       } else if (tagData.type === 'trap') {
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
         if (flooredIntersectPosition === null) return;
@@ -497,8 +463,8 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
-      const id = data.id || 0;
-      const ghostGroup = ghostGroups[id];
+      const ghostId = data.player || 0;
+      const ghostGroup = ghostGroups[ghostId];
       ghostGroup.position.x = data.position.x;
       ghostGroup.position.z = data.position.z;
       ghostGroup.rotation.y = -data.rotation.y;
