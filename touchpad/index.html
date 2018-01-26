@@ -1,0 +1,31 @@
+<html>
+	<head>
+		<title>Into The Mansion</title>
+		<link rel="shortcut icon" href="favicon.png" type="image/x-icon" />
+		<style> body { margin: 0; background: #2B2E31 url(img/screen-bg.png) repeat; } </style>
+		<script type="text/javascript" src="./lib/phaser.min.js"></script>
+		<script type="text/javascript" src="./lib/socket.io-client.js"></script>
+		<script type="text/javascript" src="./src/shared/coordinate.js"></script>
+		<script type="text/javascript" src="./src/shared/parser.js"></script>
+		<script type="text/javascript" src="./src/models/skills/skillmanager.js"></script>
+		<script type="text/javascript" src="./src/models/skills/skill.js"></script>
+		<script type="text/javascript" src="./src/models/skills/removetrap.js"></script>
+		<script type="text/javascript" src="./src/models/entities/entity.js"></script>
+		<script type="text/javascript" src="./src/models/entities/trap.js"></script>
+		<script type="text/javascript" src="./src/models/entities/ghost.js"></script>
+		<script type="text/javascript" src="./src/models/entities/player.js"></script>
+		<script type="text/javascript" src="./src/models/map/elements.js"></script>
+		<script type="text/javascript" src="./src/states/boots.js"></script>
+		<script type="text/javascript" src="./src/states/preload.js"></script>
+		<script type="text/javascript" src="./src/states/mainmenu.js"></script>
+		<script type="text/javascript" src="./src/states/game.js"></script>
+		<script type="text/javascript" src="./src/states/gameover.js"></script>
+		<script type="text/javascript" src="./src/states/victory.js"></script>
+		<script type="text/javascript" src="./index.js"></script>
+	</head>
+	<body>
+		<script>
+			gameBootstrapper.init("game");
+		</script>
+	</body>
+</html>
