@@ -16,10 +16,14 @@ export function clerp(v0, v1, t) {
   return clamp(lerp(v0, v1, t), v0, v1);
 }
 
-function unlerp(min, max, value) {
+export function unlerp(min, max, value) {
   return (value - min) / (max - min);
 }
 
 export function cunlerp(min, max, value) {
   return clamp(unlerp(min, max, value), 0, 1);
+}
+
+export function randomHash() {
+  return Math.random().toString(36).substring(7);
 }

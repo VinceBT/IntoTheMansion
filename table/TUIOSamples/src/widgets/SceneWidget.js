@@ -6,7 +6,7 @@ import WindowResize from 'three-window-resize';
 import debounce from 'throttle-debounce/debounce';
 
 import Protocol from '../Protocol';
-import { cunlerp } from '../utils';
+import { cunlerp, randomHash } from '../utils';
 import playerconfigs from '../../assets/playerconfigs.json';
 
 
@@ -94,11 +94,15 @@ class SceneWidget extends TUIOWidget {
     this._lastTagsValues = {};
     this.raycaster = new THREE.Raycaster();
     this.doorsMap = new Map();
-    this.trapTags = new Map();
     this.directionTags = new Map();
     this.wallTags = new Map();
-
-    this.simplePressed = false;
+    this.playerEntities = [];
+    for (let i = 0; i < GHOST_NUMBER; i++) {
+      this.playerEntities.push({
+        traps: [],
+        walls: [],
+      });
+    }
     const $scene = this.buildScene();
     const $container = $('<div class="container">');
     $container.append($scene);
@@ -229,6 +233,7 @@ class SceneWidget extends TUIOWidget {
     const tagData = this.associateTag(tuioTag);
     console.log('Tag data', tagData);
     if (tagData !== null) {
+      const hash = randomHash();
       if (tagData.type === 'direction') {
         const intersectPosition = this.tagToScenePosition(tuioTag);
         if (intersectPosition === null) return;
@@ -253,24 +258,24 @@ class SceneWidget extends TUIOWidget {
           },
         });
       } else if (tagData.type === 'wall') {
-        const intersectPosition = this.tagToScenePosition(tuioTag);
-        if (intersectPosition === null) return;
-        let fakeWall;
-        if (this.wallTags.has(tuioTag.id)) {
-          fakeWall = this.wallTags.get(tuioTag.id);
-        } else {
-          const fakeWallGeometry = new THREE.BoxGeometry(1, 5, 1);
-          const fakeWallMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player], transparent: true, opacity: 0.7 });
-          fakeWall = new THREE.Mesh(fakeWallGeometry, fakeWallMaterial);
-          this.scene.add(fakeWall);
-          this.wallTags.set(tuioTag.id, fakeWall);
+        const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
+        if (flooredIntersectPosition === null) return;
+        const fakeWallGeometry = new THREE.BoxGeometry(1, 5, 1);
+        const fakeWallMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player], transparent: true, opacity: 0.7 });
+        const fakeWall = new THREE.Mesh(fakeWallGeometry, fakeWallMaterial);
+        this.scene.add(fakeWall);
+        const currentPlayerEntities = this.playerEntities[tagData.player];
+        currentPlayerEntities.walls.unshift({ id: hash, tagId: tuioTag.id, mesh: fakeWall });
+        if (currentPlayerEntities.walls.length > 5) {
+          const oldWall = currentPlayerEntities.walls.pop();
+          this.scene.remove(oldWall.mesh);
         }
-        fakeWall.position.copy(intersectPosition);
+        fakeWall.position.copy(flooredIntersectPosition);
         this.socket.emit(Protocol.CREATE_WALL, {
           position: {
-            x: intersectPosition.x,
-            y: intersectPosition.y,
-            z: intersectPosition.z,
+            x: flooredIntersectPosition.x,
+            y: flooredIntersectPosition.y,
+            z: flooredIntersectPosition.z,
           },
           player: tagData.player,
           name: tuioTag.id,
@@ -278,15 +283,15 @@ class SceneWidget extends TUIOWidget {
       } else if (tagData.type === 'trap') {
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
         if (flooredIntersectPosition === null) return;
-        let ghostTrap;
-        if (this.trapTags.has(tuioTag.id)) {
-          ghostTrap = this.trapTags.get(tuioTag.id);
-        } else {
-          const trapGeometry = new THREE.BoxGeometry(1, 2, 1);
-          const trapMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player] });
-          ghostTrap = new THREE.Mesh(trapGeometry, trapMaterial);
-          this.scene.add(ghostTrap);
-          this.trapTags.set(tuioTag.id, ghostTrap);
+        const trapGeometry = new THREE.BoxGeometry(1, 2, 1);
+        const trapMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player] });
+        const ghostTrap = new THREE.Mesh(trapGeometry, trapMaterial);
+        this.scene.add(ghostTrap);
+        const currentPlayerEntities = this.playerEntities[tagData.player];
+        currentPlayerEntities.traps.unshift({ id: hash, tagId: tuioTag.id, mesh: ghostTrap });
+        if (currentPlayerEntities.traps.length > 3) {
+          const oldTrap = currentPlayerEntities.traps.pop();
+          this.scene.remove(oldTrap.mesh);
         }
         ghostTrap.position.copy(flooredIntersectPosition);
         this.socket.emit(Protocol.CREATE_TRAP, {
