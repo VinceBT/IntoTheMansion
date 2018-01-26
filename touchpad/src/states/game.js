@@ -5,7 +5,7 @@ IntoTheMansion.Game = function() {
     this.player;
     this.ghosts = [];
     this.entities = [];
-    this.socket = io('http://localhost:8888');
+    this.socket = io('http://localhost:8080');
 };
 IntoTheMansion.Game.prototype = {
     preload: function() {
@@ -39,9 +39,9 @@ IntoTheMansion.Game.prototype = {
             if(model.ghosts.length < 2){
                 if(model.ghosts.length == 0)
                     model.ghosts.push(new Ghost(model,json.player));
-                
+
                 else if(model.ghosts.length == 1 && model.ghosts[0].id != json.player)
-                    model.ghosts.push(new Ghost(model,json.player));    
+                    model.ghosts.push(new Ghost(model,json.player));
             }
             for(var i = 0; i < model.ghosts.length; i ++){
                 if(model.ghosts[i].id == json.player){
@@ -70,7 +70,7 @@ IntoTheMansion.Game.prototype = {
             else
                 model.game.state.start('Victory');
         });
-        
+
         this.socket.on('RESTART',function(json){
            model.game.state.start('Game');
         });
