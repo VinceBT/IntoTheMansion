@@ -107,6 +107,7 @@ class SceneWidget extends TUIOWidget {
     this._lastTagsValues = {};
     this.raycaster = new THREE.Raycaster();
     this.doorsMap = new Map();
+    this.lightsMap = new Map();
     this.directionTags = new Map();
     this.wallTags = new Map();
     this.playerEntities = [];
@@ -341,6 +342,7 @@ class SceneWidget extends TUIOWidget {
     this.walls = [];
     this.carpets = [];
     this.doors = [];
+    this.lights = [];
 
     const playerGroup = new THREE.Group();
     const ghostGroups = new Array(GHOST_NUMBER).fill(null)
@@ -465,6 +467,9 @@ class SceneWidget extends TUIOWidget {
       const doorGeometry = new THREE.BoxGeometry(1, 5, 0.3);
       const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x703F00 });
 
+      const lightGeometry = new THREE.SphereGeometry(1, 32, 32);
+      const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+
       map[0].forEach((elt, index) => {
         const posX = Math.floor(index % mapWidth);
         const posY = Math.floor(index / mapWidth);
@@ -495,6 +500,15 @@ class SceneWidget extends TUIOWidget {
         this.doorsMap.set(doorData.id, door);
         this.scene.add(door);
         this.doors.push(door);
+      });
+
+      mapData.objects.lights.forEach((lightData) => {
+        const light = new THREE.Mesh(lightGeometry, lightMaterial);
+        light.position.x = lightData.position.x;
+        light.position.z = lightData.position.z;
+        this.lightsMap.set(lightData.id, light);
+        this.scene.add(light);
+        this.lights.push(light);
       });
     });
 
