@@ -2,18 +2,41 @@
  * IntoTheMansion Restify backend
  */
 
+import invariant from 'invariant';
 import serverStatus from '../assets/status.json';
 import mansionSample from '../assets/mansion_sample.json';
 import Mansion from './Mansion';
 import Protocol from './Protocol';
 
 const io = require('socket.io')();
+const middleware = require('socketio-wildcard')();
 
 const tablets = new Set();
 const tables = new Set();
 const vrs = new Set();
 
-const broadcast = (set, ...args) => {
+const DEBUG = process.env.NODE_ENV !== 'production';
+
+const mergeSet = (...sets) => {
+  invariant(Array.isArray(sets), 'You must indicate an array of sets');
+  const newSet = new Set();
+  sets.forEach(set => {
+    Array.from(set.values()).forEach(val => {
+      newSet.add(val);
+    });
+  });
+  return newSet;
+};
+
+const excludeFromSet = (set, ...elements) => {
+  const setClone = new Set(set);
+  elements.forEach(element => {
+    setClone.delete(element);
+  });
+  return setClone;
+};
+
+const broadcastToSet = (set, ...args) => {
   Array.from(set.values()).forEach(socket => {
     socket.emit(...args);
   });
@@ -21,20 +44,39 @@ const broadcast = (set, ...args) => {
 
 const mansion = new Mansion();
 
+io.use(middleware);
+
 io.on('connection', (socket) => {
   console.log(`New connection from ${socket.handshake.address}`);
 
+  // DISCONNECTION
+  socket.once('disconnect', () => {
+    tablets.delete(socket);
+    tables.delete(socket);
+    vrs.delete(socket);
+    console.log(`Disconnection from ${socket.handshake.address}`);
+  });
+
+  // LOG
+  socket.on('*', (event) => {
+    const eventData = event.data.slice();
+    const message = eventData.shift();
+    console.log(`Received message: ${message}`);
+    if (DEBUG) {
+      if (eventData.length === 0) console.log('Empty body');
+      else console.log(eventData);
+    }
+  });
+
   // HI
   socket.on(Protocol.HI, (callback) => {
-    console.log(`Received verb ${Protocol.HI}`);
     socket.emit(Protocol.HI);
     if (callback) callback();
   });
 
   // TEST
   socket.on(Protocol.TEST, (...args) => {
-    console.log(`Received verb ${Protocol.TEST}`);
-    console.log(args);
+    // console.log(args);
     args.forEach((arg) => {
       if (typeof arg === 'function') arg();
     });
@@ -42,7 +84,6 @@ io.on('connection', (socket) => {
 
   // REGISTER
   socket.on(Protocol.REGISTER, (type, done) => {
-    console.log(`Received verb ${Protocol.REGISTER} with type ${JSON.stringify(type)}`);
     tablets.delete(socket);
     tables.delete(socket);
     vrs.delete(socket);
@@ -61,95 +102,78 @@ io.on('connection', (socket) => {
 
   // GET_MAP_DEBUG
   socket.on(Protocol.GET_MAP_DEBUG, (callback) => {
-    console.log(`Received verb ${Protocol.GET_MAP_DEBUG}`);
     callback(mansionSample);
   });
 
   // GET_MAP
   socket.on(Protocol.GET_MAP, (callback) => {
-    console.log(`Received verb ${Protocol.GET_MAP}`);
     callback(mansion.rawData);
   });
 
   // CREATE_TRAP
   socket.on(Protocol.CREATE_TRAP, (data) => {
-    console.log(`Received verb ${Protocol.CREATE_TRAP}`);
-    broadcast(vrs, Protocol.CREATE_TRAP, data);
-    broadcast(tablets, Protocol.CREATE_TRAP, data);
+    invariant([tables].some((sender) => sender.has(socket)), 'Only tables can send this message');
+    broadcastToSet(excludeFromSet(mergeSet(vrs, tablets), socket), Protocol.CREATE_TRAP, data);
   });
 
   // CREATE_WALL
   socket.on(Protocol.CREATE_WALL, (data) => {
-    console.log(`Received verb ${Protocol.CREATE_WALL}`);
-    broadcast(vrs, Protocol.CREATE_WALL, data);
-    broadcast(tablets, Protocol.CREATE_WALL, data);
+    invariant([tables].some((sender) => sender.has(socket)), 'Only tables can send this message');
+    broadcastToSet(excludeFromSet(mergeSet(vrs, tablets), socket), Protocol.CREATE_WALL, data);
   });
 
   // PLAYER_POSITION_UPDATE
   socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
-    console.log(`Received verb ${Protocol.PLAYER_POSITION_UPDATE}`);
-    broadcast(tables, Protocol.PLAYER_POSITION_UPDATE, data);
-    broadcast(tablets, Protocol.PLAYER_POSITION_UPDATE, data);
+    invariant([vrs].some((sender) => sender.has(socket)), 'Only VRs can send this message');
+    broadcastToSet(excludeFromSet(mergeSet(tables, tablets), socket), Protocol.PLAYER_POSITION_UPDATE, data);
   });
 
   // GHOST_POSITION_UPDATE
   socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
-    console.log(`Received verb ${Protocol.GHOST_POSITION_UPDATE}`);
-    broadcast(tables, Protocol.GHOST_POSITION_UPDATE, data);
-    broadcast(tablets, Protocol.GHOST_POSITION_UPDATE, data);
-  });
-
-  // DOOR_UPDATE
-  socket.on(Protocol.DOOR_UPDATE, (data) => {
-    console.log(`Received verb ${Protocol.DOOR_UPDATE}`);
-    broadcast(tables, Protocol.DOOR_UPDATE, data);
-  });
-
-  // TRAP_TRIGGERED
-  socket.on(Protocol.TRAP_TRIGGERED, (data) => {
-    console.log(`Received verb ${Protocol.TRAP_TRIGGERED}`);
-    console.log(data);
-    broadcast(tables, Protocol.TRAP_TRIGGERED, data);
-    broadcast(tablets, Protocol.TRAP_TRIGGERED, data);
-  });
-
-  // REMOVE_TRAP
-  socket.on(Protocol.REMOVE_TRAP, (data) => {
-    console.log(`Received verb ${Protocol.REMOVE_TRAP}`);
-    console.log(data);
-    broadcast(tables, Protocol.REMOVE_TRAP, data);
-    broadcast(tablets, Protocol.REMOVE_TRAP, data);
-    broadcast(vrs, Protocol.REMOVE_TRAP, data);
-  });
-
-  // GAME_OVER
-  socket.on(Protocol.GAME_OVER, (data) => {
-    console.log(`Received verb ${Protocol.GAME_OVER}`);
-    console.log(data);
-    broadcast(tables, Protocol.GAME_OVER, data);
-    broadcast(tablets, Protocol.GAME_OVER, data);
-  });
-
-  // RESTART
-  socket.on(Protocol.RESTART, () => {
-    console.log(`Received verb ${Protocol.RESTART}`);
-    broadcast(tables, Protocol.RESTART);
-    broadcast(tablets, Protocol.RESTART);
+    invariant([vrs].some((sender) => sender.has(socket)), 'Only VRs can send this message');
+    broadcastToSet(excludeFromSet(mergeSet(tables, tablets), socket), Protocol.GHOST_POSITION_UPDATE, data);
   });
 
   // REQUEST GHOST MOVEMENT
   socket.on(Protocol.REQUEST_GHOST_MOVEMENT, (data) => {
-    console.log(`Received verb ${Protocol.REQUEST_GHOST_MOVEMENT}`);
-    console.log(data);
-    broadcast(vrs, Protocol.REQUEST_GHOST_MOVEMENT, data);
+    invariant([tables].some((sender) => sender.has(socket)), 'Only tables can send this message');
+    broadcastToSet(excludeFromSet(mergeSet(vrs), socket), Protocol.REQUEST_GHOST_MOVEMENT, data);
   });
 
-  // DISCONNECTION
-  socket.once('disconnect', () => {
-    tablets.delete(socket);
-    tables.delete(socket);
-    vrs.delete(socket);
-    console.log(`Disconnection from ${socket.handshake.address}`);
+  // DOOR_UPDATE
+  socket.on(Protocol.DOOR_UPDATE, (data) => {
+    invariant([vrs].some((sender) => sender.has(socket)), 'Only VRs can send this message');
+    broadcastToSet(excludeFromSet(mergeSet(tables, tablets), socket), Protocol.DOOR_UPDATE, data);
+  });
+
+  // DOOR_UPDATE
+  socket.on(Protocol.LIGHT_UPDATE, (data) => {
+    invariant([tables, vrs].some((sender) => sender.has(socket)), 'Only VRs and tables can send this message');
+    broadcastToSet(excludeFromSet(mergeSet(vrs, tablets), socket), Protocol.LIGHT_UPDATE, data);
+  });
+
+  // TRAP_TRIGGERED
+  socket.on(Protocol.TRAP_TRIGGERED, (data) => {
+    invariant([tables, tablets].some((sender) => sender.has(socket)), 'Only tables and tablets can send this message');
+    broadcastToSet(excludeFromSet(mergeSet(vrs, tablets), socket), Protocol.TRAP_TRIGGERED, data);
+  });
+
+  // REMOVE_TRAP
+  socket.on(Protocol.REMOVE_TRAP, (data) => {
+    invariant([tables, tablets, vrs].some((sender) => sender.has(socket)), 'OK');
+    broadcastToSet(excludeFromSet(mergeSet(vrs, tablets, tables), socket), Protocol.REMOVE_TRAP, data);
+  });
+
+  // GAME_OVER
+  socket.on(Protocol.GAME_OVER, (data) => {
+    invariant([vrs].some((sender) => sender.has(socket)), 'Only VRs can send this message');
+    broadcastToSet(excludeFromSet(mergeSet(tablets, tables), socket), Protocol.GAME_OVER, data);
+  });
+
+  // RESTART
+  socket.on(Protocol.RESTART, (data) => {
+    invariant([vrs].some((sender) => sender.has(socket)), 'Only VRs can send this message');
+    broadcastToSet(excludeFromSet(mergeSet(tablets, tables), socket), Protocol.RESTART, data);
   });
 });
 
