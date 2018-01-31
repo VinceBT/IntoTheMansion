@@ -154,8 +154,8 @@ io.on('connection', (socket) => {
 
   // TRAP_TRIGGERED
   socket.on(Protocol.TRAP_TRIGGERED, (data) => {
-    invariant([tables, tablets].some((sender) => sender.has(socket)), 'Only tables and tablets can send this message');
-    broadcastToSet(excludeFromSet(mergeSet(vrs, tablets), socket), Protocol.TRAP_TRIGGERED, data);
+    invariant([tables, tablets, vrs].some((sender) => sender.has(socket)), 'Only tables and tablets can send this message');
+    broadcastToSet(excludeFromSet(mergeSet(vrs, tablets, vrs), socket), Protocol.TRAP_TRIGGERED, data);
   });
 
   // REMOVE_TRAP
