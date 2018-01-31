@@ -74,7 +74,7 @@ io.on('connection', (socket) => {
     if (callback) callback();
   });
 
-  // TEST
+  // Special messages
   socket.on(Protocol.TEST, (...args) => {
     // console.log(args);
     args.forEach((arg) => {
@@ -110,71 +110,26 @@ io.on('connection', (socket) => {
     callback(mansion.rawData);
   });
 
-  // CREATE_TRAP
-  socket.on(Protocol.CREATE_TRAP, (data) => {
-    invariant([tables].some((sender) => sender.has(socket)), 'Only tables can send this message');
-    broadcastToSet(excludeFromSet(mergeSet(vrs, tablets), socket), Protocol.CREATE_TRAP, data);
-  });
+  const register = (message) => {
+    socket.on(message, (data) => {
+      invariant([vrs, tables, tablets].some((sender) => sender.has(socket)), 'You are not allowed to send this message here');
+      broadcastToSet(excludeFromSet(mergeSet(vrs, tables, tablets), socket), message, data);
+    });
+  };
 
-  // CREATE_WALL
-  socket.on(Protocol.CREATE_WALL, (data) => {
-    invariant([tables].some((sender) => sender.has(socket)), 'Only tables can send this message');
-    broadcastToSet(excludeFromSet(mergeSet(vrs, tablets), socket), Protocol.CREATE_WALL, data);
-  });
+  // Standard Messages
+  register(Protocol.CREATE_TRAP);
+  register(Protocol.CREATE_WALL);
+  register(Protocol.PLAYER_POSITION_UPDATE);
+  register(Protocol.GHOST_POSITION_UPDATE);
+  register(Protocol.REQUEST_GHOST_MOVEMENT);
+  register(Protocol.DOOR_UPDATE);
+  register(Protocol.LIGHT_UPDATE);
+  register(Protocol.TRAP_TRIGGERED);
+  register(Protocol.REMOVE_TRAP);
+  register(Protocol.GAME_OVER);
+  register(Protocol.RESTART);
 
-  // PLAYER_POSITION_UPDATE
-  socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
-    invariant([vrs].some((sender) => sender.has(socket)), 'Only VRs can send this message');
-    broadcastToSet(excludeFromSet(mergeSet(tables, tablets), socket), Protocol.PLAYER_POSITION_UPDATE, data);
-  });
-
-  // GHOST_POSITION_UPDATE
-  socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
-    invariant([vrs].some((sender) => sender.has(socket)), 'Only VRs can send this message');
-    broadcastToSet(excludeFromSet(mergeSet(tables, tablets), socket), Protocol.GHOST_POSITION_UPDATE, data);
-  });
-
-  // REQUEST GHOST MOVEMENT
-  socket.on(Protocol.REQUEST_GHOST_MOVEMENT, (data) => {
-    invariant([tables].some((sender) => sender.has(socket)), 'Only tables can send this message');
-    broadcastToSet(excludeFromSet(mergeSet(vrs), socket), Protocol.REQUEST_GHOST_MOVEMENT, data);
-  });
-
-  // DOOR_UPDATE
-  socket.on(Protocol.DOOR_UPDATE, (data) => {
-    invariant([vrs].some((sender) => sender.has(socket)), 'Only VRs can send this message');
-    broadcastToSet(excludeFromSet(mergeSet(tables, tablets), socket), Protocol.DOOR_UPDATE, data);
-  });
-
-  // DOOR_UPDATE
-  socket.on(Protocol.LIGHT_UPDATE, (data) => {
-    invariant([tables, vrs].some((sender) => sender.has(socket)), 'Only VRs and tables can send this message');
-    broadcastToSet(excludeFromSet(mergeSet(vrs, tablets), socket), Protocol.LIGHT_UPDATE, data);
-  });
-
-  // TRAP_TRIGGERED
-  socket.on(Protocol.TRAP_TRIGGERED, (data) => {
-    invariant([tables, tablets, vrs].some((sender) => sender.has(socket)), 'Only tables and tablets can send this message');
-    broadcastToSet(excludeFromSet(mergeSet(vrs, tablets, vrs), socket), Protocol.TRAP_TRIGGERED, data);
-  });
-
-  // REMOVE_TRAP
-  socket.on(Protocol.REMOVE_TRAP, (data) => {
-    invariant([tables, tablets, vrs].some((sender) => sender.has(socket)), 'OK');
-    broadcastToSet(excludeFromSet(mergeSet(vrs, tablets, tables), socket), Protocol.REMOVE_TRAP, data);
-  });
-
-  // GAME_OVER
-  socket.on(Protocol.GAME_OVER, (data) => {
-    invariant([vrs].some((sender) => sender.has(socket)), 'Only VRs can send this message');
-    broadcastToSet(excludeFromSet(mergeSet(tablets, tables), socket), Protocol.GAME_OVER, data);
-  });
-
-  // RESTART
-  socket.on(Protocol.RESTART, (data) => {
-    invariant([vrs].some((sender) => sender.has(socket)), 'Only VRs can send this message');
-    broadcastToSet(excludeFromSet(mergeSet(tablets, tables), socket), Protocol.RESTART, data);
-  });
 });
 
 io.listen(serverStatus.port);
