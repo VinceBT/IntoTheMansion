@@ -1,13 +1,13 @@
 [
   {
     "trap": "16",
-    "light": "3F",
+    "light": "8",
     "direction": "20",
     "wall": "12"
   },
   {
     "trap": "34",
-    "light": "85",
+    "light": "9",
     "direction": "24",
     "wall": "33"
   }

@@ -117,6 +117,9 @@ class SceneWidget extends TUIOWidget {
         walls: [],
       });
     }
+    this.previousAngle = 0;
+    this.rotateProgress = 0;
+
     const $scene = this.buildScene();
     const $container = $('<div class="container">');
     $container.append($scene);
@@ -158,15 +161,20 @@ class SceneWidget extends TUIOWidget {
 
   onTagCreation(tuioTag) {
     super.onTagCreation(tuioTag);
-    this.handleTagMove(tuioTag);
-    if (this.isTouched(tuioTag.x, tuioTag.y)) {
-      this._lastTagsValues = {
-        ...this._lastTagsValues,
-        [tuioTag.id]: {
-          x: tuioTag.x,
-          y: tuioTag.y,
-        },
-      };
+    console.log(tuioTag);
+    if (tuioTag.id.toString() === playerconfigs[0].light || tuioTag.id.toString() === playerconfigs[1].light) {
+      this.handleTagRotate(tuioTag);
+    } else {
+      this.handleTagMove(tuioTag);
+      if (this.isTouched(tuioTag.x, tuioTag.y)) {
+        this._lastTagsValues = {
+          ...this._lastTagsValues,
+          [tuioTag.id]: {
+            x: tuioTag.x,
+            y: tuioTag.y,
+          },
+        };
+      }
     }
   }
 
@@ -189,14 +197,18 @@ class SceneWidget extends TUIOWidget {
       if (newY > (WINDOW_HEIGHT - this.height)) {
         newY = WINDOW_HEIGHT - this.height;
       }
-      this.handleTagMove(tuioTag);
-      this._lastTagsValues = {
-        ...this._lastTagsValues,
-        [tuioTag.id]: {
-          x: tuioTag.x,
-          y: tuioTag.y,
-        },
-      };
+      if (tuioTag.id.toString() === playerconfigs[0].light || tuioTag.id.toString() === playerconfigs[1].light) {
+        this.handleTagRotate(tuioTag);
+      } else {
+        this.handleTagMove(tuioTag);
+        this._lastTagsValues = {
+          ...this._lastTagsValues,
+          [tuioTag.id]: {
+            x: tuioTag.x,
+            y: tuioTag.y,
+          },
+        };
+      }
     }
   }
 
@@ -241,6 +253,54 @@ class SceneWidget extends TUIOWidget {
     }
     return null;
   };
+
+
+  handleTagRotate = debounce(500, (tuioTag) => {
+    const ROTATE_POINTS = 10;
+
+    const closestLight = () => {
+      const viewPortCoord = new THREE.Vector2(
+           ((tuioTag.x / this.width) * 2) - 1,
+           -((tuioTag.y / this.height) * 2) + 1,
+       );
+      this.raycaster.setFromCamera(viewPortCoord, this.camera);
+      const intersects = this.raycaster.intersectObjects(this.scene.children);
+      const closestIntersect = intersects[0];
+      console.log(closestIntersect);
+
+      let minDistance = null;
+      let closestLightId;
+      for (const [key, value] of this.lightsMap.entries()) {
+        const dist = Math.sqrt(Math.pow(closestIntersect.point.x - value.position.x, 2) + Math.pow(closestIntersect.point.z - value.position.z, 2));
+        if (minDistance == null || dist < minDistance) {
+          minDistance = dist;
+          closestLightId = key;
+        }
+      }
+      return closestLightId;
+    };
+
+
+    const angle = tuioTag.angle;
+    if (angle !== this.previousAngle) {
+      this.previousAngle = angle;
+      this.rotateProgress++;
+      console.log(this.rotateProgress);
+      if (this.rotateProgress >= ROTATE_POINTS) {
+        const lightId = closestLight();
+        this.socket.emit(Protocol.LIGHT_UPDATE, {
+          mode: 'off',
+          lightId,
+
+        });
+
+        console.log(`Removing ${lightId}`);
+        const lightElement = this.lightsMap.get(lightId);
+        this.scene.remove(lightElement);
+        this.rotateProgress = 0;
+      }
+    }
+  });
 
   handleTagMove = debounce(500, (tuioTag) => {
     console.log(`Tag released (id: ${tuioTag.id})`);
