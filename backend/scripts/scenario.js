@@ -58,7 +58,7 @@ const init = async () => {
     setTimeout(() => {
       external.emit(Protocol.RESTART);
       setTimeout(() => {
-        external.emit(Protocol.GAME_OVER, {won: false});
+        external.emit(Protocol.GAME_OVER, {won: false, killedBy: 1, deathType: 'trap'});
         setTimeout(() => {
           external.emit(Protocol.RESTART);
           console.log('Scenario finished');
