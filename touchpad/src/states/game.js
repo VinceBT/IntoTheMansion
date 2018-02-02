@@ -106,7 +106,7 @@ IntoTheMansion.Game.prototype = {
             }
             show.tilesChanged.push([this.layer.getTileX(x),this.layer.getTileY(y)]);
             this.map.fill(1, this.layer.getTileX(x), this.layer.getTileY(y), 1, 1);
-            this.socket.emit('PATH_CREATE',{x:this.layer.getTileX(x),y:this.layer.getTileY(y),z:0});
+            this.socket.emit('PATH_CREATE',{x:this.layer.getTileX(x),z:this.layer.getTileY(y),y:0});
         }
     },
     remove: function(model){
