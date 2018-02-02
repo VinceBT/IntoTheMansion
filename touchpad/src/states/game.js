@@ -12,7 +12,6 @@ IntoTheMansion.Game.prototype = {
     preload: function() {
         this.socket = io('http://localhost:8080');
         var model = this;
-        this.skillmanager = new SkillManager(model);
         this.socket.emit('REGISTER',{type: 'TABLET'});
         this.socket.emit('GET_MAP_DEBUG', function(data){
             model.parser = new Parser(data);
