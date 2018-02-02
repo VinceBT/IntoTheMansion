@@ -3,6 +3,7 @@ import TUIOManager from 'tuiomanager/core/TUIOManager';
 import io from 'socket.io-client';
 import SceneWidget from './widgets/SceneWidget';
 import status from '../assets/status.json';
+import ZoomWidget from './widgets/ZoomWidget';
 
 const tuioManager = new TUIOManager();
 tuioManager.start();
@@ -28,7 +29,9 @@ const removeWidgets = () => {
 
 const buildApp = () => {
   const sceneWidget = new SceneWidget(socket);
+  const zoomWidget = new ZoomWidget();
   addWidget(sceneWidget);
+  //addWidget(zoomWidget);
 };
 
 $(window).ready(() => {
