@@ -86,7 +86,7 @@ const init = async () => {
       type: 'DeathTrap',
     });
     setTimeout(() => {
-      table.emit(Protocol.REMOVE_TRAP, {
+      vr.emit(Protocol.REMOVE_TRAP, {
         id: '3F',
       });
     }, 1000);
