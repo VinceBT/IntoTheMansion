@@ -14,6 +14,7 @@ const middleware = require('socketio-wildcard')();
 const tablets = new Set();
 const tables = new Set();
 const vrs = new Set();
+const externals = new Set();
 
 const DEBUG = process.env.NODE_ENV !== 'production';
 
@@ -54,6 +55,7 @@ io.on('connection', (socket) => {
     tablets.delete(socket);
     tables.delete(socket);
     vrs.delete(socket);
+    externals.delete(socket);
     console.log(`Disconnection from ${socket.handshake.address}`);
   });
 
@@ -87,12 +89,15 @@ io.on('connection', (socket) => {
     tablets.delete(socket);
     tables.delete(socket);
     vrs.delete(socket);
+    externals.delete(socket);
     if (data.type === 'TABLET') {
       tablets.add(socket);
     } else if (data.type === 'TABLE') {
       tables.add(socket);
     } else if (data.type === 'VR') {
       vrs.add(socket);
+    } else if (data.type === 'EXTERNAL') {
+      externals.add(socket);
     } else {
       if (done) done({ success: false, error: `Received incorrect type ${type}` });
       return;
@@ -112,8 +117,8 @@ io.on('connection', (socket) => {
 
   const register = (message) => {
     socket.on(message, (data) => {
-      invariant([vrs, tables, tablets].some((sender) => sender.has(socket)), 'You are not allowed to send this message here');
-      broadcastToSet(excludeFromSet(mergeSet(vrs, tables, tablets), socket), message, data);
+      invariant([vrs, tables, tablets, externals].some((sender) => sender.has(socket)), 'You are not allowed to send this message here');
+      broadcastToSet(excludeFromSet(mergeSet(vrs, tables, tablets, externals), socket), message, data);
     });
   };
 
