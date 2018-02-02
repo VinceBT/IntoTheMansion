@@ -18,7 +18,7 @@ IntoTheMansion.Game.prototype = {
             model.cache.addTilemap('dynamicMap', null, model.parser.map.tiles, Phaser.Tilemap.CSV);
 
             model.map = model.add.tilemap('dynamicMap', IntoTheMansion._TILE_SIZE, IntoTheMansion._TILE_SIZE);
-            model.map.addTilesetImage('tiles', 'tiles', IntoTheMansion._TILE_SIZE, IntoTheMansion._TILE_SIZE);
+            model.map.addTilesetImage('tiles', 'tiles', IntoTheMansion._TILE_SIZE*2, IntoTheMansion._TILE_SIZE*2);
 
             model.layer = model.map.createLayer(0);
             model.layer.resizeWorld();
@@ -89,6 +89,7 @@ IntoTheMansion.Game.prototype = {
     },
     create: function() {
         this.input.addMoveCallback(this.draw,this);
+        this.stage.backgroundColor = "#66665e";
     },
     draw: function(pointer,x,y){
 
@@ -105,7 +106,7 @@ IntoTheMansion.Game.prototype = {
                 setTimeout(this.remove,show.timer,this);
             }
             show.tilesChanged.push([this.layer.getTileX(x),this.layer.getTileY(y)]);
-            this.map.fill(1, this.layer.getTileX(x), this.layer.getTileY(y), 1, 1);
+            this.map.fill(IntoTheMansion.PATH, this.layer.getTileX(x), this.layer.getTileY(y), 1, 1);
             this.socket.emit('PATH_CREATE',{x:this.layer.getTileX(x),z:this.layer.getTileY(y),y:0});
         }
     },
@@ -116,7 +117,6 @@ IntoTheMansion.Game.prototype = {
             model.map.fill(model.parser.map.data[show.tilesChanged[i][0]][show.tilesChanged[i][1]], show.tilesChanged[i][0], show.tilesChanged[i][1], 1, 1);
         }
         show.clearTiles();
-        model.skillmanager.disableAll();
     },
 
     restart: function(){

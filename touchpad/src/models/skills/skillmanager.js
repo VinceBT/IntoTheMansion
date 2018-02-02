@@ -5,9 +5,9 @@ function SkillManager(model){
     this.addRemoveTrap();
     this.addShowPath();
     this.addRemoveTrap();
+    this.addShowPath();
     this.addRemoveTrap();
-    this.addRemoveTrap();
-    this.addRemoveTrap();
+    this.addShowPath();
 }
 
 SkillManager.prototype = {
