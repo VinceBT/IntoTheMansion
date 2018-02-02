@@ -290,7 +290,7 @@ class SceneWidget extends TUIOWidget {
         const lightId = closestLight();
         this.socket.emit(Protocol.LIGHT_UPDATE, {
           mode: 'off',
-          lightId,
+          lightId: lightId,
 
         });
 
@@ -332,6 +332,11 @@ class SceneWidget extends TUIOWidget {
             z: intersectPosition.z,
           },
         });
+      } else if (tagData.type === 'reveal') {
+        this.revealPlayer = true;
+        setTimeout(() => { this.revealPlayer = false; }, 1000);
+        this.playerMaterial.opacity = 0.7;
+
       } else if (tagData.type === 'wall') {
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
         if (flooredIntersectPosition === null) return;
@@ -404,6 +409,16 @@ class SceneWidget extends TUIOWidget {
     this.camera.position.y = 50;
     this.camera.rotation.x = -Math.PI / 2;
 
+/*
+    $(document).on('input', '.zoomSlider', () => {
+      const zoomValue = $('.zoomSlider').val();
+      $(".zoomSlider").val(zoomValue)
+     console.log("J'irai chercher ton coeur, si tu l'emportes ailleurs");
+     console.log(zoomValue)
+     this.camera.position.y = 100 - zoomValue;
+    });
+    */
+
     this.walls = [];
     this.carpets = [];
     this.doors = [];
@@ -416,12 +431,12 @@ class SceneWidget extends TUIOWidget {
     const jsonLoader = new THREE.JSONLoader();
 
     const playerConeGeometry = new THREE.ConeGeometry(0.3, 1.5, 8);
-    const playerMaterial = new THREE.MeshBasicMaterial({
+    this.playerMaterial = new THREE.MeshBasicMaterial({
       color: 0x00ffff,
       transparent: true,
       opacity: 0.7,
     });
-    const conePlayer = new THREE.Mesh(playerConeGeometry, playerMaterial);
+    const conePlayer = new THREE.Mesh(playerConeGeometry, this.playerMaterial);
     conePlayer.position.x = 3;
     conePlayer.position.y = 3;
     conePlayer.rotation.z = -Math.PI / 2;
@@ -431,7 +446,7 @@ class SceneWidget extends TUIOWidget {
 
     jsonLoader.load('assets/models/player.json',
       (geometry) => {
-        const modelPlayer = new THREE.Mesh(geometry, playerMaterial);
+        const modelPlayer = new THREE.Mesh(geometry, this.playerMaterial);
         modelPlayer.position.y = 3;
         modelPlayer.scale.set(1.2, 1.2, 1.2);
         playerGroup.add(modelPlayer);
@@ -523,7 +538,7 @@ class SceneWidget extends TUIOWidget {
       this.camera.position.x = mapWidth / 2;
       this.camera.position.z = mapHeight / 2;
 
-      this.camera.position.y = -2 * Math.max(mapWidth / 2, mapHeight / 2) * Math.tan(this.camera.fov * this.camera.aspect / 2);
+      this.camera.position.y = 100; // -2 * Math.max(mapWidth / 2, mapHeight / 2) * Math.tan(this.camera.fov * this.camera.aspect / 2);
 
       const wallGeometry = new THREE.BoxGeometry(1, 5, 1);
       const wallMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
@@ -541,7 +556,9 @@ class SceneWidget extends TUIOWidget {
         const posX = Math.floor(index % mapWidth);
         const posY = Math.floor(index / mapWidth);
         if (elt === 'W') {
-          const wall = new THREE.Mesh(wallGeometry, wallMaterial.clone());
+          let wallMat = wallMaterial.clone();
+          wallMat.color = new THREE.Color(0x828282);
+          const wall = new THREE.Mesh(wallGeometry, wallMat);
           wall.position.x = posX;
           wall.position.z = posY;
           wall.wall = true;
@@ -652,6 +669,7 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.RESTART, () => {
+      this.revealPlayer = false;
       Array.from(this.directionTags.values()).forEach((direction) => {
         this.scene.remove(direction);
       });
@@ -676,7 +694,7 @@ class SceneWidget extends TUIOWidget {
       for (const ghostGroup of ghostGroups) {
         closestDistanceToPlayer = Math.min(closestDistanceToPlayer, ghostGroup.position.distanceTo(playerGroup.position));
       }
-      playerMaterial.opacity = 1 - cunlerp(GHOST_RANGE_SIZE - 2, GHOST_RANGE_SIZE, closestDistanceToPlayer);
+      if(!this.revealPlayer) this.playerMaterial.opacity = 1 - cunlerp(GHOST_RANGE_SIZE - 2, GHOST_RANGE_SIZE, closestDistanceToPlayer);
       this.renderer.render(this.scene, this.camera);
     };
 

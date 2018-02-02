@@ -3,12 +3,14 @@
     "trap": "16",
     "light": "8",
     "direction": "20",
-    "wall": "12"
+    "wall": "12",
+    "reveal": "1"
   },
   {
     "trap": "34",
     "light": "9",
     "direction": "24",
-    "wall": "33"
+    "wall": "33",
+    "reveal": "2"
   }
 ]

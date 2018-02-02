@@ -65,7 +65,7 @@ const init = async () => {
     setTimeout(() => {
       vr.emit(Protocol.RESTART);
       setTimeout(() => {
-        vr.emit(Protocol.GAME_OVER, { won: false });
+        vr.emit(Protocol.GAME_OVER, { won: false, killedBy: 1, deathType: 'trap' });
         setTimeout(() => {
           vr.emit(Protocol.RESTART);
           console.log('Scenario finished');
