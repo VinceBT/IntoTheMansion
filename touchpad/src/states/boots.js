@@ -1,7 +1,11 @@
 var IntoTheMansion = {
-     _WIDTH: 320,
-    _HEIGHT: 480,
-    _TILE_SIZE: 16
+     _WIDTH: 480,
+    _HEIGHT: 720,
+    _TILE_SIZE: 16,
+    WALL: 323,
+    DOOR: 270,
+    FLOOR: 269,
+    EXIT: 251
 };
 IntoTheMansion.Boot = function(game) {}
 

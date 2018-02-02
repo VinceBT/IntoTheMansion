@@ -3,7 +3,6 @@ function Player(model, x=-1, y=-1){
     Entity.call(this,this.name,model,x,y);
     model.entities.push(this);
     this.info.inputEnabled = true;
-    console.log(this.info);
     this.info.events.onInputDown.add(this.onTap,this);
 }
 

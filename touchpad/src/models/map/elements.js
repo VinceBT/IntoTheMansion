@@ -13,15 +13,27 @@ function Map(width,height){
     this.height = height;
     this.tiles = '';
     this.current = 1;
+    this.data = [];
+    for(var i = 0; i < this.height;i++){
+        this.data.push(new Array(this.width));
+    }
+    this.x = 0;
+    this.y = 0;
 }
 
 Map.prototype = {
     push: function(element){
         this.tiles += element;
-        if(this.current % this.width == 0)
+        this.data[this.y][this.x] = element;
+        if(this.current % this.width == 0) {
             this.tiles += "\n";
-        else
+            this.x ++;
+            this.y = 0;
+        }
+        else {
             this.tiles += ",";
+            this.y ++;
+        }
         this.current++;
     }
 }
