@@ -1,12 +1,12 @@
 import $ from 'jquery/dist/jquery.min';
 import TUIOWidget from 'tuiomanager/core/TUIOWidget';
-import { WINDOW_HEIGHT, WINDOW_WIDTH } from 'tuiomanager/core/constants';
+import {WINDOW_HEIGHT, WINDOW_WIDTH} from 'tuiomanager/core/constants';
 import * as THREE from 'three';
 import WindowResize from 'three-window-resize';
 import debounce from 'throttle-debounce/debounce';
 
 import Protocol from '../Protocol';
-import { cunlerp, randomHash } from '../utils';
+import {cunlerp, randomHash} from '../utils';
 import playerconfigs from '../../assets/playerconfigs.json';
 
 
@@ -260,9 +260,9 @@ class SceneWidget extends TUIOWidget {
 
     const closestLight = () => {
       const viewPortCoord = new THREE.Vector2(
-           ((tuioTag.x / this.width) * 2) - 1,
-           -((tuioTag.y / this.height) * 2) + 1,
-       );
+        ((tuioTag.x / this.width) * 2) - 1,
+        -((tuioTag.y / this.height) * 2) + 1,
+      );
       this.raycaster.setFromCamera(viewPortCoord, this.camera);
       const intersects = this.raycaster.intersectObjects(this.scene.children);
       const closestIntersect = intersects[0];
@@ -317,7 +317,7 @@ class SceneWidget extends TUIOWidget {
         if (this.directionTags.has(tuioTag.id)) {
           ghostDirection = this.directionTags.get(tuioTag.id);
         } else {
-          const ghostDirectionMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player] });
+          const ghostDirectionMaterial = new THREE.MeshBasicMaterial({color: GHOST_COLORS[tagData.player]});
           ghostDirection = new THREE.Mesh(ghostDirectionGeometry, ghostDirectionMaterial);
           this.scene.add(ghostDirection);
           this.directionTags.set(tuioTag.id, ghostDirection);
@@ -337,11 +337,15 @@ class SceneWidget extends TUIOWidget {
         if (flooredIntersectPosition === null) return;
         flooredIntersectPosition.setY(1);
         const fakeWallGeometry = new THREE.BoxGeometry(1, 5, 1);
-        const fakeWallMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player], transparent: true, opacity: 0.7 });
+        const fakeWallMaterial = new THREE.MeshBasicMaterial({
+          color: GHOST_COLORS[tagData.player],
+          transparent: true,
+          opacity: 0.7
+        });
         const fakeWall = new THREE.Mesh(fakeWallGeometry, fakeWallMaterial);
         this.scene.add(fakeWall);
         const currentPlayerEntities = this.playerEntities[tagData.player];
-        currentPlayerEntities.walls.unshift({ id: hash, tagId: tuioTag.id, mesh: fakeWall });
+        currentPlayerEntities.walls.unshift({id: hash, tagId: tuioTag.id, mesh: fakeWall});
         if (currentPlayerEntities.walls.length > 5) {
           const oldWall = currentPlayerEntities.walls.pop();
           this.scene.remove(oldWall.mesh);
@@ -360,12 +364,12 @@ class SceneWidget extends TUIOWidget {
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
         if (flooredIntersectPosition === null) return;
         flooredIntersectPosition.setY(1);
-        const trapMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player] });
+        const trapMaterial = new THREE.MeshBasicMaterial({color: GHOST_COLORS[tagData.player]});
         const ghostTrap = new THREE.Mesh(trapGeometry, trapMaterial);
         ghostTrap.position.copy(flooredIntersectPosition);
         this.scene.add(ghostTrap);
         const currentPlayerEntities = this.playerEntities[tagData.player];
-        currentPlayerEntities.traps.unshift({ id: hash, tagId: tuioTag.id, mesh: ghostTrap });
+        currentPlayerEntities.traps.unshift({id: hash, tagId: tuioTag.id, mesh: ghostTrap});
         if (currentPlayerEntities.traps.length > 3) {
           const oldTrap = currentPlayerEntities.traps.pop();
           this.scene.remove(oldTrap.mesh);
@@ -390,14 +394,14 @@ class SceneWidget extends TUIOWidget {
   buildScene() {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    this.renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
     this.renderer.setClearColor(0xffffff, 0);
 
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     new WindowResize(this.renderer, this.camera);
 
-    this.camera.position.y = 100;
+    this.camera.position.y = 50;
     this.camera.rotation.x = -Math.PI / 2;
 
     this.walls = [];
@@ -508,7 +512,7 @@ class SceneWidget extends TUIOWidget {
       },
     );
 
-    this.socket.emit(Protocol.REGISTER, 'TABLE');
+    this.socket.emit(Protocol.REGISTER, {type: 'TABLE'});
 
     this.socket.emit(Protocol.GET_MAP_DEBUG, (mapData) => {
       const mapHeight = mapData.terrain.height;
@@ -519,14 +523,16 @@ class SceneWidget extends TUIOWidget {
       this.camera.position.x = mapWidth / 2;
       this.camera.position.z = mapHeight / 2;
 
+      this.camera.position.y = -2 * Math.max(mapWidth / 2, mapHeight / 2) * Math.tan(this.camera.fov * this.camera.aspect / 2);
+
       const wallGeometry = new THREE.BoxGeometry(1, 5, 1);
-      const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const wallMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
 
       const carpetGeometry = new THREE.BoxGeometry(1, 1, 1);
-      const carpetMaterial = new THREE.MeshBasicMaterial({ color: 0xC5C5C5 });
+      const carpetMaterial = new THREE.MeshBasicMaterial({color: 0xC5C5C5});
 
       const doorGeometry = new THREE.BoxGeometry(1, 5, 0.3);
-      const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x703F00 });
+      const doorMaterial = new THREE.MeshBasicMaterial({color: 0x703F00});
 
       const lightGeometry = new THREE.SphereGeometry(1, 32, 32);
       const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true });
@@ -604,6 +610,15 @@ class SceneWidget extends TUIOWidget {
 
     this.socket.on(Protocol.DOOR_UPDATE, (data) => {
       this.doors.get(data.name).visible = !open;
+    });
+
+    this.socket.on(Protocol.CREATE_TRAP, (data) => {
+      const trapMaterial = new THREE.MeshBasicMaterial({color: GHOST_COLORS[data.player]});
+      const ghostTrap = new THREE.Mesh(trapGeometry, trapMaterial);
+      ghostTrap.position.copy(new THREE.Vector3(data.position.x, 1, data.position.y));
+      this.scene.add(ghostTrap);
+      const currentPlayerEntities = this.playerEntities[data.player];
+      currentPlayerEntities.traps.unshift({id: data.name, tagId: '0', mesh: ghostTrap});
     });
 
     this.socket.on(Protocol.REMOVE_TRAP, (data) => {

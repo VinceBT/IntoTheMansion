@@ -56,14 +56,14 @@ describe(`${serverStatus.name} backend server`, () => {
   });
   describe('Component registration', () => {
     it('should successfully register as a table', (done) => {
-      table.emit(Protocol.REGISTER, 'TABLE', (status) => {
+      table.emit(Protocol.REGISTER, {type: 'TABLE'}, (status) => {
         if (status.success)
           done();
         else throw new Error(status.error);
       });
     });
     it('should successfully register as a tablet', (done) => {
-      tablet.emit(Protocol.REGISTER, 'TABLET', (status) => {
+      tablet.emit(Protocol.REGISTER, {type: 'TABLET'}, (status) => {
         if (status.success)
           done();
         else throw new Error(status.error);

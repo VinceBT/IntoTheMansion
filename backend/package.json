@@ -5,20 +5,17 @@
   "repository": "github:VinceBT/IntoTheMansion",
   "scripts": {
     "build": "babel src -d lib",
-    "check": "forever list",
-    "serve": "cross-env NODE_ENV=production forever start -a -l forever.log -o output.log -e error.log --no-colors lib/index.js",
-    "start": "cross-env NODE_ENV=development nodemon src/index.js --exec babel-node",
     "devtool": "cross-env NODE_ENV=development nodemon src/index.js --exec devtool -r babel-register",
-    "stop": "forever stopall --no-colors",
-    "test": "cross-env NODE_ENV=test mocha test/**/*.js -t 5000 --compilers js:babel-register --require babel-polyfill",
-    "scenario": "cross-env NODE_ENV=development nodemon scripts/scenario.js --exec babel-node",
-    "justin": "cross-env NODE_ENV=development nodemon scripts/justin.js --exec babel-node"
+    "scenario": "cross-env NODE_ENV=development babel-node scripts/scenario.js",
+    "scenario-r": "cross-env NODE_ENV=development nodemon scripts/scenario.js --exec babel-node",
+    "serve": "cross-env NODE_ENV=production node lib/index.js",
+    "start": "cross-env NODE_ENV=development nodemon src/index.js --exec babel-node",
+    "test": "cross-env NODE_ENV=test mocha test/**/*.js -t 5000 --compilers js:babel-register --require babel-polyfill"
   },
   "dependencies": {
     "babel-polyfill": "^6.23.0",
     "cross-env": "^5.0.1",
     "dungeon-generator": "0.0.1",
-    "forever": "^0.15.3",
     "invariant": "^2.2.2",
     "socket.io": "^2.0.4",
     "socket.io-client": "^2.0.4",
