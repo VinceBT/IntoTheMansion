@@ -148,3 +148,8 @@ canvas {
     margin: 0;
     margin-left: 10px;
 }
+
+.zoomSlider {
+    transform: rotate(270deg);
+    margin-top: 300px;
+}
