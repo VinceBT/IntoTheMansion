@@ -7,7 +7,7 @@ IntoTheMansion.Game = function() {
     this.layer;
     this.ghosts = [];
     this.entities = [];
-    this.socket = io('http://localhost:8888');
+    this.socket = io('http://localhost:8080');
     this.parser;
 };
 IntoTheMansion.Game.prototype = {
@@ -84,6 +84,12 @@ IntoTheMansion.Game.prototype = {
 
         if(pointer.isDown && this.skillmanager.isShowPathActive() && this.parser.map.data[this.layer.getTileX(x)][this.layer.getTileY(y)]){
             var show = this.skillmanager.getShowPathSkill();
+            if(
+              !show.allowAdd(this.layer.getTileX(x),this.layer.getTileY(y),this) ||
+              show.tilesChanged.length > show.tileLimit ||
+              show.containsTile(this.layer.getTileX(x),this.layer.getTileY(y)))
+                return;
+
             if(!show.start){
                 show.start = true;
                 setTimeout(this.remove,show.timer,this);
@@ -96,7 +102,6 @@ IntoTheMansion.Game.prototype = {
     remove: function(model){
         model.socket.emit('REMOVE_PATH',{remove:true});
         var show = model.skillmanager.getShowPathSkill();
-        show.start = false;
         for(var i = 0; i < show.tilesChanged.length;i++){
             model.map.fill(model.parser.map.data[show.tilesChanged[i][0]][show.tilesChanged[i][1]], show.tilesChanged[i][0], show.tilesChanged[i][1], 1, 1);
         }

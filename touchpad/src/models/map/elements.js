@@ -28,12 +28,12 @@ Map.prototype = {
         if(this.current % this.width == 0) {
             this.tiles += "\n";
             this.x ++;
-            this.y = -1;
+            this.y = 0;
         }
         else {
             this.tiles += ",";
+            this.y ++;
         }
         this.current++;
-        this.y ++;
     }
 }

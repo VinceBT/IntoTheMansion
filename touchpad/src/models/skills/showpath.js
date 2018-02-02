@@ -7,7 +7,8 @@ function ShowPath(sm,x=-1, y=-1){
     this.tilesChanged = [];
     this.info.input.useHandCursor = true;
     this.start = false;
-    this.timer = 5000;
+    this.timer = 10000;
+    this.tileLimit = 30;
 }
 
 ShowPath.prototype = {
@@ -23,9 +24,25 @@ ShowPath.prototype = {
         }
     },
     clearTiles: function(){
+        this.start = false;
         while (this.tilesChanged.length) {
             this.tilesChanged.pop();
         }
+    },
+
+    containsTile: function(x,y){
+        for(var i  = 0; i < this.tilesChanged.length;i++){
+            if(this.tilesChanged[i][0] == x && this.tilesChanged[i][1] == y){
+                return true;
+            }
+        }
+        return false;
+    },
+    allowAdd: function(x,y,model){
+        if(model.parser.map.data[x][y] == IntoTheMansion.FLOOR || model.parser.map.data[x][y] == IntoTheMansion.DOOR ){
+            return true;
+        }
+        return false;
     }
 
 }
