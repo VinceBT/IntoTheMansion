@@ -66,8 +66,8 @@ IntoTheMansion.Game.prototype = {
         this.socket.on('REMOVE_TRAP',function(json){
             for(var i = 0; i < model.entities.length;i++){
                 if(model.entities[i].name == 'trap' && model.entities[i].id == json.id){
-                    this.model.entities[i].info.destroy();
-                    this.model.entities.splice(i,1);
+                    model.entities[i].info.destroy();
+                    model.entities.splice(i,1);
                     break;
                 }
             }
@@ -106,7 +106,7 @@ IntoTheMansion.Game.prototype = {
             }
             show.tilesChanged.push([this.layer.getTileX(x),this.layer.getTileY(y)]);
             this.map.fill(1, this.layer.getTileX(x), this.layer.getTileY(y), 1, 1);
-            this.socket.emit('PATH_CREATE',{x:this.layer.getTileX(x),y:this.layer.getTileY(y),z:0});
+            this.socket.emit('PATH_CREATE',{x:this.layer.getTileX(x),z:this.layer.getTileY(y),y:0});
         }
     },
     remove: function(model){
