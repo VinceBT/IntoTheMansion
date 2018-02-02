@@ -3,28 +3,30 @@ IntoTheMansion.Game = function() {
     this.skill;
     this.cursors;
     this.player;
+    this.map;
+    this.layer;
     this.ghosts = [];
     this.entities = [];
-    this.socket = io('http://localhost:8080');
+    this.socket = io('http://localhost:8888');
+    this.parser;
 };
 IntoTheMansion.Game.prototype = {
     preload: function() {
         var model = this;
-        this.skillmanager = new SkillManager();
 
         this.socket.emit('REGISTER','TABLET');
         this.socket.emit('GET_MAP_DEBUG', function(data){
-            var parser = new Parser(data);
-            model.cache.addTilemap('dynamicMap', null, parser.map.tiles, Phaser.Tilemap.CSV);
+            model.parser = new Parser(data);
+            model.cache.addTilemap('dynamicMap', null, model.parser.map.tiles, Phaser.Tilemap.CSV);
 
-            var map = model.add.tilemap('dynamicMap', IntoTheMansion._TILE_SIZE, IntoTheMansion._TILE_SIZE);
-            map.addTilesetImage('tiles', 'tiles', IntoTheMansion._TILE_SIZE, IntoTheMansion._TILE_SIZE);
+            model.map = model.add.tilemap('dynamicMap', IntoTheMansion._TILE_SIZE, IntoTheMansion._TILE_SIZE);
+            model.map.addTilesetImage('tiles', 'tiles', IntoTheMansion._TILE_SIZE, IntoTheMansion._TILE_SIZE);
 
-            var layer = map.createLayer(0);
-            layer.resizeWorld();
+            model.layer = model.map.createLayer(0);
+            model.layer.resizeWorld();
 
             model.physics.startSystem(Phaser.Physics.ARCADE);
-            model.skillmanager.add(new RemoveTrap(model,80,400));
+            model.skillmanager = new SkillManager(model);
         });
         this.socket.on('PLAYER_POSITION_UPDATE',function(json){
             if(!model.player){
@@ -76,13 +78,29 @@ IntoTheMansion.Game.prototype = {
         });
     },
     create: function() {
-        //this.input.onTap.add(this.onTap, this);
+        this.input.addMoveCallback(this.draw,this);
     },
-    onTap: function(pointer,doubleTap){
-        for(var i = 0; i < pointer.interactiveCandidates.length; i++){
-            if(pointer.interactiveCandidates[i].sprite != null)
-                console.log(pointer.interactiveCandidates[i].sprite.key);
+    draw: function(pointer,x,y){
+
+        if(pointer.isDown && this.skillmanager.isShowPathActive() && this.parser.map.data[this.layer.getTileX(x)][this.layer.getTileY(y)]){
+            var show = this.skillmanager.getShowPathSkill();
+            if(!show.start){
+                show.start = true;
+                setTimeout(this.remove,show.timer,this);
+            }
+            show.tilesChanged.push([this.layer.getTileX(x),this.layer.getTileY(y)]);
+            this.map.fill(1, this.layer.getTileX(x), this.layer.getTileY(y), 1, 1);
+            this.socket.emit('PATH_CREATE',{x:this.layer.getTileX(x),y:this.layer.getTileY(y),z:0});
         }
-        console.log(pointer,doubleTap);
+    },
+    remove: function(model){
+        model.socket.emit('REMOVE_PATH',{remove:true});
+        var show = model.skillmanager.getShowPathSkill();
+        show.start = false;
+        for(var i = 0; i < show.tilesChanged.length;i++){
+            model.map.fill(model.parser.map.data[show.tilesChanged[i][0]][show.tilesChanged[i][1]], show.tilesChanged[i][0], show.tilesChanged[i][1], 1, 1);
+        }
+        show.clearTiles();
+        model.skillmanager.disableAll();
     }
 };
