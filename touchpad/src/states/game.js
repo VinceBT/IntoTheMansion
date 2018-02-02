@@ -66,8 +66,8 @@ IntoTheMansion.Game.prototype = {
         this.socket.on('REMOVE_TRAP',function(json){
             for(var i = 0; i < model.entities.length;i++){
                 if(model.entities[i].name == 'trap' && model.entities[i].id == json.id){
-                    this.model.entities[i].info.destroy();
-                    this.model.entities.splice(i,1);
+                    model.entities[i].info.destroy();
+                    model.entities.splice(i,1);
                     break;
                 }
             }
