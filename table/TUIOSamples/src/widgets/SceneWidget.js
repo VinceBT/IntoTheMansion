@@ -538,8 +538,9 @@ class SceneWidget extends TUIOWidget {
       this.camera.position.x = mapWidth / 2;
       this.camera.position.z = mapHeight / 2;
 
-      this.camera.position.y = 100; // -2 * Math.max(mapWidth / 2, mapHeight / 2) * Math.tan(this.camera.fov * this.camera.aspect / 2);
-      console.log('CAMERA POSITION SET', this.camera.position.y);
+      this.camera.position.y = 100;
+      const computedCameraHeight = -2 * Math.max(mapWidth / 2, mapHeight / 2) * Math.tan(this.camera.fov * this.camera.aspect / 2);
+      console.log('CAMERA POSITION SET', this.camera.position.y, "could be", computedCameraHeight);
 
       const wallGeometry = new THREE.BoxGeometry(1, 5, 1);
       const wallMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
@@ -640,7 +641,6 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.REMOVE_TRAP, (data) => {
-      console.log(data, this.playerEntities)
       this.playerEntities.forEach((currPlayerEntities) => {
         const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === data.id);
         console.log('TRAPS TO DELETE', trapsToDelete);

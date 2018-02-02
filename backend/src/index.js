@@ -124,6 +124,7 @@ io.on('connection', (socket) => {
 
   // Standard Messages
   register(Protocol.CREATE_TRAP);
+  register(Protocol.REMOVE_TRAP);
   register(Protocol.CREATE_WALL);
   register(Protocol.PLAYER_POSITION_UPDATE);
   register(Protocol.GHOST_POSITION_UPDATE);
@@ -131,7 +132,6 @@ io.on('connection', (socket) => {
   register(Protocol.DOOR_UPDATE);
   register(Protocol.LIGHT_UPDATE);
   register(Protocol.TRAP_TRIGGERED);
-  register(Protocol.REMOVE_TRAP);
   register(Protocol.GAME_OVER);
   register(Protocol.RESTART);
   register(Protocol.PATH_CREATE);
