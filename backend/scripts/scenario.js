@@ -32,20 +32,33 @@ const register = () => new Promise((resolve, reject) => {
   });
 });
 
+const getMap = () => new Promise((resolve, reject) => {
+  external.emit(Protocol.GET_MAP_DEBUG, (mapData) => {
+    if (mapData)
+      resolve(mapData);
+    else reject();
+  });
+});
+
 const init = async () => {
   await connect();
   await register();
+  const mapData = await getMap();
+  console.log(mapData);
+
   const playerCoords = {x: 3, y: 0, z: 3, r: 0};
   const ghost1Coords = {x: 20, y: 0, z: 20, r: 0};
   const ghost2Coords = {x: 3, y: 0, z: 30, r: 0};
+
   let intervalId;
+
   const moveProgress = generateProgress(3, () => {
     clearInterval(intervalId);
     external.emit(Protocol.GAME_OVER, {won: true});
     setTimeout(() => {
       external.emit(Protocol.RESTART);
       setTimeout(() => {
-        external.emit(Protocol.GAME_OVER, {won: false});
+        external.emit(Protocol.GAME_OVER, {won: false, killedBy: 1, deathType: 'trap'});
         setTimeout(() => {
           external.emit(Protocol.RESTART);
           console.log('Scenario finished');
@@ -54,6 +67,7 @@ const init = async () => {
       }, 1000);
     }, 1000);
   });
+
   for (let i = 0; i < 50; i++) {
     const id = 'trap_' + Math.round(Math.random() * 3000000).toString();
     setTimeout(() => {
@@ -61,9 +75,9 @@ const init = async () => {
         name: id,
         player: Math.floor(Math.random() * 2),
         position: {
-          x: 1 + Math.round(Math.random() * 30),
+          x: Math.round(Math.random() * mapData.terrain.width),
           y: 5,
-          z: 1 + Math.round(Math.random() * 30),
+          z: Math.round(Math.random() * mapData.terrain.height),
         },
         type: 'DeathTrap',
       });
@@ -73,6 +87,22 @@ const init = async () => {
         });
       }, 500);
     }, 1000 + i * 10);
+  }
+
+  for (let i = 0; i < mapData.objects.doors.length; i++) {
+    const door = mapData.objects.doors[i];
+    setTimeout(() => {
+      external.emit(Protocol.DOOR_UPDATE, {
+        name: door.id,
+        open: true,
+      });
+      setTimeout(() => {
+        external.emit(Protocol.DOOR_UPDATE, {
+          name: door.id,
+          open: false,
+        });
+      }, 500);
+    }, 1000 + i * 50);
   }
 
   const tweenPlayer = new TWEEN.Tween(playerCoords)

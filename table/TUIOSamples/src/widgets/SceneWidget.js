@@ -291,9 +291,7 @@ class SceneWidget extends TUIOWidget {
         this.socket.emit(Protocol.LIGHT_UPDATE, {
           mode: 'off',
           lightId: lightId,
-
         });
-
         console.log(`Removing ${lightId}`);
         const lightElement = this.lightsMap.get(lightId);
         lightElement.material.opacity = 0.2;
@@ -620,7 +618,11 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.DOOR_UPDATE, (data) => {
-      this.doors.get(data.name).visible = !open;
+      this.doorsMap.get(data.name).visible = !data.open;
+    });
+
+    this.socket.on(Protocol.LIGHT_UPDATE, (data) => {
+      this.doorsMap.get(data.name).visible = !data.open;
     });
 
     this.socket.on(Protocol.CREATE_TRAP, (data) => {
