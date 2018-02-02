@@ -5,7 +5,7 @@ var IntoTheMansion = {
     WALL: 323,
     DOOR: 270,
     FLOOR: 269,
-    EXIT: 250
+    EXIT: 251
 };
 IntoTheMansion.Boot = function(game) {}
 

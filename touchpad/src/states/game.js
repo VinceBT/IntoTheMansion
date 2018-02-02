@@ -1,19 +1,17 @@
 IntoTheMansion.Game = function() {
     this.skillmanager;
-    this.skill;
-    this.cursors;
     this.player;
     this.map;
     this.layer;
     this.ghosts = [];
     this.entities = [];
-    this.socket = io('http://localhost:8080');
+    this.socket;
     this.parser;
 };
 IntoTheMansion.Game.prototype = {
     preload: function() {
+        this.socket = io('http://localhost:8080');
         var model = this;
-
         this.socket.emit('REGISTER','TABLET');
         this.socket.emit('GET_MAP_DEBUG', function(data){
             model.parser = new Parser(data);
@@ -65,6 +63,16 @@ IntoTheMansion.Game.prototype = {
                     json.position.z*IntoTheMansion._TILE_SIZE + IntoTheMansion._TILE_SIZE/2
                     ));
         });
+        this.socket.on('REMOVE_TRAP',function(json){
+            for(var i = 0; i < model.entities.length;i++){
+                if(model.entities[i].name == 'trap' && model.entities[i].id == json.id){
+                    this.model.entities[i].info.destroy();
+                    this.model.entities.splice(i,1);
+                    break;
+                }
+            }
+
+        });
 
         this.socket.on('GAME_OVER',function(json){
             if(!json.won)
@@ -74,7 +82,9 @@ IntoTheMansion.Game.prototype = {
         });
 
         this.socket.on('RESTART',function(json){
-           model.game.state.start('Game');
+            model.restart();
+            model.game.state.restart();
+            model.preload();
         });
     },
     create: function() {
@@ -107,5 +117,15 @@ IntoTheMansion.Game.prototype = {
         }
         show.clearTiles();
         model.skillmanager.disableAll();
+    },
+
+    restart: function(){
+        this.socket.disconnect();
+        while(this.ghosts.length)this.ghosts.pop();
+        while(this.entities.length)this.entities.pop();
+        delete this.player;
+        delete this.skillmanager;
+        delete this.map;
+        delete this.layer;
     }
 };

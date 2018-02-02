@@ -1,7 +1,6 @@
 function Parser(json){
 
         this.json = json;
-        console.log(json);
         this.width = this.json.terrain.width;
         this.height = this.json.terrain.height;
         this.floors = this.json.terrain.floors;
