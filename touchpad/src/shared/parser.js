@@ -27,7 +27,6 @@ function Parser(json){
                 case 'D':
                     if(i == exit[0] + (exit[1]) * this.width)
                       this.map.push(IntoTheMansion.EXIT);
-
                     else
                       this.map.push(IntoTheMansion.DOOR);
                     break;
