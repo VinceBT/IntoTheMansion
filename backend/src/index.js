@@ -129,6 +129,8 @@ io.on('connection', (socket) => {
   register(Protocol.REMOVE_TRAP);
   register(Protocol.GAME_OVER);
   register(Protocol.RESTART);
+  register(Protocol.PATH_CREATE);
+  register(Protocol.REMOVE_PATH);
 
 });
 
