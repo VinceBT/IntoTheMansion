@@ -523,7 +523,8 @@ class SceneWidget extends TUIOWidget {
       this.camera.position.x = mapWidth / 2;
       this.camera.position.z = mapHeight / 2;
 
-      this.camera.position.y = -2 * Math.max(mapWidth / 2, mapHeight / 2) * Math.tan(this.camera.fov * this.camera.aspect / 2);
+      this.camera.position.y = 100; // -2 * Math.max(mapWidth / 2, mapHeight / 2) * Math.tan(this.camera.fov * this.camera.aspect / 2);
+      console.log('CAMERA POSITION SET', this.camera.position.y);
 
       const wallGeometry = new THREE.BoxGeometry(1, 5, 1);
       const wallMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
@@ -576,10 +577,10 @@ class SceneWidget extends TUIOWidget {
 
         // SUPER SIMPLE GLOW EFFECT
       // use sprite because it appears the same from all angles
-      var spriteMaterial = new THREE.SpriteMaterial( 
-        { 
-          map: new THREE.ImageUtils.loadTexture( '../../assets/images/glow.png' ), 
-        
+      var spriteMaterial = new THREE.SpriteMaterial(
+        {
+          map: new THREE.ImageUtils.loadTexture( '../../assets/images/glow.png' ),
+
           color: 0xffff00, transparent: false, blending: THREE.AdditiveBlending
         });
         var sprite = new THREE.Sprite( spriteMaterial );
@@ -622,10 +623,12 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.REMOVE_TRAP, (data) => {
+      console.log(data, this.playerEntities)
       this.playerEntities.forEach((currPlayerEntities) => {
         const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === data.id);
+        console.log('TRAPS TO DELETE', trapsToDelete);
         trapsToDelete.forEach((trapToDelete) => {
-          this.scene.remove(trapToDelete);
+          this.scene.remove(trapToDelete.mesh);
         });
         currPlayerEntities.traps = currPlayerEntities.traps.filter(trap => trap.id !== data.id);
       });
