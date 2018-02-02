@@ -8,18 +8,46 @@ import Protocol from '../src/Protocol';
 const fullRemote = `http://${serverStatus.devRemote}:${serverStatus.port}`;
 
 console.log(`Connecting to ${fullRemote}`);
+
+const table = io(fullRemote);
+const tablet = io(fullRemote);
 const vr = io(fullRemote);
 
 const connect = () => new Promise((resolve, reject) => {
-  vr.on('connect', () => {
+  const progress = generateProgress(3, () => {
     resolve();
+  });
+  table.on('connect', () => {
+    console.log(`Fake table connected to ${fullRemote}`);
+    progress();
+  });
+  tablet.on('connect', () => {
+    console.log(`Fake tablet connected to ${fullRemote}`);
+    progress();
+  });
+  vr.on('connect', () => {
+    console.log(`Fake VR connected to ${fullRemote}`);
+    progress();
   });
 });
 
 const register = () => new Promise((resolve, reject) => {
+  const progress = generateProgress(3, () => {
+    resolve();
+  });
+  table.emit(Protocol.REGISTER, { type: 'TABLE' }, (status) => {
+    if (status.success)
+      progress();
+    else throw new Error(status.error);
+  });
+  tablet.emit(Protocol.REGISTER, { type: 'TABLET' }, (status) => {
+    if (status.success)
+      progress();
+    else throw new Error(status.error);
+  });
   vr.emit(Protocol.REGISTER, { type: 'VR' }, (status) => {
     if (status.success)
-      resolve();
+      progress();
     else throw new Error(status.error);
   });
 });
@@ -31,21 +59,11 @@ const init = async () => {
   const ghost1Coords = { x: 20, y: 0, z: 20, r: 0 };
   const ghost2Coords = { x: 3, y: 0, z: 30, r: 0 };
   let intervalId;
-  const moveProgress = generateProgress(2, () => {
+  const moveProgress = generateProgress(3, () => {
     clearInterval(intervalId);
     vr.emit(Protocol.GAME_OVER, { won: true });
     setTimeout(() => {
       vr.emit(Protocol.RESTART);
-      vr.emit(Protocol.CREATE_TRAP, {
-        name: '3F',
-        player: 0,
-        position: {
-          x: 3,
-          y: 3,
-          z: 3,
-        },
-        type: 'DeathTrap',
-      });
       setTimeout(() => {
         vr.emit(Protocol.GAME_OVER, { won: false });
         setTimeout(() => {
@@ -56,6 +74,23 @@ const init = async () => {
       }, 1000);
     }, 1000);
   });
+  setTimeout(() => {
+    table.emit(Protocol.CREATE_TRAP, {
+      name: '3F',
+      player: 0,
+      position: {
+        x: 5,
+        y: 5,
+        z: 5,
+      },
+      type: 'DeathTrap',
+    });
+    setTimeout(() => {
+      table.emit(Protocol.REMOVE_TRAP, {
+        id: '3F',
+      });
+    }, 1000);
+  }, 2000);
   const tweenPlayer = new TWEEN.Tween(playerCoords)
     .to({ x: 12, y: 0, z: 12, r: Math.PI * 2 * 10 }, 5000)
     .onUpdate(() => {

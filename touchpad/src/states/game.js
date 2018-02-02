@@ -12,7 +12,7 @@ IntoTheMansion.Game.prototype = {
         var model = this;
         this.skillmanager = new SkillManager();
 
-        this.socket.emit('REGISTER','TABLET');
+        this.socket.emit('REGISTER',{type: 'TABLET'});
         this.socket.emit('GET_MAP_DEBUG', function(data){
             var parser = new Parser(data);
             model.cache.addTilemap('dynamicMap', null, parser.map.tiles, Phaser.Tilemap.CSV);

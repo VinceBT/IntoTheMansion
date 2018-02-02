@@ -83,15 +83,15 @@ io.on('connection', (socket) => {
   });
 
   // REGISTER
-  socket.on(Protocol.REGISTER, (type, done) => {
+  socket.on(Protocol.REGISTER, (data, done) => {
     tablets.delete(socket);
     tables.delete(socket);
     vrs.delete(socket);
-    if (type === 'TABLET') {
+    if (data.type === 'TABLET') {
       tablets.add(socket);
-    } else if (type === 'TABLE') {
+    } else if (data.type === 'TABLE') {
       tables.add(socket);
-    } else if (type.type === 'VR') {
+    } else if (data.type === 'VR') {
       vrs.add(socket);
     } else {
       if (done) done({ success: false, error: `Received incorrect type ${type}` });
