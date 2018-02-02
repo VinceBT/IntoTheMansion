@@ -256,7 +256,7 @@ class SceneWidget extends TUIOWidget {
 
 
   handleTagRotate = debounce(500, (tuioTag) => {
-    const ROTATE_POINTS = 10;
+    const ROTATE_POINTS = 1;
 
     const closestLight = () => {
       const viewPortCoord = new THREE.Vector2(
@@ -296,7 +296,8 @@ class SceneWidget extends TUIOWidget {
 
         console.log(`Removing ${lightId}`);
         const lightElement = this.lightsMap.get(lightId);
-        this.scene.remove(lightElement);
+        lightElement.material.opacity = 0.2;
+        lightElement.children.forEach(c => c.visible = false);
         this.rotateProgress = 0;
       }
     }
@@ -528,7 +529,7 @@ class SceneWidget extends TUIOWidget {
       const doorMaterial = new THREE.MeshBasicMaterial({ color: 0x703F00 });
 
       const lightGeometry = new THREE.SphereGeometry(1, 32, 32);
-      const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+      const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true });
 
       map[0].forEach((elt, index) => {
         const posX = Math.floor(index % mapWidth);
@@ -563,9 +564,24 @@ class SceneWidget extends TUIOWidget {
       });
 
       mapData.objects.lights.forEach((lightData) => {
-        const light = new THREE.Mesh(lightGeometry, lightMaterial);
+        const light = new THREE.Mesh(lightGeometry, lightMaterial.clone());
         light.position.x = lightData.position.x;
         light.position.z = lightData.position.z;
+
+        // SUPER SIMPLE GLOW EFFECT
+      // use sprite because it appears the same from all angles
+      var spriteMaterial = new THREE.SpriteMaterial( 
+        { 
+          map: new THREE.ImageUtils.loadTexture( '../../assets/images/glow.png' ), 
+        
+          color: 0xffff00, transparent: false, blending: THREE.AdditiveBlending
+        });
+        var sprite = new THREE.Sprite( spriteMaterial );
+        sprite.scale.set(4, 4, 4);
+        light.add(sprite); // this centers the glow at the mesh
+        light.position.y += 5;
+
+
         this.lightsMap.set(lightData.id, light);
         this.scene.add(light);
         this.lights.push(light);
