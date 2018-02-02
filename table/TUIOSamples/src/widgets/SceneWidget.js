@@ -334,9 +334,9 @@ class SceneWidget extends TUIOWidget {
         });
       } else if (tagData.type === 'reveal') {
         this.revealPlayer = true;
-        setTimeout(() => { this.revealPlayer = false; }, 1000);
-        this.playerMaterial.opacity = 0.7;
-
+        setTimeout(() => {
+          this.revealPlayer = false;
+        }, 1000);
       } else if (tagData.type === 'wall') {
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
         if (flooredIntersectPosition === null) return;
@@ -409,15 +409,15 @@ class SceneWidget extends TUIOWidget {
     this.camera.position.y = 50;
     this.camera.rotation.x = -Math.PI / 2;
 
-/*
-    $(document).on('input', '.zoomSlider', () => {
-      const zoomValue = $('.zoomSlider').val();
-      $(".zoomSlider").val(zoomValue)
-     console.log("J'irai chercher ton coeur, si tu l'emportes ailleurs");
-     console.log(zoomValue)
-     this.camera.position.y = 100 - zoomValue;
-    });
-    */
+    /*
+        $(document).on('input', '.zoomSlider', () => {
+          const zoomValue = $('.zoomSlider').val();
+          $(".zoomSlider").val(zoomValue)
+         console.log("J'irai chercher ton coeur, si tu l'emportes ailleurs");
+         console.log(zoomValue)
+         this.camera.position.y = 100 - zoomValue;
+        });
+        */
 
     this.walls = [];
     this.carpets = [];
@@ -539,27 +539,26 @@ class SceneWidget extends TUIOWidget {
       this.camera.position.z = mapHeight / 2;
 
       this.camera.position.y = 100;
-      const computedCameraHeight = -2 * Math.max(mapWidth / 2, mapHeight / 2) * Math.tan(this.camera.fov * this.camera.aspect / 2);
+      const computedCameraHeight = -(Math.max(mapWidth, mapHeight) / 2) * Math.tan(((this.camera.fov / 2) * this.camera.aspect * Math.PI / 180));
       console.log('CAMERA POSITION SET', this.camera.position.y, "could be", computedCameraHeight);
 
       const wallGeometry = new THREE.BoxGeometry(1, 5, 1);
-      const wallMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
+      const wallMaterial = new THREE.MeshBasicMaterial({color: 0x252525});
 
       const carpetGeometry = new THREE.BoxGeometry(1, 1, 1);
-      const carpetMaterial = new THREE.MeshBasicMaterial({color: 0xC5C5C5});
+      const carpetMaterial = new THREE.MeshBasicMaterial({color: 0x656565});
 
       const doorGeometry = new THREE.BoxGeometry(1, 5, 0.3);
-      const doorMaterial = new THREE.MeshBasicMaterial({color: 0x703F00});
+      const doorMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
 
-      const lightGeometry = new THREE.SphereGeometry(1, 32, 32);
-      const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true });
+      const lightGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+      const lightMaterial = new THREE.MeshBasicMaterial({color: 0xffff00, transparent: true});
 
       map[0].forEach((elt, index) => {
         const posX = Math.floor(index % mapWidth);
         const posY = Math.floor(index / mapWidth);
         if (elt === 'W') {
           let wallMat = wallMaterial.clone();
-          wallMat.color = new THREE.Color(0x828282);
           const wall = new THREE.Mesh(wallGeometry, wallMat);
           wall.position.x = posX;
           wall.position.z = posY;
@@ -592,21 +591,14 @@ class SceneWidget extends TUIOWidget {
         const light = new THREE.Mesh(lightGeometry, lightMaterial.clone());
         light.position.x = lightData.position.x;
         light.position.z = lightData.position.z;
-
-        // SUPER SIMPLE GLOW EFFECT
-      // use sprite because it appears the same from all angles
-      var spriteMaterial = new THREE.SpriteMaterial(
-        {
-          map: new THREE.ImageUtils.loadTexture( '../../assets/images/glow.png' ),
-
-          color: 0xffff00, transparent: false, blending: THREE.AdditiveBlending
+        light.position.y = 5;
+        const spriteMaterial = new THREE.SpriteMaterial({
+          map: new THREE.ImageUtils.loadTexture('../../assets/images/glow.png'),
+          color: 0xaaaa00, transparent: false, blending: THREE.AdditiveBlending
         });
-        var sprite = new THREE.Sprite( spriteMaterial );
-        sprite.scale.set(4, 4, 4);
-        light.add(sprite); // this centers the glow at the mesh
-        light.position.y += 5;
-
-
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.scale.set(3, 3, 3);
+        light.add(sprite);
         this.lightsMap.set(lightData.id, light);
         this.scene.add(light);
         this.lights.push(light);
@@ -634,7 +626,7 @@ class SceneWidget extends TUIOWidget {
     this.socket.on(Protocol.CREATE_TRAP, (data) => {
       const trapMaterial = new THREE.MeshBasicMaterial({color: GHOST_COLORS[data.player]});
       const ghostTrap = new THREE.Mesh(trapGeometry, trapMaterial);
-      ghostTrap.position.copy(new THREE.Vector3(data.position.x, 1, data.position.y));
+      ghostTrap.position.copy(new THREE.Vector3(data.position.x, 1, data.position.z));
       this.scene.add(ghostTrap);
       const currentPlayerEntities = this.playerEntities[data.player];
       currentPlayerEntities.traps.unshift({id: data.name, tagId: '0', mesh: ghostTrap});
@@ -643,7 +635,6 @@ class SceneWidget extends TUIOWidget {
     this.socket.on(Protocol.REMOVE_TRAP, (data) => {
       this.playerEntities.forEach((currPlayerEntities) => {
         const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === data.id);
-        console.log('TRAPS TO DELETE', trapsToDelete);
         trapsToDelete.forEach((trapToDelete) => {
           this.scene.remove(trapToDelete.mesh);
         });
@@ -697,7 +688,8 @@ class SceneWidget extends TUIOWidget {
       for (const ghostGroup of ghostGroups) {
         closestDistanceToPlayer = Math.min(closestDistanceToPlayer, ghostGroup.position.distanceTo(playerGroup.position));
       }
-      if(!this.revealPlayer) this.playerMaterial.opacity = 1 - cunlerp(GHOST_RANGE_SIZE - 2, GHOST_RANGE_SIZE, closestDistanceToPlayer);
+      this.playerMaterial.opacity = 1 - cunlerp(GHOST_RANGE_SIZE - 2, GHOST_RANGE_SIZE, closestDistanceToPlayer);
+      if (this.revealPlayer) this.playerMaterial.opacity = 1;
       this.renderer.render(this.scene, this.camera);
     };
 

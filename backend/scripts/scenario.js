@@ -54,23 +54,27 @@ const init = async () => {
       }, 1000);
     }, 1000);
   });
-  setTimeout(() => {
-    external.emit(Protocol.CREATE_TRAP, {
-      name: '3F',
-      player: 0,
-      position: {
-        x: 5,
-        y: 5,
-        z: 5,
-      },
-      type: 'DeathTrap',
-    });
+  for (let i = 0; i < 50; i++) {
+    const id = 'trap_' + Math.round(Math.random() * 3000000).toString();
     setTimeout(() => {
-      external.emit(Protocol.REMOVE_TRAP, {
-        id: '3F',
+      external.emit(Protocol.CREATE_TRAP, {
+        name: id,
+        player: Math.floor(Math.random() * 2),
+        position: {
+          x: 1 + Math.round(Math.random() * 30),
+          y: 5,
+          z: 1 + Math.round(Math.random() * 30),
+        },
+        type: 'DeathTrap',
       });
-    }, 1000);
-  }, 2000);
+      setTimeout(() => {
+        external.emit(Protocol.REMOVE_TRAP, {
+          id: id,
+        });
+      }, 500);
+    }, 1000 + i * 10);
+  }
+
   const tweenPlayer = new TWEEN.Tween(playerCoords)
     .to({x: 12, y: 0, z: 12, r: Math.PI * 2 * 10}, 5000)
     .onUpdate(() => {
