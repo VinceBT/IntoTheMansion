@@ -6,7 +6,7 @@ import WindowResize from 'three-window-resize';
 import debounce from 'throttle-debounce/debounce';
 
 import Protocol from '../Protocol';
-import { cunlerp, randomHash } from '../utils';
+import { cunlerp, randomHash } from '../Utils';
 import playerconfigs from '../../assets/playerconfigs.json';
 
 
@@ -48,7 +48,7 @@ class ZoomWidget extends TUIOWidget {
     $container.append($zoom);
     this._domElem = $container;
 
-  
+
   }
 
   /**
@@ -109,7 +109,7 @@ class ZoomWidget extends TUIOWidget {
       if (newY > (WINDOW_HEIGHT - this.height)) {
         newY = WINDOW_HEIGHT - this.height;
 
-        
+
       }
 
       console.log(tuioTouch);
