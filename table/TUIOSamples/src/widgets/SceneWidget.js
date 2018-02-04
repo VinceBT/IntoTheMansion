@@ -8,7 +8,7 @@ import debounce from 'throttle-debounce/debounce';
 import Protocol from '../Protocol';
 import { cunlerp, randomHash } from '../Utils';
 import playerconfigs from '../../assets/playerconfigs.json';
-import SoundManager from "../SoundManager";
+import SoundManager from '../SoundManager';
 
 
 const GHOST_RANGE_SIZE = 7;
@@ -254,10 +254,8 @@ class SceneWidget extends TUIOWidget {
     return null;
   };
 
-
   handleTagRotate = debounce(500, (tuioTag) => {
     const ROTATE_POINTS = 1;
-
     const closestLight = () => {
       const viewPortCoord = new THREE.Vector2(
         ((tuioTag.x / this.width) * 2) - 1,
@@ -267,7 +265,6 @@ class SceneWidget extends TUIOWidget {
       const intersects = this.raycaster.intersectObjects(this.scene.children);
       const closestIntersect = intersects[0];
       console.log(closestIntersect);
-
       let minDistance = null;
       let closestLightId;
       for (const [key, value] of this.lightsMap.entries()) {
@@ -292,7 +289,8 @@ class SceneWidget extends TUIOWidget {
           mode: 'off',
           lightId,
         });
-        console.log(`Removing ${lightId}`);
+        SoundManager.play('switch_off');
+        console.log(`[LIGHTS] Shutting off light ${lightId}`);
         const lightElement = this.lightsMap.get(lightId);
         lightElement.material.opacity = 0.2;
         lightElement.children.forEach(c => c.visible = false);
@@ -405,8 +403,10 @@ class SceneWidget extends TUIOWidget {
 
     new WindowResize(this.renderer, this.camera);
 
-    this.camera.position.y = 50;
+    this.camera.position.y = 90;
     this.camera.rotation.x = -Math.PI / 2;
+
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.2));
 
     /*
         $(document).on('input', '.zoomSlider', () => {
@@ -469,25 +469,24 @@ class SceneWidget extends TUIOWidget {
         transparent: true,
         opacity: 0.7,
       });
-      const ghostCone = new THREE.Mesh(ghostConeGeometry, ghostMaterial);
+      const ghostCone = ghostGroup.ghostCone = new THREE.Mesh(ghostConeGeometry, ghostMaterial);
       ghostCone.position.x = 3;
       ghostCone.position.y = 3;
       ghostCone.rotation.z = -Math.PI / 2;
-
-      ghostGroup.ghostCone = ghostCone;
       ghostGroup.add(ghostCone);
-
       const ghostRangeMaterial = new THREE.MeshBasicMaterial({
         color: ghostColor,
         opacity: 0.1,
         transparent: true,
         side: THREE.DoubleSide,
       });
-      const ghostRange = new THREE.Mesh(ghostRangeGeometry, ghostRangeMaterial);
+      const ghostRange = ghostGroup.ghostRange = new THREE.Mesh(ghostRangeGeometry, ghostRangeMaterial);
       ghostRange.position.y = 3;
       ghostRange.rotation.x = -Math.PI / 2;
-      ghostGroup.ghostRange = ghostRange;
       ghostGroup.add(ghostRange);
+      const pointLight = ghostGroup.pointLight = new THREE.PointLight(ghostColor, 1, 8, 1);
+      pointLight.position.y = 1;
+      ghostGroup.add(pointLight);
       this.scene.add(ghostGroup);
       ghostGroup.position.x = (ghostGroups.indexOf(ghostGroup) + 1) * 3;
     }
@@ -539,15 +538,16 @@ class SceneWidget extends TUIOWidget {
       this.camera.position.x = mapWidth / 2;
       this.camera.position.z = mapHeight / 2;
 
-      this.camera.position.y = 100;
       const computedCameraHeight = -(Math.max(mapWidth, mapHeight) / 2) * Math.tan(((this.camera.fov / 2) * this.camera.aspect * Math.PI / 180));
       console.log('CAMERA POSITION SET', this.camera.position.y, 'could be', computedCameraHeight);
 
-      const wallGeometry = new THREE.BoxGeometry(1, 5, 1);
-      const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x252525 });
+      SoundManager.sound('player_move').rate(0).volume(1).play();
 
-      const carpetGeometry = new THREE.BoxGeometry(1, 1, 1);
-      const carpetMaterial = new THREE.MeshBasicMaterial({ color: 0x656565 });
+      const wallGeometry = new THREE.BoxGeometry(1, 8, 1);
+      const wallMaterial = new THREE.MeshLambertMaterial({ color: 0x252525 });
+
+      const floorGeometry = new THREE.BoxGeometry(1, 1, 1);
+      const floorMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 });
 
       const doorGeometry = new THREE.BoxGeometry(1, 5, 0.3);
       const doorMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
@@ -567,12 +567,12 @@ class SceneWidget extends TUIOWidget {
           this.scene.add(wall);
           this.walls.push(wall);
         } else if (elt === 'F' || elt === 'D') {
-          const carpet = new THREE.Mesh(carpetGeometry, carpetMaterial);
-          carpet.position.x = posX;
-          carpet.position.z = posY;
-          carpet.carpet = true;
-          this.scene.add(carpet);
-          this.carpets.push(carpet);
+          const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+          floor.position.x = posX;
+          floor.position.z = posY;
+          floor.carpet = true;
+          this.scene.add(floor);
+          this.carpets.push(floor);
         }
       });
 
@@ -593,14 +593,17 @@ class SceneWidget extends TUIOWidget {
         light.position.x = lightData.position.x;
         light.position.z = lightData.position.z;
         light.position.y = 5;
+        const texLoader = new THREE.TextureLoader();
         const spriteMaterial = new THREE.SpriteMaterial({
-          map: new THREE.ImageUtils.loadTexture('../../assets/images/glow.png'),
+          map: texLoader.load('../../assets/images/glow.png'),
           color: 0xaaaa00,
           transparent: false,
           blending: THREE.AdditiveBlending,
         });
-        const sprite = new THREE.Sprite(spriteMaterial);
+        const sprite = light.sprite = new THREE.Sprite(spriteMaterial);
         sprite.scale.set(3, 3, 3);
+        const pointLight = light.pointLight = new THREE.PointLight(0xffffff, 1, 15, 1);
+        light.add(pointLight);
         light.add(sprite);
         this.lightsMap.set(lightData.id, light);
         this.scene.add(light);
@@ -612,7 +615,9 @@ class SceneWidget extends TUIOWidget {
     this.socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
       playerGroup.position.x = data.position.x;
       playerGroup.position.z = data.position.z;
+      console.log(playerGroup.position.distanceTo(new THREE.Vector3({ ...data.position, y: 0 })));
       playerGroup.rotation.y = -data.rotation.y;
+      // SoundManager.play('bgm');
     });
 
     this.socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
@@ -624,10 +629,20 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.DOOR_UPDATE, (data) => {
+      if (data.open) {
+        SoundManager.play('door_open');
+      } else {
+        SoundManager.play('door_close');
+      }
       this.doorsMap.get(data.name).visible = !data.open;
     });
 
     this.socket.on(Protocol.LIGHT_UPDATE, (data) => {
+      if (data.open) {
+        SoundManager.play('switch_on');
+      } else {
+        SoundManager.play('switch_off');
+      }
       this.doorsMap.get(data.name).visible = !data.open;
     });
 
@@ -653,11 +668,12 @@ class SceneWidget extends TUIOWidget {
 
     this.socket.on(Protocol.GAME_OVER, (data) => {
       if (data.won === true) {
-        $youlost.show();
+        SoundManager.play('ghost_lose');
         scores.Explorer.value++;
-        $('.scoreValues')
-          .html(printScore());
+        $('.scoreValues').html(printScore());
+        $youlost.show();
       } else {
+        SoundManager.play('ghost_win');
         if (data.killedBy === 0) {
           scores.Hunter1.value++;
         } else if (data.killedBy === 1) {
@@ -665,17 +681,16 @@ class SceneWidget extends TUIOWidget {
         }
         $youwin.find('.message').text(endScreenMessage(data.killedBy + 1, data.deathType));
         $youwin.show();
-
-        $('.scoreValues')
-          .html(printScore());
+        $('.scoreValues').html(printScore());
       }
     });
 
     this.socket.on(Protocol.RESTART, () => {
       this.revealPlayer = false;
-      Array.from(this.directionTags.values()).forEach((direction) => {
-        this.scene.remove(direction);
-      });
+      Array.from(this.directionTags.values())
+        .forEach((direction) => {
+          this.scene.remove(direction);
+        });
       this.directionTags.clear();
       Array.from(this.doorsMap.values())
         .forEach((door) => {
@@ -696,7 +711,9 @@ class SceneWidget extends TUIOWidget {
       let closestDistanceToPlayer = Infinity;
       for (let i = 0; i < ghostGroups.length; i++) {
         const ghostGroup = ghostGroups[i];
-        if (ghostGroup.modelGhost) { ghostGroup.modelGhost.position.y = 4 + Math.sin(((Math.PI / 2) * i) + (time * 0.002)); }
+        if (ghostGroup.modelGhost) {
+          ghostGroup.modelGhost.position.y = 5 + 0.3 * Math.sin(((Math.PI / 2) * i) + (time * 0.002));
+        }
         closestDistanceToPlayer = Math.min(closestDistanceToPlayer, ghostGroup.position.distanceTo(playerGroup.position));
       }
       this.playerMaterial.opacity = 1 - cunlerp(GHOST_RANGE_SIZE - 3, GHOST_RANGE_SIZE, closestDistanceToPlayer);
@@ -705,6 +722,12 @@ class SceneWidget extends TUIOWidget {
         playerGroup.modelPlayer.position.y = 3 + 0.2 * Math.sin(time * 0.001);
         playerGroup.modelPlayer.position.z = 0.2 * Math.sin(time * 0.001);
       }
+      const INTENSITY_DELTA = 0.12;
+      Array.from(this.lightsMap.values())
+        .forEach((light) => {
+          light.pointLight.intensity = (1 - INTENSITY_DELTA) + (Math.random() * INTENSITY_DELTA);
+          light.sprite.scale.copy(new THREE.Vector3(3, 3, 3).multiplyScalar((1 - INTENSITY_DELTA) + (Math.random() * 0.5 * INTENSITY_DELTA)));
+        });
       if (this.revealPlayer) this.playerMaterial.opacity = 1;
       this.renderer.render(this.scene, this.camera);
     };
