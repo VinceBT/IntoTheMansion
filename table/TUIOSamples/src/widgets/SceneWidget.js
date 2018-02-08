@@ -288,7 +288,7 @@ class SceneWidget extends TUIOWidget {
         const lightId = closestLight();
         this.socket.emit(Protocol.LIGHT_UPDATE, {
           mode: 'off',
-          lightId,
+          id: lightId,
         });
         SoundManager.play('switch_off');
         console.log(`[LIGHTS] Shutting off light ${lightId}`);
@@ -550,7 +550,7 @@ class SceneWidget extends TUIOWidget {
 
     this.socket.emit(Protocol.REGISTER, { type: 'TABLE' });
 
-    this.socket.emit(Protocol.GET_MAP, 'mansion1', (mapData) => {
+    this.socket.emit(Protocol.GET_MAP_DEBUG, (mapData) => {
       const mapHeight = mapData.terrain.height;
       const mapWidth = mapData.terrain.width;
 
