@@ -84,10 +84,15 @@ const init = async () => {
         trapId: id,
       });
       setTimeout(() => {
-        external.emit(Protocol.REMOVE_TRAP, {
-          id: id,
-        }, 5000);
-      });
+        external.emit(Protocol.TRAP_TRIGGERED, {
+          trapId: id,
+        });
+        setTimeout(() => {
+          external.emit(Protocol.REMOVE_TRAP, {
+            id: id,
+          }, 5000);
+        });
+      }, 500);
     }, 1000 + i * 10);
   }
 

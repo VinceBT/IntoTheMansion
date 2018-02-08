@@ -1,6 +1,7 @@
 [
   {
     "trap": "16",
+    "screamer": "10",
     "light": "8",
     "direction": "20",
     "wall": "12",
@@ -8,6 +9,7 @@
   },
   {
     "trap": "34",
+    "screamer": "11",
     "light": "9",
     "direction": "24",
     "wall": "33",
