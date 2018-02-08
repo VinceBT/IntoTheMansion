@@ -13,16 +13,13 @@ import playerconfigs from '../../assets/playerconfigs.json';
 
 const $zoom = $(`
 <div class="absolutefill hud">
-  <div class="scoreInfo">
-    <div>
-    <input class="zoomSlider" min="0" max="50" type="range"/>
+    <div class="zoomSlider">
     </div>
 
   </div>
-  <div class="scoreInfo reversed bottomAbsolute">
+  <div class="reversed bottomAbsolute">
 
-    <div>
-    <input class="zoomSlider" min="0" max="50" type="range"/>
+    <div class="zoomSlider">
     </div>
 
   </div>
@@ -66,6 +63,7 @@ class ZoomWidget extends TUIOWidget {
    */
   onTouchCreation(tuioTouch) {
     super.onTouchCreation(tuioTouch);
+    console.log("create touch");
     if (this.isTouched(tuioTouch.x, tuioTouch.y)) {
       this._lastTouchesValues = {
         ...this._lastTouchesValues,
@@ -75,6 +73,12 @@ class ZoomWidget extends TUIOWidget {
         },
       };
     }
+
+    if(tuioTouch.x < 300 && tuioTouch.x > 10){
+      if(tuioTouch.y > 300 && tuioTouch.y < 800){
+          console.log((tuioTouch.y - 300) / 10);
+      }
+  }
 
 
   }
@@ -86,6 +90,7 @@ class ZoomWidget extends TUIOWidget {
    * @param {TUIOTouch} tuioTouch - A TUIOTouch instance.
    */
   onTouchUpdate(tuioTouch) {
+    console.log("update touch");
     if (typeof (this._lastTouchesValues[tuioTouch.id]) !== 'undefined') {
       const lastTouchValue = this._lastTouchesValues[tuioTouch.id];
       const diffX = tuioTouch.x - lastTouchValue.x;

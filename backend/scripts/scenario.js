@@ -79,12 +79,17 @@ const init = async () => {
           y: 5,
           z: Math.round(Math.random() * mapData.terrain.height),
         },
-        type: 'DeathTrap',
+        type: Math.floor(Math.random() * 2) == 0 ? 'DeathTrap' : 'ScreamerTrap',
       });
       setTimeout(() => {
-        external.emit(Protocol.REMOVE_TRAP, {
-          id: id,
-        });
+          external.emit(Protocol.TRAP_TRIGGERED, {
+            trapId: id,
+          });
+          setTimeout(() => {
+            external.emit(Protocol.REMOVE_TRAP, {
+              id: id,
+            }, 5000);
+          });
       }, 500);
     }, 1000 + i * 10);
   }
