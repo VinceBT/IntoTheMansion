@@ -44,7 +44,7 @@ const broadcastToSet = (set, ...args) => {
   });
 };
 
-const generateMap = (maxWidth = 50, maxHeight = 50, seed) => {
+const generateMap = (nbrooms = 20, maxWidth = 30, maxHeight = 30, seed) => {
   const floorDungeon = new Dungeon({
     size: [maxWidth, maxHeight],
     seed: seed,
@@ -55,7 +55,7 @@ const generateMap = (maxWidth = 50, maxHeight = 50, seed) => {
         max_exits: 2,
       },
       any: {
-        min_size: [5, 5],
+        min_size: [3, 3],
         max_size: [20, 20],
         max_exits: 4,
       },
@@ -66,7 +66,7 @@ const generateMap = (maxWidth = 50, maxHeight = 50, seed) => {
     symmetric_rooms: true,
     interconnects: 1,
     max_interconnect_length: 1,
-    room_count: 30,
+    room_count: nbrooms,
   });
   try {
     floorDungeon.generate();
@@ -221,7 +221,7 @@ io.on('connection', (socket) => {
         callback(obj);
       } else {
         console.log('File does not exist, generating...');
-        const obj = generateMap(50, 50, seed);
+        const obj = generateMap(15, 50, 30, seed);
         callback(obj);
         console.log('Saving...');
         fs.writeFileSync(jsonPath, JSON.stringify(obj));

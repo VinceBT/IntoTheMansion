@@ -559,8 +559,10 @@ class SceneWidget extends TUIOWidget {
       this.camera.position.x = mapWidth / 2;
       this.camera.position.z = mapHeight / 2;
 
-      const computedCameraHeight = -(Math.max(mapWidth, mapHeight) / 2) * Math.tan(((this.camera.fov / 2) * this.camera.aspect * Math.PI / 180));
-      console.log('CAMERA POSITION SET', this.camera.position.y, 'could be', computedCameraHeight);
+      const cameraWidthMinDistance = (mapWidth / 2) / Math.tan(this.camera.fov / 2 * Math.PI / 180);
+      const cameraHeightMinDistance = (mapHeight / 2) / Math.tan((this.camera.fov * this.camera.aspect) / 2 * Math.PI / 180);
+      this.camera.position.y = Math.max(cameraWidthMinDistance, cameraHeightMinDistance);
+      console.log(this.camera, 'CAMERA COMPUTED ', cameraWidthMinDistance, cameraHeightMinDistance);
 
       SoundManager.sound('player_move').volume(0).play();
 
