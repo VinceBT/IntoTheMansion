@@ -56,14 +56,14 @@ describe(`${serverStatus.name} backend server`, () => {
   });
   describe('Component registration', () => {
     it('should successfully register as a table', (done) => {
-      table.emit(Protocol.REGISTER, {type: 'TABLE'}, (status) => {
+      table.emit(Protocol.REGISTER, { type: 'TABLE' }, (status) => {
         if (status.success)
           done();
         else throw new Error(status.error);
       });
     });
     it('should successfully register as a tablet', (done) => {
-      tablet.emit(Protocol.REGISTER, {type: 'TABLET'}, (status) => {
+      tablet.emit(Protocol.REGISTER, { type: 'TABLET' }, (status) => {
         if (status.success)
           done();
         else throw new Error(status.error);
@@ -86,7 +86,7 @@ describe(`${serverStatus.name} backend server`, () => {
       });
     });
     it('should get the generated map back', (done) => {
-      table.emit(Protocol.GET_MAP, (map) => {
+      table.emit(Protocol.GET_MAP, 'test', (map) => {
         if (map)
           done();
         else throw new Error('Map was not returned by the backend');

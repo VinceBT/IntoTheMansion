@@ -10,6 +10,7 @@ import { cunlerp, randomHash } from '../Utils';
 import playerconfigs from '../../assets/playerconfigs.json';
 import SoundManager from '../SoundManager';
 
+const DEBUG_MAP_LOAD = true;
 
 const GHOST_RANGE_SIZE = 7;
 const GHOST_NUMBER = 2;
@@ -410,10 +411,6 @@ class SceneWidget extends TUIOWidget {
     }
   });
 
-  handlePlayerPositionUpdate = () => {
-
-  };
-
   buildScene() {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -438,11 +435,6 @@ class SceneWidget extends TUIOWidget {
          this.camera.position.y = 100 - zoomValue;
         });
         */
-
-    this.walls = [];
-    this.carpets = [];
-    this.doors = [];
-    this.lights = [];
 
     const playerGroup = new THREE.Group();
     const ghostGroups = new Array(GHOST_NUMBER).fill(null)
@@ -474,7 +466,7 @@ class SceneWidget extends TUIOWidget {
       }, (xhr) => {
         console.log(`Loading player ${xhr.loaded / xhr.total * 100}% loaded`);
       }, (err) => {
-        console.log('An error happened');
+        console.log(`An error happened: ${err}`);
       },
     );
 
@@ -517,14 +509,14 @@ class SceneWidget extends TUIOWidget {
         for (const ghostGroup of ghostGroups) {
           const modelGhost = new THREE.Mesh(geometry, ghostGroup.ghostCone.material);
           modelGhost.position.y = 3;
-          modelGhost.scale.set(1.2, 1.2, 1.2);
+          modelGhost.scale.set(0.9, 0.9, 0.9);
           ghostGroup.modelGhost = modelGhost;
           ghostGroup.add(modelGhost);
         }
       }, (xhr) => {
         console.log(`Loading ghost ${xhr.loaded / xhr.total * 100}% loaded`);
       }, (err) => {
-        console.log('An error happened');
+        console.log(`An error happened: ${err}`);
       },
     );
 
@@ -534,7 +526,7 @@ class SceneWidget extends TUIOWidget {
       }, (xhr) => {
         console.log(`Loading direction ${xhr.loaded / xhr.total * 100}% loaded`);
       }, (err) => {
-        console.log('An error happened');
+        console.log(`An error happened: ${err}`);
       },
     );
 
@@ -544,13 +536,13 @@ class SceneWidget extends TUIOWidget {
       }, (xhr) => {
         console.log(`Loading direction ${xhr.loaded / xhr.total * 100}% loaded`);
       }, (err) => {
-        console.log('An error happened');
+        console.log(`An error happened: ${err}`);
       },
     );
 
     this.socket.emit(Protocol.REGISTER, { type: 'TABLE' });
 
-    this.socket.emit(Protocol.GET_MAP_DEBUG, (mapData) => {
+    const onMapLoad = (mapData) => {
       const mapHeight = mapData.terrain.height;
       const mapWidth = mapData.terrain.width;
 
@@ -559,12 +551,14 @@ class SceneWidget extends TUIOWidget {
       this.camera.position.x = mapWidth / 2;
       this.camera.position.z = mapHeight / 2;
 
-      const cameraWidthMinDistance = (mapWidth / 2) / Math.tan(this.camera.fov / 2 * Math.PI / 180);
-      const cameraHeightMinDistance = (mapHeight / 2) / Math.tan((this.camera.fov * this.camera.aspect) / 2 * Math.PI / 180);
-      this.camera.position.y = Math.max(cameraWidthMinDistance, cameraHeightMinDistance);
+      const cameraWidthMinDistance = (mapWidth / 2) / Math.tan(this.camera.fov * this.camera.aspect / 2 * Math.PI / 180);
+      const cameraHeightMinDistance = (mapHeight / 2) / Math.tan((this.camera.fov) / 2 * Math.PI / 180);
+      this.camera.position.y = Math.max(cameraWidthMinDistance, cameraHeightMinDistance) + 10;
       console.log(this.camera, 'CAMERA COMPUTED ', cameraWidthMinDistance, cameraHeightMinDistance);
 
-      SoundManager.sound('player_move').volume(0).play();
+      SoundManager.sound('player_move')
+        .volume(0)
+        .play();
 
       const wallGeometry = new THREE.BoxGeometry(1, 8, 1);
       const wallMaterial = new THREE.MeshLambertMaterial({ color: 0x252525 });
@@ -588,14 +582,12 @@ class SceneWidget extends TUIOWidget {
           wall.position.z = posY;
           wall.wall = true;
           this.scene.add(wall);
-          this.walls.push(wall);
         } else if (elt === 'F' || elt === 'D') {
           const floor = new THREE.Mesh(floorGeometry, floorMaterial);
           floor.position.x = posX;
           floor.position.z = posY;
           floor.carpet = true;
           this.scene.add(floor);
-          this.carpets.push(floor);
         }
       });
 
@@ -608,7 +600,6 @@ class SceneWidget extends TUIOWidget {
         }
         this.doorsMap.set(doorData.id, door);
         this.scene.add(door);
-        this.doors.push(door);
       });
 
       mapData.objects.lights.forEach((lightData) => {
@@ -630,10 +621,15 @@ class SceneWidget extends TUIOWidget {
         light.add(sprite);
         this.lightsMap.set(lightData.id, light);
         this.scene.add(light);
-        this.lights.push(light);
       });
       // SoundManager.play('radio');
-    });
+    };
+
+    if (DEBUG_MAP_LOAD) {
+      this.socket.emit(Protocol.GET_MAP_DEBUG, onMapLoad);
+    } else {
+      this.socket.emit(Protocol.GET_MAP, 'mansion1', onMapLoad);
+    }
 
     this.socket.on(Protocol.PLAYER_POSITION_UPDATE, (playerPositionData) => {
       playerGroup.position.x = playerPositionData.position[0];
@@ -643,56 +639,59 @@ class SceneWidget extends TUIOWidget {
       // SoundManager.play('bgm');
     });
 
-    this.socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
-      const ghostId = data.player || 0;
+    this.socket.on(Protocol.GHOST_POSITION_UPDATE, (ghostData) => {
+      const ghostId = ghostData.player || ghostData.id || 0;
       const ghostGroup = ghostGroups[ghostId];
-      ghostGroup.position.x = data.position[0];
-      ghostGroup.position.z = data.position[1];
-      ghostGroup.rotation.y = -data.rotation.y;
+      ghostGroup.position.x = ghostData.position[0];
+      ghostGroup.position.z = ghostData.position[1];
+      ghostGroup.rotation.y = -ghostData.rotation.y;
     });
 
-    this.socket.on(Protocol.DOOR_UPDATE, (data) => {
-      if (data.open) {
+    this.socket.on(Protocol.DOOR_UPDATE, (doorData) => {
+      if (doorData.open) {
         SoundManager.play('door_open');
       } else {
         SoundManager.play('door_close');
       }
-      this.doorsMap.get(data.id).visible = !data.open;
+      this.doorsMap.get(doorData.id).visible = !doorData.open;
     });
 
-    this.socket.on(Protocol.LIGHT_UPDATE, (data) => {
-      if (data.open) {
+    this.socket.on(Protocol.LIGHT_UPDATE, (lightData) => {
+      if (lightData.open) {
         SoundManager.play('switch_on');
       } else {
         SoundManager.play('switch_off');
       }
-      this.doorsMap.get(data.id).visible = !data.open;
+      this.lightsMap.get(lightData.id).visible = !lightData.open;
     });
 
-    this.socket.on(Protocol.CREATE_TRAP, (data) => {
-      const trapMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[data.player] });
+    this.socket.on(Protocol.CREATE_TRAP, (trapData) => {
+      const trapMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[trapData.player] });
       const ghostTrap = new THREE.Mesh(trapGeometry, trapMaterial);
-      ghostTrap.position.x = data.position[0];
-      ghostTrap.position.z = data.position[1];
+      ghostTrap.position.x = trapData.position[0];
+      ghostTrap.position.z = trapData.position[1];
+      ghostTrap.rotation.y = Math.PI / 4;
       this.scene.add(ghostTrap);
-      const currentPlayerEntities = this.playerEntities[data.player];
-      currentPlayerEntities.traps.unshift({ id: data.name, tagId: '0', mesh: ghostTrap, type: data.type });
+      const currentPlayerEntities = this.playerEntities[trapData.player];
+      currentPlayerEntities.traps.unshift({ id: trapData.name, tagId: '0', mesh: ghostTrap, type: trapData.type });
       SoundManager.play('trap_trigger');
     });
 
-    this.socket.on(Protocol.REMOVE_TRAP, (data) => {
+    this.socket.on(Protocol.REMOVE_TRAP, (trapData) => {
       this.playerEntities.forEach((currPlayerEntities) => {
-        const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === data.id);
+        const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === trapData.id);
         trapsToDelete.forEach((trapToDelete) => {
           this.scene.remove(trapToDelete.mesh);
         });
-        currPlayerEntities.traps = currPlayerEntities.traps.filter(trap => trap.id !== data.id);
+        currPlayerEntities.traps = currPlayerEntities.traps.filter(trap => trap.id !== trapData.id);
       });
     });
 
-    this.socket.on(Protocol.TRAP_TRIGGERED, (data) => {
-      let matched = this.playerEntities[0].traps.find(trap => trap.id === data.trapId);
-      if (matched === undefined) matched = this.playerEntities[1].traps.find(trap => trap.id === data.trapId);
+    this.socket.on(Protocol.TRAP_TRIGGERED, (trapData) => {
+      if (!trapData) throw new Error('Trap data is undefined');
+      if (!trapData.id) throw new Error('Trap id is undefined');
+      let matched = this.playerEntities[0].traps.find(trap => trap.id === trapData.id);
+      if (matched === undefined) matched = this.playerEntities[1].traps.find(trap => trap.id === trapData.id);
       if (matched !== undefined) {
         if (matched.type === 'ScreamerTrap') {
           console.log('Revealing player');
@@ -706,22 +705,25 @@ class SceneWidget extends TUIOWidget {
       }
     });
 
-    this.socket.on(Protocol.GAME_OVER, (data) => {
-      if (data.won === true) {
+    this.socket.on(Protocol.GAME_OVER, (gameOverData) => {
+      if (gameOverData.won === true) {
         SoundManager.play('ghost_lose');
         scores.Explorer.value++;
-        $('.scoreValues').html(printScore());
+        $('.scoreValues')
+          .html(printScore());
         $youlost.show();
       } else {
         SoundManager.play('ghost_win');
-        if (data.killedBy === 0) {
+        if (gameOverData.killedBy === 0) {
           scores.Hunter1.value++;
-        } else if (data.killedBy === 1) {
+        } else if (gameOverData.killedBy === 1) {
           scores.Hunter2.value++;
         }
-        $youwin.find('.message').text(endScreenMessage(data.killedBy + 1, data.deathType));
+        $youwin.find('.message')
+          .text(endScreenMessage(gameOverData.killedBy + 1, gameOverData.deathType));
         $youwin.show();
-        $('.scoreValues').html(printScore());
+        $('.scoreValues')
+          .html(printScore());
       }
     });
 

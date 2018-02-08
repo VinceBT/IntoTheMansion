@@ -16,7 +16,7 @@ const load = (key, src, volume = 1, loop = false) => {
 
 load('bgm', 'assets/sounds/bgm.mp3', 0.5, true);
 load('radio', 'assets/sounds/radio.mp3');
-load('trap_trigger', 'assets/sounds/trap.m4a', 0.5);
+load('trap_trigger', 'assets/sounds/trap_trigger.m4a', 0.5);
 load('switch_off', 'assets/sounds/switch_off.wav', 0.7);
 load('switch_on', 'assets/sounds/switch_on.wav');
 load('door_open', 'assets/sounds/door_open.wav');

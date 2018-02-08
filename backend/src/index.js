@@ -7,7 +7,7 @@ import invariant from 'invariant';
 import serverStatus from '../assets/status.json';
 import mansionSample from '../assets/mansion_sample.json';
 import Protocol from './Protocol';
-import Dungeon from "dungeon-generator";
+import Dungeon from 'dungeon-generator';
 
 const io = require('socket.io')();
 const middleware = require('socketio-wildcard')();
@@ -47,7 +47,7 @@ const broadcastToSet = (set, ...args) => {
 const generateMap = (nbrooms = 20, maxWidth = 30, maxHeight = 30, seed) => {
   const floorDungeon = new Dungeon({
     size: [maxWidth, maxHeight],
-    seed: seed,
+    seed,
     rooms: {
       initial: {
         min_size: [3, 3],
@@ -88,9 +88,9 @@ const generateMap = (nbrooms = 20, maxWidth = 30, maxHeight = 30, seed) => {
       doors: [],
       lights: [],
     };
-    for (let piece of floorDungeon.children) {
+    for (const piece of floorDungeon.children) {
       floorObjects.lights.push({
-        id: piece.tag + "_light",
+        id: `${piece.tag}_light_${Math.floor(Math.random() * 1000000)}`,
         position: [
           piece.position[0] + piece.size[0] / 2,
           piece.position[1] + piece.size[1] / 2,
@@ -100,10 +100,10 @@ const generateMap = (nbrooms = 20, maxWidth = 30, maxHeight = 30, seed) => {
       // piece.position; //[x, y] position of top left corner of the piece within dungeon
       // piece.tag; // 'any', 'initial' or any other key of 'rooms' options property
       // piece.size; //[width, height]
-      for (let exit of piece.exits) {
-        let [[piece_exit_x, piece_exit_y], angle] = exit; // local position of exit and piece it exits to
+      for (const exit of piece.exits) {
+        const [[piece_exit_x, piece_exit_y], angle] = exit; // local position of exit and piece it exits to
         const [exit_x, exit_y] = piece.global_pos([piece_exit_x, piece_exit_y]); // [x, y] global pos of the exit
-        const doorId = piece.tag + "_door_" + Math.floor(Math.random() * 1000000);
+        const doorId = `${piece.tag}_door_${Math.floor(Math.random() * 1000000)}`;
         /*
         floorObjects.doors.map((door) => {
           if (door) {
@@ -112,14 +112,14 @@ const generateMap = (nbrooms = 20, maxWidth = 30, maxHeight = 30, seed) => {
         });
         */
         floorObjects.doors.push({
-          "id": doorId,
-          "position": [exit_x, exit_y],
-          "align": angle % 180 === 0 ? "h" : "v",
+          id: doorId,
+          position: [exit_x, exit_y],
+          align: angle % 180 === 0 ? 'h' : 'v',
         });
       }
-      piece.local_pos(floorDungeon.start_pos); //get local position within the piece of dungeon's global position
+      piece.local_pos(floorDungeon.start_pos); // get local position within the piece of dungeon's global position
     }
-    let randomExitIndex = Math.floor(Math.random() * floorObjects.doors.length);
+    const randomExitIndex = Math.floor(Math.random() * floorObjects.doors.length);
     floorObjects.doors[randomExitIndex].exit = true;
     return {
       name: 'Mansion',
@@ -195,25 +195,25 @@ io.on('connection', (socket) => {
     } else if (data.type === 'EXTERNAL') {
       externals.add(socket);
     } else {
-      if (done) done({success: false, error: `Received incorrect type ${type}`});
+      if (done) done({ success: false, error: `Received incorrect type ${data.type}` });
       return;
     }
-    if (done) done({success: true});
+    if (done) done({ success: true });
   });
 
   // GET_MAP_DEBUG
   socket.on(Protocol.GET_MAP_DEBUG, (callback) => {
-    invariant(typeof callback === 'function', "First parameter of GET_MAP_DEBUG must be a callback function to pass the map");
+    invariant(typeof callback === 'function', 'First parameter of GET_MAP_DEBUG must be a callback function to pass the map');
     callback(mansionSample);
   });
 
   // GET_MAP
   socket.on(Protocol.GET_MAP, (seed, callback) => {
-    invariant(typeof seed === 'string', "First parameter of GET_MAP must be a seed string");
-    invariant(typeof callback === 'function', "Second parameter of GET_MAP must be a callback function to pass the map");
-    const jsonPath = './assets/maps/' + seed + '.json';
+    invariant(typeof seed === 'string', 'First parameter of GET_MAP must be a seed string');
+    invariant(typeof callback === 'function', 'Second parameter of GET_MAP must be a callback function to pass the map');
+    const jsonPath = `./assets/maps/${seed}.json`;
     try {
-      console.log('Loading file: ' + jsonPath);
+      console.log(`Loading file: ${jsonPath}`);
       console.log('File exists, loading...');
       if (fs.existsSync(jsonPath)) {
         const data = fs.readFileSync(jsonPath);
@@ -226,12 +226,12 @@ io.on('connection', (socket) => {
         console.log('Saving...');
         fs.writeFileSync(jsonPath, JSON.stringify(obj));
       }
-    } catch (e) {
-      console.error(e);
+    } catch (primaryErr) {
+      console.error(primaryErr);
       console.log('Corrupted file, deleting...');
       try {
         fs.unlinkSync(jsonPath);
-      } catch (e) {
+      } catch (nestedErr) {
         // Nothing
       }
     }
