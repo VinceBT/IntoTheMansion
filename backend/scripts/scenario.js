@@ -46,9 +46,9 @@ const init = async () => {
   const mapData = await getMap();
   console.log(mapData);
 
-  const playerCoords = {x: 3, y: 0, z: 3, r: 0};
-  const ghost1Coords = {x: 20, y: 0, z: 20, r: 0};
-  const ghost2Coords = {x: 3, y: 0, z: 30, r: 0};
+  const playerCoords = {x: 3, z: 3, r: 0};
+  const ghost1Coords = {x: 20, z: 20, r: 0};
+  const ghost2Coords = {x: 3, z: 30, r: 0};
 
   let intervalId;
 
@@ -74,11 +74,10 @@ const init = async () => {
       external.emit(Protocol.CREATE_TRAP, {
         name: id,
         player: Math.floor(Math.random() * 2),
-        position: {
-          x: Math.round(Math.random() * mapData.terrain.width),
-          y: 5,
-          z: Math.round(Math.random() * mapData.terrain.height),
-        },
+        position: [
+          Math.round(Math.random() * mapData.terrain.width),
+          Math.round(Math.random() * mapData.terrain.height)
+        ],
         type: 'DeathTrap',
       });
       setTimeout(() => {
@@ -109,7 +108,7 @@ const init = async () => {
     .to({x: 12, y: 0, z: 12, r: Math.PI * 2 * 10}, 5000)
     .onUpdate(() => {
       external.emit(Protocol.PLAYER_POSITION_UPDATE, {
-        position: {x: playerCoords.x, y: playerCoords.y, z: playerCoords.z},
+        position: [playerCoords.x, playerCoords.z],
         rotation: {x: 0, y: playerCoords.r, z: 0},
       });
     })
@@ -122,7 +121,7 @@ const init = async () => {
     .onUpdate(() => {
       external.emit(Protocol.GHOST_POSITION_UPDATE, {
         player: 0,
-        position: {x: ghost1Coords.x, y: ghost1Coords.y, z: ghost1Coords.z},
+        position: [ghost1Coords.x, ghost1Coords.z],
         rotation: {x: 0, y: ghost1Coords.r, z: 0},
       });
     })
@@ -135,7 +134,7 @@ const init = async () => {
     .onUpdate(() => {
       external.emit(Protocol.GHOST_POSITION_UPDATE, {
         player: 1,
-        position: {x: ghost2Coords.x, y: ghost2Coords.y, z: ghost2Coords.z},
+        position: [ghost2Coords.x, ghost2Coords.z],
         rotation: {x: 0, y: ghost2Coords.r, z: 0},
       });
     })

@@ -119,6 +119,7 @@ class SceneWidget extends TUIOWidget {
     }
     this.previousAngle = 0;
     this.rotateProgress = 0;
+    this.isPlayerMoving = false;
 
     const $scene = this.buildScene();
     const $container = $('<div class="container">');
@@ -320,13 +321,9 @@ class SceneWidget extends TUIOWidget {
         }
         ghostDirection.position.copy(intersectPosition);
         this.socket.emit(Protocol.REQUEST_GHOST_MOVEMENT, {
-          name: tuioTag.id,
+          id: tuioTag.id,
           player: tagData.player,
-          position: {
-            x: intersectPosition.x,
-            y: intersectPosition.y,
-            z: intersectPosition.z,
-          },
+          position: [intersectPosition.x, intersectPosition.z],
         });
       } else if (tagData.type === 'reveal') {
         this.revealPlayer = true;
@@ -353,13 +350,9 @@ class SceneWidget extends TUIOWidget {
         }
         fakeWall.position.copy(flooredIntersectPosition);
         this.socket.emit(Protocol.CREATE_WALL, {
-          position: {
-            x: flooredIntersectPosition.x,
-            y: flooredIntersectPosition.y,
-            z: flooredIntersectPosition.z,
-          },
+          id: hash,
+          position: [flooredIntersectPosition.x, flooredIntersectPosition.z],
           player: tagData.player,
-          name: hash,
         });
       } else if (tagData.type === 'trap') {
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
@@ -380,18 +373,18 @@ class SceneWidget extends TUIOWidget {
           });
         }
         this.socket.emit(Protocol.CREATE_TRAP, {
-          name: hash,
+          id: hash,
           player: tagData.player,
-          position: {
-            x: flooredIntersectPosition.x,
-            y: flooredIntersectPosition.y,
-            z: flooredIntersectPosition.z,
-          },
+          position: [flooredIntersectPosition.x, flooredIntersectPosition.z],
           type: 'DeathTrap',
         });
       }
     }
   });
+
+  handlePlayerPositionUpdate = () => {
+
+  };
 
   buildScene() {
     this.scene = new THREE.Scene();
@@ -529,7 +522,7 @@ class SceneWidget extends TUIOWidget {
 
     this.socket.emit(Protocol.REGISTER, { type: 'TABLE' });
 
-    this.socket.emit(Protocol.GET_MAP_DEBUG, (mapData) => {
+    this.socket.emit(Protocol.GET_MAP, 'mansion1', (mapData) => {
       const mapHeight = mapData.terrain.height;
       const mapWidth = mapData.terrain.width;
 
@@ -541,7 +534,7 @@ class SceneWidget extends TUIOWidget {
       const computedCameraHeight = -(Math.max(mapWidth, mapHeight) / 2) * Math.tan(((this.camera.fov / 2) * this.camera.aspect * Math.PI / 180));
       console.log('CAMERA POSITION SET', this.camera.position.y, 'could be', computedCameraHeight);
 
-      SoundManager.sound('player_move').rate(0).volume(1).play();
+      SoundManager.sound('player_move').volume(0).play();
 
       const wallGeometry = new THREE.BoxGeometry(1, 8, 1);
       const wallMaterial = new THREE.MeshLambertMaterial({ color: 0x252525 });
@@ -555,7 +548,7 @@ class SceneWidget extends TUIOWidget {
       const lightGeometry = new THREE.SphereGeometry(0.5, 32, 32);
       const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true });
 
-      map[0].forEach((elt, index) => {
+      map.forEach((elt, index) => {
         const posX = Math.floor(index % mapWidth);
         const posY = Math.floor(index / mapWidth);
         if (elt === 'W') {
@@ -590,8 +583,8 @@ class SceneWidget extends TUIOWidget {
 
       mapData.objects.lights.forEach((lightData) => {
         const light = new THREE.Mesh(lightGeometry, lightMaterial.clone());
-        light.position.x = lightData.position.x;
-        light.position.z = lightData.position.z;
+        light.position.x = lightData.position[0];
+        light.position.z = lightData.position[1];
         light.position.y = 5;
         const texLoader = new THREE.TextureLoader();
         const spriteMaterial = new THREE.SpriteMaterial({
@@ -612,19 +605,19 @@ class SceneWidget extends TUIOWidget {
       // SoundManager.play('radio');
     });
 
-    this.socket.on(Protocol.PLAYER_POSITION_UPDATE, (data) => {
-      playerGroup.position.x = data.position.x;
-      playerGroup.position.z = data.position.z;
-      console.log(playerGroup.position.distanceTo(new THREE.Vector3({ ...data.position, y: 0 })));
-      playerGroup.rotation.y = -data.rotation.y;
+    this.socket.on(Protocol.PLAYER_POSITION_UPDATE, (playerPositionData) => {
+      playerGroup.position.x = playerPositionData.position[0];
+      playerGroup.position.z = playerPositionData.position[1];
+      // console.log(playerGroup.position.distanceTo(new THREE.Vector3({ ...playerPositionData.position, y: 0 })));
+      playerGroup.rotation.y = -playerPositionData.rotation.y;
       // SoundManager.play('bgm');
     });
 
     this.socket.on(Protocol.GHOST_POSITION_UPDATE, (data) => {
       const ghostId = data.player || 0;
       const ghostGroup = ghostGroups[ghostId];
-      ghostGroup.position.x = data.position.x;
-      ghostGroup.position.z = data.position.z;
+      ghostGroup.position.x = data.position[0];
+      ghostGroup.position.z = data.position[1];
       ghostGroup.rotation.y = -data.rotation.y;
     });
 
@@ -634,7 +627,7 @@ class SceneWidget extends TUIOWidget {
       } else {
         SoundManager.play('door_close');
       }
-      this.doorsMap.get(data.name).visible = !data.open;
+      this.doorsMap.get(data.id).visible = !data.open;
     });
 
     this.socket.on(Protocol.LIGHT_UPDATE, (data) => {
@@ -643,16 +636,17 @@ class SceneWidget extends TUIOWidget {
       } else {
         SoundManager.play('switch_off');
       }
-      this.doorsMap.get(data.name).visible = !data.open;
+      this.doorsMap.get(data.id).visible = !data.open;
     });
 
     this.socket.on(Protocol.CREATE_TRAP, (data) => {
       const trapMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[data.player] });
       const ghostTrap = new THREE.Mesh(trapGeometry, trapMaterial);
-      ghostTrap.position.copy(new THREE.Vector3(data.position.x, 1, data.position.z));
+      ghostTrap.position.x = data.position[0];
+      ghostTrap.position.z = data.position[1];
       this.scene.add(ghostTrap);
       const currentPlayerEntities = this.playerEntities[data.player];
-      currentPlayerEntities.traps.unshift({ id: data.name, tagId: '0', mesh: ghostTrap });
+      currentPlayerEntities.traps.unshift({ id: data.id, tagId: '0', mesh: ghostTrap });
       SoundManager.play('trap_trigger');
     });
 
