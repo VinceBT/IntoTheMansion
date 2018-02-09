@@ -4,7 +4,6 @@ function Trap(model,id,player, x=-1, y=-1){
     this.referer = player;
     this.name = "trap";
     Entity.call(this,this.name,model,x,y);
-    model.entities.push(this);
     this.info.inputEnabled = true;
     this.info.events.onInputDown.add(this.onTap,this);
 }

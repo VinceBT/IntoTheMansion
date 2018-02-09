@@ -10,6 +10,7 @@ IntoTheMansion.Game = function() {
 };
 IntoTheMansion.Game.prototype = {
     preload: function() {
+        this.cpt = 0;
         this.socket = io('http://192.168.43.163:8080');
         var model = this;
         this.socket.emit('REGISTER',{type: 'TABLET'});
@@ -56,14 +57,19 @@ IntoTheMansion.Game.prototype = {
         });
 
         this.socket.on('CREATE_TRAP',function(json){
-            model.entities.push(
-                new Trap(
+            if(json.type != "DeathTrap") return;
+            new Trap(
                     model,
                     json.name,
                     json.id,
                     json.position[0]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE/2,
                     json.position[1]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE/2
-                    ));
+                    );
+            for(var i = 0; i < model.entities.length;i++){
+                if(model.entities[i].name == 'trap'){
+                    model.cpt ++;
+                }
+            }
         });
         this.socket.on('REMOVE_TRAP',function(json){
             for(var i = 0; i < model.entities.length;i++){
