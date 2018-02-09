@@ -10,7 +10,7 @@ import { cunlerp, randomHash } from '../Utils';
 import playerconfigs from '../../assets/playerconfigs.json';
 import SoundManager from '../SoundManager';
 
-const DEBUG_MAP_LOAD = true;
+const DEBUG_MAP_LOAD = false;
 
 const GHOST_RANGE_SIZE = 7;
 const GHOST_NUMBER = 2;
@@ -123,7 +123,6 @@ class SceneWidget extends TUIOWidget {
     }
     this.previousAngle = 0;
     this.rotateProgress = 0;
-    this.isPlayerMoving = false;
 
     const $scene = this.buildScene();
     const $container = $('<div class="container">');
@@ -584,8 +583,15 @@ class SceneWidget extends TUIOWidget {
           wall.position.z = posY;
           wall.wall = true;
           this.scene.add(wall);
-        } else if (elt === 'F' || elt === 'D') {
+        } else if (elt === 'F') {
           const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+          floor.position.x = posX;
+          floor.position.z = posY;
+          floor.carpet = true;
+          this.scene.add(floor);
+        } else if (elt === 'D') {
+          const floor = new THREE.Mesh(floorGeometry, floorMaterial.clone());
+          floor.material.color.multiplyScalar(0.95);
           floor.position.x = posX;
           floor.position.z = posY;
           floor.carpet = true;
@@ -642,8 +648,6 @@ class SceneWidget extends TUIOWidget {
       const distance = Math.sqrt(Math.pow(playerPositionData.position[0] - this.previousPosition[0], 2) + Math.pow(playerPositionData.position[1] - this.previousPosition[1], 2));
       console.log(distance);
       if (distance > DISTANCE_THRESHOLD) {
-        this.isPlayerMoving = true;
-        console.log('PLUYER IS MOVING');
         SoundManager.volume('player_move', 0.7);
         this._handlePlayerMove();
       }

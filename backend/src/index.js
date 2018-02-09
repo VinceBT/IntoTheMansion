@@ -92,8 +92,8 @@ const generateMap = (nbrooms = 20, maxWidth = 30, maxHeight = 30, seed) => {
       floorObjects.lights.push({
         id: `${piece.tag}_light_${Math.floor(Math.random() * 1000000)}`,
         position: [
-          piece.position[0] + piece.size[0] / 2,
-          piece.position[1] + piece.size[1] / 2,
+          piece.position[0] + piece.size[0] / 2 - 0.5,
+          piece.position[1] + piece.size[1] / 2 - 0.5,
         ],
         on: true,
       });
@@ -103,14 +103,13 @@ const generateMap = (nbrooms = 20, maxWidth = 30, maxHeight = 30, seed) => {
       for (const exit of piece.exits) {
         const [[piece_exit_x, piece_exit_y], angle] = exit; // local position of exit and piece it exits to
         const [exit_x, exit_y] = piece.global_pos([piece_exit_x, piece_exit_y]); // [x, y] global pos of the exit
-        const doorId = `${piece.tag}_door_${Math.floor(Math.random() * 1000000)}`;
-        /*
-        floorObjects.doors.map((door) => {
-          if (door) {
-            console.log('azer');
-          }
+        console.log(floorData.length, exit_y,exit_x);
+        const doorExists = floorObjects.doors.some((door) => {
+          return (door.position[0] === exit_x && door.position[1] === exit_y);
         });
-        */
+        if (doorExists) continue;
+        floorData[exit_y * floorSize.width + exit_x] = 'D';
+        const doorId = `${piece.tag}_door_${Math.floor(Math.random() * 1000000)}`;
         floorObjects.doors.push({
           id: doorId,
           position: [exit_x, exit_y],
@@ -258,6 +257,7 @@ io.on('connection', (socket) => {
   register(Protocol.RESTART);
   register(Protocol.PATH_CREATE);
   register(Protocol.REMOVE_PATH);
+  register(Protocol.REQUEST_HELP);
 
 });
 
