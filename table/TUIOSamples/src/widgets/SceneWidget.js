@@ -273,7 +273,10 @@ class SceneWidget extends TUIOWidget {
       let minDistance = null;
       let closestLightId;
       for (const [key, value] of this.lightsMap.entries()) {
-        const dist = Math.sqrt(Math.pow(closestIntersect.point.x - value.position.x, 2) + Math.pow(closestIntersect.point.z - value.position.z, 2));
+        const dist = Math.sqrt(
+          Math.pow(closestIntersect.point.x - value.position.x, 2) +
+          Math.pow(closestIntersect.point.z - value.position.z, 2)
+        );
         if (minDistance == null || dist < minDistance) {
           minDistance = dist;
           closestLightId = key;
@@ -281,8 +284,6 @@ class SceneWidget extends TUIOWidget {
       }
       return closestLightId;
     };
-
-
     const angle = tuioTag.angle;
     if (angle !== this.previousAngle) {
       this.previousAngle = angle;
@@ -705,7 +706,7 @@ class SceneWidget extends TUIOWidget {
       this.scene.add(ghostTrap);
       const currentPlayerEntities = this.playerEntities[trapData.player];
       currentPlayerEntities.traps.unshift({ id: trapData.name, tagId: '0', mesh: ghostTrap, type: trapData.type });
-      SoundManager.play('trap_setup');
+      SoundManager.play(trapData.type === 'DeathTrap' ? 'trap_setup' : 'trap_trigger');
     });
 
     this.socket.on(Protocol.REMOVE_TRAP, (trapData) => {
@@ -733,7 +734,7 @@ class SceneWidget extends TUIOWidget {
           setTimeout(() => {
             this.revealPlayer = false;
           }, 5000);
-          SoundManager.play('scream');
+          SoundManager.play('screamer_trigger');
         } else if (matched.type === 'DeathTrap') {
           SoundManager.play('trap_trigger');
         }
