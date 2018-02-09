@@ -82,6 +82,21 @@ IntoTheMansion.Game.prototype = {
 
         });
 
+        this.socket.on('REQUEST_HELP',function(json){
+            let notif = document.getElementById('notification');
+            if(json.type === 'TRAP'){
+                notif.innerText = 'The player needs help with a trap';
+            }
+            else if(json.type === 'DIRECTION'){
+                notif.innerText = 'The player wants to know where to go';
+            }
+
+            setTimeout(() => {
+                notif.innerText = "";
+            }, 5000)
+
+        });
+
         this.socket.on('GAME_OVER',function(json){
             if(!json.won)
                 model.game.state.start('GameOver');
