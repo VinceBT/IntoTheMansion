@@ -1,7 +1,6 @@
 function Player(model, x=-1, y=-1){
     this.name = "player";
     Entity.call(this,this.name,model,x,y);
-    model.entities.push(this);
     this.info.inputEnabled = true;
     this.info.events.onInputDown.add(this.onTap,this);
 }

@@ -257,6 +257,7 @@ io.on('connection', (socket) => {
   register(Protocol.RESTART);
   register(Protocol.PATH_CREATE);
   register(Protocol.REMOVE_PATH);
+  register(Protocol.REQUEST_HELP);
 
 });
 

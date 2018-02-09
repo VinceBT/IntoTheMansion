@@ -23,8 +23,57 @@
 		<script type="text/javascript" src="./src/states/gameover.js"></script>
 		<script type="text/javascript" src="./src/states/victory.js"></script>
 		<script type="text/javascript" src="./index.js"></script>
+		<style>
+			@font-face {
+				font-family: "Oswald-Bold";
+				font-weight: 700;
+				font-style: normal;
+				src: url('fonts/Oswald-Bold.eot'); /* IE9 Compat Modes */
+				src: url('fonts/Oswald-Bold.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+				url('fonts/Oswald-Bold.woff2') format('woff2'), /* Super Modern Browsers */
+				url('fonts/Oswald-Bold.woff') format('woff'), /* Pretty Modern Browsers */
+				url('fonts/Oswald-Bold.ttf')  format('truetype'), /* Safari, Android, iOS */
+				url('fonts/Oswald-Bold.svg#svgFontName') format('svg'); /* Legacy iOS */
+				text-transform: none;
+			}
+			.fontPreload{
+				position:absolute;
+				left:-100px;
+			}
+			body{
+				margin: 0px;
+				overflow: hidden;
+				text-align:center;
+			}
+			#rotate{
+				display:none;
+				width: 100%;
+				height: 100%;
+				position: absolute;
+			}
+			.helper {
+				display: inline-block;
+				height: 100%;
+				vertical-align: middle;
+			}
+			#rotate img{
+				vertical-align: middle;
+				width:50%;
+			}
+			#game{
+				width: 100%;
+				height: 100%;
+				position: absolute;
+			}
+		</style>
 	</head>
 	<body>
+		<div id="rotate">
+			<span class="helper"></span>
+			<img alt="rotar pantalla" src="img/rotate.png" />
+		</div>
+		<div id="game"></div>
+		<div style="position: absolute; font-family: Arial; bottom: 0px; text-align: center; width: 100%; height: 50px; color: white" id="notification"></div>
 		<script>
 			gameBootstrapper.init("game");
 		</script>
