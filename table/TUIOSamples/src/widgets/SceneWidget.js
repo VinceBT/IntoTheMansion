@@ -743,6 +743,15 @@ class SceneWidget extends TUIOWidget {
           SoundManager.play('trap_trigger');
         }
       }
+      this.playerEntities.forEach((currPlayerEntities) => {
+        const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === trapData.id);
+        if (trapsToDelete.length > 0) {
+          trapsToDelete.forEach((trapToDelete) => {
+            this.scene.remove(trapToDelete.mesh);
+          });
+        }
+        currPlayerEntities.traps = currPlayerEntities.traps.filter(trap => trap.id !== trapData.id);
+      });
     });
 
     this.socket.on(Protocol.GAME_OVER, (gameOverData) => {
