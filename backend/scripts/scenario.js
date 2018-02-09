@@ -69,7 +69,7 @@ const init = async () => {
     }, 1000);
   });
 
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 10; i++) {
     const id = `trap_${Math.round(Math.random() * 3000000).toString()}`;
     setTimeout(() => {
       external.emit(Protocol.CREATE_TRAP, {
@@ -80,9 +80,6 @@ const init = async () => {
           Math.round(Math.random() * mapData.terrain.height),
         ],
         type: Math.floor(Math.random() * 2) === 0 ? 'DeathTrap' : 'ScreamerTrap',
-      });
-      external.emit(Protocol.TRAP_TRIGGERED, {
-        id,
       });
       setTimeout(() => {
         external.emit(Protocol.TRAP_TRIGGERED, {
