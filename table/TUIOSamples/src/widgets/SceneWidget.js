@@ -273,7 +273,10 @@ class SceneWidget extends TUIOWidget {
       let minDistance = null;
       let closestLightId;
       for (const [key, value] of this.lightsMap.entries()) {
-        const dist = Math.sqrt(Math.pow(closestIntersect.point.x - value.position.x, 2) + Math.pow(closestIntersect.point.z - value.position.z, 2));
+        const dist = Math.sqrt(
+          Math.pow(closestIntersect.point.x - value.position.x, 2) +
+          Math.pow(closestIntersect.point.z - value.position.z, 2)
+        );
         if (minDistance == null || dist < minDistance) {
           minDistance = dist;
           closestLightId = key;
@@ -281,8 +284,6 @@ class SceneWidget extends TUIOWidget {
       }
       return closestLightId;
     };
-
-
     const angle = tuioTag.angle;
     if (angle !== this.previousAngle) {
       this.previousAngle = angle;
@@ -366,6 +367,7 @@ class SceneWidget extends TUIOWidget {
         const trapMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player] });
         const ghostTrap = new THREE.Mesh(trapGeometry, trapMaterial);
         ghostTrap.position.copy(flooredIntersectPosition);
+        ghostTrap.rotation.y = Math.PI / 4;
         this.scene.add(ghostTrap);
         const currentPlayerEntities = this.playerEntities[tagData.player];
         currentPlayerEntities.traps.unshift({ id: hash, tagId: tuioTag.id, mesh: ghostTrap, type: 'DeathTrap' });
@@ -402,7 +404,7 @@ class SceneWidget extends TUIOWidget {
           });
         }
         this.socket.emit(Protocol.CREATE_TRAP, {
-          name: hash,
+          id: hash,
           player: tagData.player,
           position: [flooredIntersectPosition.x, flooredIntersectPosition.z],
           type: 'ScreamerTrap',
@@ -573,6 +575,9 @@ class SceneWidget extends TUIOWidget {
       SoundManager.play('player_move');
       SoundManager.volume('player_move', 0);
 
+      SoundManager.play('radio');
+      SoundManager.volume('radio', 0);
+
       const wallGeometry = new THREE.BoxGeometry(1, 8, 1);
       const wallMaterial = new THREE.MeshLambertMaterial({ color: 0x252525 });
 
@@ -705,7 +710,7 @@ class SceneWidget extends TUIOWidget {
       this.scene.add(ghostTrap);
       const currentPlayerEntities = this.playerEntities[trapData.player];
       currentPlayerEntities.traps.unshift({ id: trapData.name, tagId: '0', mesh: ghostTrap, type: trapData.type });
-      SoundManager.play('trap_setup');
+      SoundManager.play(trapData.type === 'DeathTrap' ? 'trap_setup' : 'trap_trigger');
     });
 
     this.socket.on(Protocol.REMOVE_TRAP, (trapData) => {
@@ -733,11 +738,20 @@ class SceneWidget extends TUIOWidget {
           setTimeout(() => {
             this.revealPlayer = false;
           }, 5000);
-          SoundManager.play('scream');
+          SoundManager.play('screamer_trigger');
         } else if (matched.type === 'DeathTrap') {
           SoundManager.play('trap_trigger');
         }
       }
+      this.playerEntities.forEach((currPlayerEntities) => {
+        const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === trapData.id);
+        if (trapsToDelete.length > 0) {
+          trapsToDelete.forEach((trapToDelete) => {
+            this.scene.remove(trapToDelete.mesh);
+          });
+        }
+        currPlayerEntities.traps = currPlayerEntities.traps.filter(trap => trap.id !== trapData.id);
+      });
     });
 
     this.socket.on(Protocol.GAME_OVER, (gameOverData) => {
