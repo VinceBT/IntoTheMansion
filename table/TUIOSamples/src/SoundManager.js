@@ -20,14 +20,15 @@ load('door_open', 'assets/sounds/door_open.wav');
 load('ghost_lose', 'assets/sounds/ghost_lose.wav');
 load('ghost_win', 'assets/sounds/ghost_win.wav');
 load('player_move', 'assets/sounds/player_move.wav', 0, true);
+load('radio', 'assets/sounds/radio.wav');
 load('reveal', 'assets/sounds/reveal.wav');
 load('screamer_setup', 'assets/sounds/screamer_setup.mp3');
 load('screamer_trigger', 'assets/sounds/screamer_trigger.mp3');
+load('switch_off', 'assets/sounds/switch_off.wav', 0.7);
+load('switch_on', 'assets/sounds/switch_on.wav');
 load('trap_trigger', 'assets/sounds/trap_trigger.mp3', 0.8);
 load('trap_setup', 'assets/sounds/trap_setup.m4a', 0.5);
 load('trap_destroy', 'assets/sounds/trap_destroy.wav', 0.5);
-load('switch_off', 'assets/sounds/switch_off.wav', 0.7);
-load('switch_on', 'assets/sounds/switch_on.wav');
 
 export default class SoundManager {
 

@@ -367,6 +367,7 @@ class SceneWidget extends TUIOWidget {
         const trapMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player] });
         const ghostTrap = new THREE.Mesh(trapGeometry, trapMaterial);
         ghostTrap.position.copy(flooredIntersectPosition);
+        ghostTrap.rotation.y = Math.PI / 4;
         this.scene.add(ghostTrap);
         const currentPlayerEntities = this.playerEntities[tagData.player];
         currentPlayerEntities.traps.unshift({ id: hash, tagId: tuioTag.id, mesh: ghostTrap, type: 'DeathTrap' });
@@ -573,6 +574,9 @@ class SceneWidget extends TUIOWidget {
 
       SoundManager.play('player_move');
       SoundManager.volume('player_move', 0);
+
+      SoundManager.play('radio');
+      SoundManager.volume('radio', 0);
 
       const wallGeometry = new THREE.BoxGeometry(1, 8, 1);
       const wallMaterial = new THREE.MeshLambertMaterial({ color: 0x252525 });
