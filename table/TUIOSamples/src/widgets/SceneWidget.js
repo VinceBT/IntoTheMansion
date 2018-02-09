@@ -371,7 +371,7 @@ class SceneWidget extends TUIOWidget {
         this.scene.add(ghostTrap);
         const currentPlayerEntities = this.playerEntities[tagData.player];
         currentPlayerEntities.traps.unshift({ id: hash, tagId: tuioTag.id, mesh: ghostTrap, type: 'DeathTrap' });
-        SoundManager.play('trap_trigger');
+        SoundManager.play('trap_setup');
         if (currentPlayerEntities.traps.length > 3) {
           const oldTrap = currentPlayerEntities.traps.pop();
           this.scene.remove(oldTrap.mesh);
@@ -395,7 +395,7 @@ class SceneWidget extends TUIOWidget {
         this.scene.add(ghostTrap);
         const currentPlayerEntities = this.playerEntities[tagData.player];
         currentPlayerEntities.traps.unshift({ id: hash, tagId: tuioTag.id, mesh: ghostTrap, type: 'ScreamerType' });
-        SoundManager.play('trap_trigger');
+        SoundManager.play('screamer_setup');
         if (currentPlayerEntities.traps.length > 3) {
           const oldTrap = currentPlayerEntities.traps.pop();
           this.scene.remove(oldTrap.mesh);
@@ -710,7 +710,7 @@ class SceneWidget extends TUIOWidget {
       this.scene.add(ghostTrap);
       const currentPlayerEntities = this.playerEntities[trapData.player];
       currentPlayerEntities.traps.unshift({ id: trapData.name, tagId: '0', mesh: ghostTrap, type: trapData.type });
-      SoundManager.play(trapData.type === 'DeathTrap' ? 'trap_setup' : 'trap_trigger');
+      SoundManager.play(trapData.type === 'DeathTrap' ? 'trap_setup' : 'screamer_setup');
     });
 
     this.socket.on(Protocol.REMOVE_TRAP, (trapData) => {
