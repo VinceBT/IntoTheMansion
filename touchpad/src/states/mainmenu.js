@@ -1,7 +1,7 @@
 IntoTheMansion.MainMenu = function() {};
 IntoTheMansion.MainMenu.prototype = {
     create: function() {
-       // this.startButton = this.add.button(this.game.camera.width / 2, this.game.camera.height / 2, 'button-start', this.startGame, this, 2, 0, 1);
+        this.game.scale.setGameSize(window.innerWidth, window.innerHeight);
         var text = "START";
         var style = { font: "bold 55px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle" };
         var t = this.add.text(this.world.centerX, this.world.centerY, text, style);
