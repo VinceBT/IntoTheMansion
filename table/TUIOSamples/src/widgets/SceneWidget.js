@@ -699,9 +699,12 @@ class SceneWidget extends TUIOWidget {
     this.socket.on(Protocol.REMOVE_TRAP, (trapData) => {
       this.playerEntities.forEach((currPlayerEntities) => {
         const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === trapData.id);
-        trapsToDelete.forEach((trapToDelete) => {
-          this.scene.remove(trapToDelete.mesh);
-        });
+        if (trapsToDelete.length > 0) {
+          trapsToDelete.forEach((trapToDelete) => {
+            this.scene.remove(trapToDelete.mesh);
+          });
+          SoundManager.play('trap_destroy');
+        }
         currPlayerEntities.traps = currPlayerEntities.traps.filter(trap => trap.id !== trapData.id);
       });
     });
