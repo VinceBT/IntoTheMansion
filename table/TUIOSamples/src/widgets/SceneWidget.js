@@ -10,7 +10,7 @@ import { cunlerp, randomHash } from '../Utils';
 import playerconfigs from '../../assets/playerconfigs.json';
 import SoundManager from '../SoundManager';
 
-const DEBUG_MAP_LOAD = true;
+const DEBUG_MAP_LOAD = false;
 
 const GHOST_RANGE_SIZE = 7;
 const GHOST_NUMBER = 2;
@@ -578,8 +578,15 @@ class SceneWidget extends TUIOWidget {
           wall.position.z = posY;
           wall.wall = true;
           this.scene.add(wall);
-        } else if (elt === 'F' || elt === 'D') {
+        } else if (elt === 'F') {
           const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+          floor.position.x = posX;
+          floor.position.z = posY;
+          floor.carpet = true;
+          this.scene.add(floor);
+        } else if (elt === 'D') {
+          const floor = new THREE.Mesh(floorGeometry, floorMaterial.clone());
+          floor.material.color.multiplyScalar(0.95);
           floor.position.x = posX;
           floor.position.z = posY;
           floor.carpet = true;
