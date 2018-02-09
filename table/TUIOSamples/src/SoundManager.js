@@ -22,7 +22,7 @@ load('ghost_win', 'assets/sounds/ghost_win.wav');
 load('player_move', 'assets/sounds/player_move.wav', 0, true);
 load('radio', 'assets/sounds/radio.wav');
 load('reveal', 'assets/sounds/reveal.wav');
-load('screamer_setup', 'assets/sounds/screamer_setup.mp3');
+load('screamer_setup', 'assets/sounds/screamer_setup.wav');
 load('screamer_trigger', 'assets/sounds/screamer_trigger.mp3');
 load('switch_off', 'assets/sounds/switch_off.wav', 0.7);
 load('switch_on', 'assets/sounds/switch_on.wav');

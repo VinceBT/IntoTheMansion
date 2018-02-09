@@ -16,7 +16,7 @@ const GHOST_RANGE_SIZE = 7;
 const GHOST_NUMBER = 2;
 const GHOST_COLORS = [0xff0000, 0x00ff00];
 
-const DISTANCE_THRESHOLD = 0.0001;
+const DISTANCE_THRESHOLD = 0.1;
 
 let ghostDirectionGeometry = new THREE.ConeGeometry(2, 5, 20);
 let trapGeometry = new THREE.BoxGeometry(1, 2, 1);
@@ -576,7 +576,7 @@ class SceneWidget extends TUIOWidget {
       SoundManager.volume('player_move', 0);
 
       SoundManager.play('radio');
-      SoundManager.volume('radio', 0.1);
+      SoundManager.volume('radio', 0.05);
 
       const wallGeometry = new THREE.BoxGeometry(1, 8, 1);
       const wallMaterial = new THREE.MeshLambertMaterial({ color: 0x252525 });
@@ -647,7 +647,6 @@ class SceneWidget extends TUIOWidget {
         this.lightsMap.set(lightData.id, light);
         this.scene.add(light);
       });
-      // SoundManager.play('radio');
     };
 
     if (DEBUG_MAP_LOAD) {
@@ -668,11 +667,7 @@ class SceneWidget extends TUIOWidget {
         SoundManager.volume('player_move', 0.7);
         this._handlePlayerMove();
       }
-
       this.previousPosition = [...playerPositionData.position];
-
-
-        // SoundManager.play('bgm');
     });
 
     this.socket.on(Protocol.GHOST_POSITION_UPDATE, (ghostData) => {
