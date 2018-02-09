@@ -9,7 +9,7 @@ function SkillManager(model){
     this.info.input.enableDrag(true);
     this.info.input.dragStopBlocksInputUp = true;
     this.info.input.useHandCursor = true;
-    this.info.input.dragDistanceThreshold = 10;
+    this.info.input.dragDistanceThreshold = 5;
     this.info.events.onDragStart.add(this.onDragStart, this);
     this.info.events.onDragStop.add(this.onDragStop, this);
 
