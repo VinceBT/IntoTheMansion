@@ -124,6 +124,8 @@ class SceneWidget extends TUIOWidget {
     }
     this.previousAngle = 0;
     this.rotateProgress = 0;
+    this.canRevealPlayer = true;
+    this.revealPlayer = false;
 
     const $scene = this.buildScene();
     const $container = $('<div class="container">');
@@ -331,11 +333,21 @@ class SceneWidget extends TUIOWidget {
           position: [intersectPosition.x, intersectPosition.z],
         });
       } else if (tagData.type === 'reveal') {
-        this.revealPlayer = true;
-        SoundManager.play('reveal');
-        setTimeout(() => {
-          this.revealPlayer = false;
-        }, 1000);
+        if (this.canRevealPlayer) {
+          this.canRevealPlayer = false;
+          SoundManager.play('reveal');
+          setTimeout(() => {
+            this.revealPlayer = true;
+            SoundManager.play('scream');
+            setTimeout(() => {
+              this.revealPlayer = false;
+              setTimeout(() => {
+                this.canRevealPlayer = true;
+                SoundManager.play('spell');
+              }, 5000);
+            }, 2000);
+          }, 500);
+        }
       } else if (tagData.type === 'wall') {
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
         if (flooredIntersectPosition === null) return;
@@ -394,7 +406,7 @@ class SceneWidget extends TUIOWidget {
         ghostTrap.position.copy(flooredIntersectPosition);
         this.scene.add(ghostTrap);
         const currentPlayerEntities = this.playerEntities[tagData.player];
-        currentPlayerEntities.traps.unshift({ id: hash, tagId: tuioTag.id, mesh: ghostTrap, type: 'ScreamerType' });
+        currentPlayerEntities.traps.unshift({ id: hash, tagId: tuioTag.id, mesh: ghostTrap, type: 'ScreamerTrap' });
         SoundManager.play('screamer_setup');
         if (currentPlayerEntities.traps.length > 3) {
           const oldTrap = currentPlayerEntities.traps.pop();
@@ -726,6 +738,7 @@ class SceneWidget extends TUIOWidget {
       if (!trapData.id) throw new Error('Trap id is undefined');
       let matched = this.playerEntities[0].traps.find(trap => trap.id === trapData.id);
       if (matched === undefined) matched = this.playerEntities[1].traps.find(trap => trap.id === trapData.id);
+      console.log(matched);
       if (matched !== undefined) {
         if (matched.type === 'ScreamerTrap') {
           console.log('Revealing player');
