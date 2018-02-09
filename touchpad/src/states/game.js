@@ -11,7 +11,7 @@ IntoTheMansion.Game = function() {
 IntoTheMansion.Game.prototype = {
     preload: function() {
         this.cpt = 0;
-        this.socket = io('http://192.168.43.163:8080');
+        this.socket = io('http://192.168.43.135:8080');
         var model = this;
         this.socket.emit('REGISTER',{type: 'TABLET'});
         this.socket.emit('GET_MAP',"mansion1", function(data){
@@ -36,6 +36,7 @@ IntoTheMansion.Game.prototype = {
             else{
                 model.player.info.x = json.position[0]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE;
                 model.player.info.y = json.position[1]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE;
+                model.player.info.angle = json.rotation.y*180/Math.PI;
             }
         });
         this.socket.on('GHOST_POSITION_UPDATE',function(json){
