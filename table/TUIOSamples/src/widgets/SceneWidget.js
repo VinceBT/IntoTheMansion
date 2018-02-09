@@ -400,11 +400,7 @@ class SceneWidget extends TUIOWidget {
         this.socket.emit(Protocol.CREATE_TRAP, {
           name: hash,
           player: tagData.player,
-          position: {
-            x: flooredIntersectPosition.x,
-            y: flooredIntersectPosition.y,
-            z: flooredIntersectPosition.z,
-          },
+          position: [flooredIntersectPosition.x, flooredIntersectPosition.z],
           type: 'ScreamerTrap',
         });
       }
@@ -674,7 +670,7 @@ class SceneWidget extends TUIOWidget {
       this.scene.add(ghostTrap);
       const currentPlayerEntities = this.playerEntities[trapData.player];
       currentPlayerEntities.traps.unshift({ id: trapData.name, tagId: '0', mesh: ghostTrap, type: trapData.type });
-      SoundManager.play('trap_trigger');
+      SoundManager.play('trap_setup');
     });
 
     this.socket.on(Protocol.REMOVE_TRAP, (trapData) => {
@@ -699,8 +695,9 @@ class SceneWidget extends TUIOWidget {
           setTimeout(() => {
             this.revealPlayer = false;
           }, 5000);
+          SoundManager.play('scream');
         } else if (matched.type === 'DeathTrap') {
-          console.log('Play death trap sound');
+          SoundManager.play('trap_trigger');
         }
       }
     });
