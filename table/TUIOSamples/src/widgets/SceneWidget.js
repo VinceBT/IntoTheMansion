@@ -123,7 +123,6 @@ class SceneWidget extends TUIOWidget {
     }
     this.previousAngle = 0;
     this.rotateProgress = 0;
-    this.isPlayerMoving = false;
 
     const $scene = this.buildScene();
     const $container = $('<div class="container">');
@@ -649,8 +648,6 @@ class SceneWidget extends TUIOWidget {
       const distance = Math.sqrt(Math.pow(playerPositionData.position[0] - this.previousPosition[0], 2) + Math.pow(playerPositionData.position[1] - this.previousPosition[1], 2));
       console.log(distance);
       if (distance > DISTANCE_THRESHOLD) {
-        this.isPlayerMoving = true;
-        console.log('PLUYER IS MOVING');
         SoundManager.volume('player_move', 0.7);
         this._handlePlayerMove();
       }
