@@ -5,16 +5,14 @@ IntoTheMansion.Game = function() {
     this.layer;
     this.ghosts = [];
     this.entities = [];
-    this.socket;
     this.parser;
 };
 IntoTheMansion.Game.prototype = {
     preload: function() {
-        this.cpt = 0;
-        this.socket = io('http://192.168.43.135:8080');
+        console.log("preload");
         var model = this;
-        this.socket.emit('REGISTER',{type: 'TABLET'});
-        this.socket.emit('GET_MAP',"mansion1", function(data){
+        IntoTheMansion.socket.emit('REGISTER',{type: 'TABLET'});
+        IntoTheMansion.socket.emit('GET_MAP',"mansion1", function(data){
             model.parser = new Parser(data);
             model.cache.addTilemap('dynamicMap', null, model.parser.map.tiles, Phaser.Tilemap.CSV);
             IntoTheMansion._TILE_RENDERING = window.innerWidth * window.devicePixelRatio/model.parser.map.width;
@@ -29,7 +27,7 @@ IntoTheMansion.Game.prototype = {
             model.skillmanager = new SkillManager(model);
             model.input.addMoveCallback(model.draw,model);
         });
-        this.socket.on('PLAYER_POSITION_UPDATE',function(json){
+        IntoTheMansion.socket.on('PLAYER_POSITION_UPDATE',function(json){
             if(!model.player){
                 model.player = new Player(model);
             }
@@ -39,7 +37,7 @@ IntoTheMansion.Game.prototype = {
                 model.player.info.angle = json.rotation.y*180/Math.PI;
             }
         });
-        this.socket.on('GHOST_POSITION_UPDATE',function(json){
+        IntoTheMansion.socket.on('GHOST_POSITION_UPDATE',function(json){
             if(model.ghosts.length < 2){
                 if(model.ghosts.length == 0)
                     model.ghosts.push(new Ghost(model,json.id));
@@ -57,22 +55,16 @@ IntoTheMansion.Game.prototype = {
 
         });
 
-        this.socket.on('CREATE_TRAP',function(json){
+        IntoTheMansion.socket.on('CREATE_TRAP',function(json){
             if(json.type != "DeathTrap") return;
             new Trap(
                     model,
-                    json.name,
                     json.id,
-                    json.position[0]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE/2,
-                    json.position[1]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE/2
+                    json.position[0]*IntoTheMansion._TILE_SIZE*2 +IntoTheMansion._TILE_SIZE ,
+                    json.position[1]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE
                     );
-            for(var i = 0; i < model.entities.length;i++){
-                if(model.entities[i].name == 'trap'){
-                    model.cpt ++;
-                }
-            }
         });
-        this.socket.on('REMOVE_TRAP',function(json){
+        IntoTheMansion.socket.on('REMOVE_TRAP',function(json){
             for(var i = 0; i < model.entities.length;i++){
                 if(model.entities[i].name == 'trap' && model.entities[i].id == json.id){
                     model.entities[i].info.destroy();
@@ -83,7 +75,7 @@ IntoTheMansion.Game.prototype = {
 
         });
 
-        this.socket.on('REQUEST_HELP',function(json){
+        IntoTheMansion.socket.on('REQUEST_HELP',function(json){
             let notif = document.getElementById('notification');
             if(json.type === 'TRAP'){
                 notif.innerText = 'The player needs help with a trap';
@@ -98,14 +90,14 @@ IntoTheMansion.Game.prototype = {
 
         });
 
-        this.socket.on('GAME_OVER',function(json){
+        IntoTheMansion.socket.on('GAME_OVER',function(json){
             if(!json.won)
                 model.game.state.start('GameOver');
             else
                 model.game.state.start('Victory');
         });
 
-        this.socket.on('RESTART',function(json){
+        IntoTheMansion.socket.on('RESTART',function(json){
             model.restart();
             model.game.state.restart();
             model.preload();
@@ -131,11 +123,11 @@ IntoTheMansion.Game.prototype = {
             }
             show.tilesChanged.push([this.layer.getTileY(x),this.layer.getTileX(y)]);
             this.map.fill(IntoTheMansion.PATH, this.layer.getTileX(x), this.layer.getTileY(y), 1, 1);
-            this.socket.emit('PATH_CREATE',{x:this.layer.getTileX(x),z:this.layer.getTileY(y),y:0});
+            IntoTheMansion.socket.emit('PATH_CREATE',{x:this.layer.getTileX(x),z:this.layer.getTileY(y),y:0});
         }
     },
     remove: function(model){
-        model.socket.emit('REMOVE_PATH',{remove:true});
+        IntoTheMansion.socket.emit('REMOVE_PATH',{remove:true});
         var show = model.skillmanager.getShowPathSkill();
         for(var i = 0; i < show.tilesChanged.length;i++){
             model.map.fill(model.parser.map.data[show.tilesChanged[i][0]][show.tilesChanged[i][1]], show.tilesChanged[i][0], show.tilesChanged[i][1], 1, 1);
@@ -144,9 +136,9 @@ IntoTheMansion.Game.prototype = {
     },
 
     restart: function(){
-        this.socket.disconnect();
-        while(this.ghosts.length)this.ghosts.pop();
-        while(this.entities.length)this.entities.pop();
+        while(this.ghosts.length)this.ghosts.pop().info.destroy();
+
+        while(this.entities.length)this.entities.pop().info.destroy();
         delete this.player;
         delete this.skillmanager;
         delete this.map;

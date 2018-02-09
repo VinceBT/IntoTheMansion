@@ -1,7 +1,6 @@
-function Trap(model,id,player, x=-1, y=-1){
+function Trap(model,id, x=-1, y=-1){
     this.model = model;
     this.id = id;
-    this.referer = player;
     this.name = "trap";
     Entity.call(this,this.name,model,x,y);
     this.info.inputEnabled = true;
