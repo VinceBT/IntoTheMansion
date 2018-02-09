@@ -6,6 +6,7 @@ function ShowPath(sm,x=-1, y=-1){
     this.info.anchor.set(0,0);
     this.tilesChanged = [];
     this.info.input.useHandCursor = true;
+    this.info.visible = false;
     this.start = false;
     this.timer = 10000;
     this.tileLimit = 30;

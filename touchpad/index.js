@@ -1,8 +1,9 @@
 
+
 var gameBootstrapper = {
     init:function(gameContainerElementId){
 
-        var game = new Phaser.Game(480, 720, Phaser.CANVAS, gameContainerElementId);
+        var game = new Phaser.Game(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio, Phaser.CANVAS, 'game');
         game.state.add('Boot', IntoTheMansion.Boot);
         game.state.add('Preload', IntoTheMansion.Preload);
         game.state.add('MainMenu', IntoTheMansion.MainMenu);
