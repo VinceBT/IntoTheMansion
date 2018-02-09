@@ -129,7 +129,7 @@ const init = async () => {
     .to({ x: 12, z: 12, r: Math.PI * 2 * 10 }, 5000)
     .onUpdate(() => {
       external.emit(Protocol.GHOST_POSITION_UPDATE, {
-        player: 0,
+        id: 0,
         position: [ghost1Coords.x, ghost1Coords.z],
         rotation: { x: 0, y: ghost1Coords.r, z: 0 },
       });
@@ -142,7 +142,7 @@ const init = async () => {
     .to({ x: 10, z: 13, r: Math.PI * 2 * 10 }, 5000)
     .onUpdate(() => {
       external.emit(Protocol.GHOST_POSITION_UPDATE, {
-        player: 1,
+        id: 1,
         position: [ghost2Coords.x, ghost2Coords.z],
         rotation: { x: 0, y: ghost2Coords.r, z: 0 },
       });
