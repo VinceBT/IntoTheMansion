@@ -26,6 +26,7 @@ load('door_open', 'assets/sounds/door_open.wav');
 load('door_close', 'assets/sounds/door_close.wav');
 load('ghost_win', 'assets/sounds/ghost_win.wav');
 load('ghost_lose', 'assets/sounds/ghost_lose.wav');
+load('reveal', 'assets/sounds/reveal.wav');
 load('player_move', 'assets/sounds/player_move.wav', 0, true);
 
 export default class SoundManager {
