@@ -576,7 +576,7 @@ class SceneWidget extends TUIOWidget {
       SoundManager.volume('player_move', 0);
 
       SoundManager.play('radio');
-      SoundManager.volume('radio', 0);
+      SoundManager.volume('radio', 0.1);
 
       const wallGeometry = new THREE.BoxGeometry(1, 8, 1);
       const wallMaterial = new THREE.MeshLambertMaterial({ color: 0x252525 });
@@ -804,7 +804,6 @@ class SceneWidget extends TUIOWidget {
         closestDistanceToPlayer = Math.min(closestDistanceToPlayer, ghostGroup.position.distanceTo(playerGroup.position));
       }
       this.playerMaterial.opacity = 1 - cunlerp(GHOST_RANGE_SIZE - 3, GHOST_RANGE_SIZE, closestDistanceToPlayer);
-      SoundManager.volume('radio', 0.6 - cunlerp(GHOST_RANGE_SIZE - 3, GHOST_RANGE_SIZE, closestDistanceToPlayer));
       if (playerGroup.modelPlayer) {
         playerGroup.modelPlayer.position.y = 3 + 0.2 * Math.sin(time * 0.001);
         playerGroup.modelPlayer.position.z = 0.2 * Math.sin(time * 0.001);
