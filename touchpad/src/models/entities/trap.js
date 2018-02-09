@@ -10,7 +10,7 @@ function Trap(model,id, x=-1, y=-1){
 Trap.prototype = {
   onTap: function(pointer,doubleTap){
     if(this.model.skillmanager.isRemoveTrapActive()){
-      this.model.socket.emit("REMOVE_TRAP",{"id":this.id});
+      IntoTheMansion.socket.emit("REMOVE_TRAP",{"id":this.id});
       this.info.destroy();
       for(var i = 0; i < this.model.entities.length; i++){
         if(this.model.entities[i] == this){

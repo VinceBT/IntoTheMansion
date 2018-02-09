@@ -14,6 +14,7 @@ IntoTheMansion.Boot = function(game) {}
 
 IntoTheMansion.Boot.prototype = {
     preload: function() {
+        IntoTheMansion.socket.emit('REGISTER',{type: 'TABLET'});
     },
     create: function() {
         this.stage.disableVisibilityChange = true;                         //Not pause the game if the browser tab loses focus

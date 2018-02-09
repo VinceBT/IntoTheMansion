@@ -6,28 +6,27 @@ IntoTheMansion.Game = function() {
     this.ghosts = [];
     this.entities = [];
     this.parser;
+    this.hasMap = false;
 };
 IntoTheMansion.Game.prototype = {
     preload: function() {
-        console.log("preload");
         var model = this;
-        IntoTheMansion.socket.emit('REGISTER',{type: 'TABLET'});
-        IntoTheMansion.socket.emit('GET_MAP',"mansion1", function(data){
-            model.parser = new Parser(data);
-            model.cache.addTilemap('dynamicMap', null, model.parser.map.tiles, Phaser.Tilemap.CSV);
-            IntoTheMansion._TILE_RENDERING = window.innerWidth * window.devicePixelRatio/model.parser.map.width;
-            model.map = model.add.tilemap('dynamicMap', IntoTheMansion._TILE_SIZE*2,IntoTheMansion._TILE_SIZE*2);
-            model.map.addTilesetImage('tiles', 'tiles', IntoTheMansion._TILE_SIZE*2, IntoTheMansion._TILE_SIZE*2);
+            IntoTheMansion.socket.emit('GET_MAP', "mansion1", function (data) {
+                model.parser = new Parser(data);
+                model.cache.addTilemap('dynamicMap', null, model.parser.map.tiles, Phaser.Tilemap.CSV);
+                model.map = model.add.tilemap('dynamicMap', IntoTheMansion._TILE_SIZE * 2, IntoTheMansion._TILE_SIZE * 2);
+                model.map.addTilesetImage('tiles', 'tiles', IntoTheMansion._TILE_SIZE * 2, IntoTheMansion._TILE_SIZE * 2);
 
-            model.layer = model.map.createLayer(0);
-            model.game.scale.setGameSize(model.map.width*IntoTheMansion._TILE_SIZE*2, model.map.height*IntoTheMansion._TILE_SIZE*2);
-            model.layer.resizeWorld();
+                model.layer = model.map.createLayer(0);
+                model.game.scale.setGameSize(model.map.width * IntoTheMansion._TILE_SIZE * 2, model.map.height * IntoTheMansion._TILE_SIZE * 2);
+                model.layer.resizeWorld();
 
-            model.physics.startSystem(Phaser.Physics.ARCADE);
-            model.skillmanager = new SkillManager(model);
-            model.input.addMoveCallback(model.draw,model);
-        });
+                model.skillmanager = new SkillManager(model);
+                model.input.addMoveCallback(model.draw, model);
+                model.hasMap = true;
+            });
         IntoTheMansion.socket.on('PLAYER_POSITION_UPDATE',function(json){
+            if(!model.hasMap)return;
             if(!model.player){
                 model.player = new Player(model);
             }
@@ -38,6 +37,7 @@ IntoTheMansion.Game.prototype = {
             }
         });
         IntoTheMansion.socket.on('GHOST_POSITION_UPDATE',function(json){
+            if(!model.hasMap)return;
             if(model.ghosts.length < 2){
                 if(model.ghosts.length == 0)
                     model.ghosts.push(new Ghost(model,json.id));
@@ -56,6 +56,7 @@ IntoTheMansion.Game.prototype = {
         });
 
         IntoTheMansion.socket.on('CREATE_TRAP',function(json){
+            if(!model.hasMap)return;
             if(json.type != "DeathTrap") return;
             new Trap(
                     model,
@@ -143,5 +144,6 @@ IntoTheMansion.Game.prototype = {
         delete this.skillmanager;
         delete this.map;
         delete this.layer;
+        delete this.hasMap;
     }
 };
