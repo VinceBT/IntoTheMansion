@@ -6,7 +6,7 @@ function SkillManager(model){
     this.skills = [];
     this.info = this.model.add.button(10, 10, this.name, this.onTap, this, 2, 0, 1);
     this.info.anchor.set(0,0);
-    this.info.input.enableDrag(true);
+   // this.info.input.enableDrag(true);
     this.info.input.useHandCursor = true;
 
     this.addRemoveTrap();
@@ -16,17 +16,16 @@ function SkillManager(model){
 
 SkillManager.prototype = {
     showSkills: function(){
-        for(var i = 0; this.skills.length;i++){
+        for(var i = 0; i < this.skills.length;i++){
             var tmp = this.model.cache.getImage(this.skills[i].name);
-            console.log(this.skills[i]);
             this.skills[i].info.x = this.info.x
-            this.skills[i].info.y = this.info.y+(this.skills.length+1)*tmp.height+10
+            this.skills[i].info.y = this.info.y+(i+1)*tmp.height+10
             this.skills[i].info.visible = true;
 
         }
     },
     hideSkills: function(){
-        for(var i = 0; this.skills.length;i++){
+        for(var i = 0; i < this.skills.length;i++){
             this.skills[i].info.visible = false;
         }
     },

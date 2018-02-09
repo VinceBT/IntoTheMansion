@@ -14,8 +14,8 @@ function Map(width,height){
     this.tiles = '';
     this.current = 1;
     this.data = [];
-    for(var i = 0; i < this.height;i++){
-        this.data.push(new Array(this.width));
+    for(var i = 0; i < this.width;i++){
+        this.data.push(new Array(this.height));
     }
     this.x = 0;
     this.y = 0;
@@ -27,12 +27,12 @@ Map.prototype = {
         this.data[this.x][this.y] = element;
         if(this.current % this.width == 0) {
             this.tiles += "\n";
-            this.x ++;
-            this.y = 0;
+            this.y ++;
+            this.x = 0;
         }
         else {
             this.tiles += ",";
-            this.y ++;
+            this.x ++;
         }
         this.current++;
     }

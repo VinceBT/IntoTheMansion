@@ -107,7 +107,7 @@ IntoTheMansion.Game.prototype = {
                 show.start = true;
                 setTimeout(this.remove,show.timer,this);
             }
-            show.tilesChanged.push([this.layer.getTileX(x),this.layer.getTileY(y)]);
+            show.tilesChanged.push([this.layer.getTileY(x),this.layer.getTileX(y)]);
             this.map.fill(IntoTheMansion.PATH, this.layer.getTileX(x), this.layer.getTileY(y), 1, 1);
             this.socket.emit('PATH_CREATE',{x:this.layer.getTileX(x),z:this.layer.getTileY(y),y:0});
         }
