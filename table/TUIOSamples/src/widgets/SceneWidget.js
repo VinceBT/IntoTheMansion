@@ -16,6 +16,8 @@ const GHOST_RANGE_SIZE = 7;
 const GHOST_NUMBER = 2;
 const GHOST_COLORS = [0xff0000, 0x00ff00];
 
+const DISTANCE_THRESHOLD = 0.0001;
+
 let ghostDirectionGeometry = new THREE.ConeGeometry(2, 5, 20);
 let trapGeometry = new THREE.BoxGeometry(1, 2, 1);
 
@@ -112,6 +114,7 @@ class SceneWidget extends TUIOWidget {
     this.directionTags = new Map();
     this.wallTags = new Map();
     this.playerEntities = [];
+    this.previousPosition = [0, 0];
     for (let i = 0; i < GHOST_NUMBER; i++) {
       this.playerEntities.push({
         traps: [],
@@ -407,6 +410,10 @@ class SceneWidget extends TUIOWidget {
     }
   });
 
+  _handlePlayerMove = debounce(500, () => {
+    SoundManager.volume('player_move', 0);
+  });
+
   buildScene() {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -552,9 +559,8 @@ class SceneWidget extends TUIOWidget {
       this.camera.position.y = Math.max(cameraWidthMinDistance, cameraHeightMinDistance) + 10;
       console.log(this.camera, 'CAMERA COMPUTED ', cameraWidthMinDistance, cameraHeightMinDistance);
 
-      SoundManager.sound('player_move')
-        .volume(0)
-        .play();
+      SoundManager.play('player_move');
+      SoundManager.volume('player_move', 0);
 
       const wallGeometry = new THREE.BoxGeometry(1, 8, 1);
       const wallMaterial = new THREE.MeshLambertMaterial({ color: 0x252525 });
@@ -588,13 +594,13 @@ class SceneWidget extends TUIOWidget {
       });
 
       mapData.objects.doors.forEach((doorData) => {
-        const door = new THREE.Mesh(doorGeometry, doorMaterial);
+        const door = new THREE.Mesh(doorGeometry, doorMaterial.clone());
         door.position.x = doorData.position[0];
         door.position.z = doorData.position[1];
         if (doorData.align === 'v') {
           door.rotation.y = Math.PI / 2;
         }
-        this.doorsMap.set(doorData.id, door);
+        this.doorsMap.set(doorData.id, { mesh: door, trapped: false });
         this.scene.add(door);
       });
 
@@ -632,7 +638,20 @@ class SceneWidget extends TUIOWidget {
       playerGroup.position.z = playerPositionData.position[1];
       // console.log(playerGroup.position.distanceTo(new THREE.Vector3({ ...playerPositionData.position, y: 0 })));
       playerGroup.rotation.y = -playerPositionData.rotation.y;
-      // SoundManager.play('bgm');
+
+      const distance = Math.sqrt(Math.pow(playerPositionData.position[0] - this.previousPosition[0], 2) + Math.pow(playerPositionData.position[1] - this.previousPosition[1], 2));
+      console.log(distance);
+      if (distance > DISTANCE_THRESHOLD) {
+        this.isPlayerMoving = true;
+        console.log('PLUYER IS MOVING');
+        SoundManager.volume('player_move', 0.7);
+        this._handlePlayerMove();
+      }
+
+      this.previousPosition = [...playerPositionData.position];
+
+
+        // SoundManager.play('bgm');
     });
 
     this.socket.on(Protocol.GHOST_POSITION_UPDATE, (ghostData) => {
@@ -649,7 +668,7 @@ class SceneWidget extends TUIOWidget {
       } else {
         SoundManager.play('door_close');
       }
-      this.doorsMap.get(doorData.id).visible = !doorData.open;
+      this.doorsMap.get(doorData.id).mesh.visible = !doorData.open;
     });
 
     this.socket.on(Protocol.LIGHT_UPDATE, (lightData) => {
@@ -658,7 +677,7 @@ class SceneWidget extends TUIOWidget {
       } else {
         SoundManager.play('switch_off');
       }
-      this.lightsMap.get(lightData.id).visible = !lightData.open;
+      this.lightsMap.get(lightData.id).mesh.visible = !lightData.open;
     });
 
     this.socket.on(Protocol.CREATE_TRAP, (trapData) => {
@@ -733,7 +752,7 @@ class SceneWidget extends TUIOWidget {
       this.directionTags.clear();
       Array.from(this.doorsMap.values())
         .forEach((door) => {
-          door.visible = true;
+          door.mesh.visible = true;
         });
       this.playerEntities.forEach((currPlayerEntities) => {
         currPlayerEntities.traps.forEach((trap) => {
