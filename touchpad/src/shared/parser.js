@@ -1,5 +1,4 @@
 function Parser(json){
-
         this.json = json;
         this.width = this.json.terrain.width;
         this.height = this.json.terrain.height;
@@ -16,8 +15,8 @@ function Parser(json){
           exit = this.json.objects.doors[i].position;
         }
       }
-        for(let i = 0; i < this.json.terrain.map[0].length; i ++){
-            switch(this.json.terrain.map[0][i]){
+        for(let i = 0; i < this.json.terrain.map.length; i ++){
+            switch(this.json.terrain.map[i]){
                 case 'W':
                     this.map.push(IntoTheMansion.WALL);
                     break;

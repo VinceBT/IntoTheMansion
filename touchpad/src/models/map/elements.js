@@ -24,7 +24,7 @@ function Map(width,height){
 Map.prototype = {
     push: function(element){
         this.tiles += element;
-        this.data[this.y][this.x] = element;
+        this.data[this.x][this.y] = element;
         if(this.current % this.width == 0) {
             this.tiles += "\n";
             this.x ++;
