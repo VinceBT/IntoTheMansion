@@ -12,7 +12,6 @@ registerModelKey('ghost', 'assets/models/ghost.json');
 registerModelKey('direction', 'assets/models/direction.json');
 registerModelKey('screamer', 'assets/models/screamer.json');
 registerModelKey('trap', 'assets/models/trap.json');
-registerModelKey('chandelier', 'assets/models/chandelier.json');
 
 export default class ModelServices {
 
