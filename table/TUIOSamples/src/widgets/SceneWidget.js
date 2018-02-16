@@ -550,6 +550,18 @@ class SceneWidget extends TUIOWidget {
       this.camera.position.x = mapWidth / 2;
       this.camera.position.z = mapHeight / 2;
 
+      playerGroup.position.x = mapData.player.spawn[0];
+      playerGroup.position.z = mapData.player.spawn[1];
+
+      mapData.ghosts.forEach((ghost, i) => {
+        if (i >= ghostGroups.length) return;
+        const ghostGroup = ghostGroups[i];
+        ghostGroup.position.x = ghost.spawn[0];
+        ghostGroup.position.z = ghost.spawn[1];
+      });
+
+      console.log(playerGroup.position);
+
       const cameraWidthMinDistance = (mapWidth / 2) / Math.tan(this.camera.fov * this.camera.aspect / 2 * Math.PI / 180);
       const cameraHeightMinDistance = (mapHeight / 2) / Math.tan((this.camera.fov) / 2 * Math.PI / 180);
       this.camera.position.y = Math.max(cameraWidthMinDistance, cameraHeightMinDistance) + 10;
