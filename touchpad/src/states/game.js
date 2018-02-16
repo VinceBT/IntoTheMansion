@@ -6,6 +6,7 @@ IntoTheMansion.Game = function() {
     this.ghosts = [];
     this.entities = [];
     this.parser;
+    this.circle;
     this.hasMap = false;
 };
 IntoTheMansion.Game.prototype = {
@@ -23,6 +24,10 @@ IntoTheMansion.Game.prototype = {
 
                 model.skillmanager = new SkillManager(model);
                 model.input.addMoveCallback(model.draw, model);
+                model.circle = model.add.graphics(0,0);
+                model.circle.lineStyle(1,0xffffff);
+                model.circle.drawCircle(0,0,model.skillmanager.getRadius());
+                model.circle.visible = false;
                 model.hasMap = true;
             });
         IntoTheMansion.socket.on('PLAYER_POSITION_UPDATE',function(json){
@@ -34,6 +39,8 @@ IntoTheMansion.Game.prototype = {
                 model.player.info.x = json.position[0]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE;
                 model.player.info.y = json.position[1]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE;
                 model.player.info.angle = json.rotation.y*180/Math.PI;
+                model.circle.x = model.player.info.x;
+                model.circle.y = model.player.info.y;
             }
         });
         IntoTheMansion.socket.on('GHOST_POSITION_UPDATE',function(json){
@@ -106,6 +113,7 @@ IntoTheMansion.Game.prototype = {
     },
     create: function() {
         this.stage.backgroundColor = "#66665e";
+        new LoopListener(this);
     },
     draw: function(pointer,x,y){
 

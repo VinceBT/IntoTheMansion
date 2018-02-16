@@ -5,6 +5,7 @@ function Trap(model,id, x=-1, y=-1){
     Entity.call(this,this.name,model,x,y);
     this.info.inputEnabled = true;
     this.info.events.onInputDown.add(this.onTap,this);
+    this.info.visible = false;
 }
 
 Trap.prototype = {

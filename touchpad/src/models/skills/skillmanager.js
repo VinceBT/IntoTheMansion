@@ -12,9 +12,10 @@ function SkillManager(model){
     this.info.input.dragDistanceThreshold = 5;
     this.info.events.onDragStart.add(this.onDragStart, this);
     this.info.events.onDragStop.add(this.onDragStop, this);
-
-    this.addRemoveTrap();
+    this.radius;
     this.addShowPath();
+    this.addReveal();
+    this.addRemoveTrap();
 
 
 }
@@ -34,7 +35,7 @@ SkillManager.prototype = {
     showSkills: function(){
         for(var i = 0; i < this.skills.length;i++){
             var tmp = this.model.cache.getImage(this.skills[i].name);
-            this.skills[i].info.x = this.info.x+(i+1)*tmp.width+10
+            this.skills[i].info.x = this.info.x+(i+1)*(tmp.width+10) + 10
             this.skills[i].info.y = this.info.y;
             this.skills[i].info.visible = true;
 
@@ -82,6 +83,18 @@ SkillManager.prototype = {
             }
         }
     },
+    addReveal: function() {
+        var tmp = this.model.cache.getImage('reveal');
+        var skill = new Reveal(this,this.info.x+(this.skills.length+1)*tmp.width+10,this.info.y);
+        this.skills.push(skill);
+    },
+    isRevealActive: function(){
+        for(var i = 0; i < this.skills.length; i ++){
+            if(this.skills[i].name == 'reveal'){
+                return this.skills[i].active && this.active && !this.info.input.isDragged;
+            }
+        }
+    },
     disableAll: function(){
         for(var i = 0; i < this.skills.length; i ++){
             if(this.skills[i].active) {
@@ -94,6 +107,15 @@ SkillManager.prototype = {
         for(var i = 0; i < this.skills.length; i ++) {
             if (this.skills[i].name == 'show-path') {
                 return this.skills[i];
+            }
+        }
+    },
+    getRadius: function(){
+        if(this.radius) return this.radius;
+        for(var i = 0; i < this.skills.length; i ++){
+            if(this.skills[i].name == 'reveal'){
+                this.radius = this.skills[i].radius;
+                return this.skills[i].radius;
             }
         }
     },

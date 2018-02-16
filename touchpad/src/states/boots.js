@@ -8,10 +8,9 @@ var IntoTheMansion = {
     FLOOR: 6,
     EXIT: 95,
     PATH: 1,
-    socket : io('http://192.168.43.135:8080')
+    socket : io('http://localhost:8080')
 };
 IntoTheMansion.Boot = function(game) {}
-
 IntoTheMansion.Boot.prototype = {
     preload: function() {
         IntoTheMansion.socket.emit('REGISTER',{type: 'TABLET'});
@@ -31,7 +30,10 @@ IntoTheMansion.Boot.prototype = {
                 this.game.state.start('Preload');
             }
         }
-        this.game.scale.setMaximum();
+        else{
+            this.game.scale.setMaximum();
+            this.game.state.start('Preload');
+        }
 
     },
     enterIncorrectOrientation: function () {
