@@ -4,7 +4,7 @@ const MUTE = false;
 
 const soundMap = new Map();
 
-const load = (key, src, volume = 1, loop = false) => {
+const loadSound = (key, src, volume = 1, loop = false) => {
   const sound = new Howl({
     src: [src],
     volume: MUTE ? 0 : volume,
@@ -14,24 +14,24 @@ const load = (key, src, volume = 1, loop = false) => {
   soundMap.set(key, sound);
 };
 
-load('bgm', 'assets/sounds/bgm.mp3', 0.5, true);
-load('door_close', 'assets/sounds/door_close.wav');
-load('door_open', 'assets/sounds/door_open.wav');
-load('ghost_lose', 'assets/sounds/ghost_lose.wav');
-load('ghost_win', 'assets/sounds/ghost_win.wav');
-load('player_move', 'assets/sounds/player_move.wav', 0, true);
-load('radio', 'assets/sounds/radio.wav');
-load('reveal', 'assets/sounds/reveal.wav');
-load('spell', 'assets/sounds/spell.wav');
-load('screamer_setup', 'assets/sounds/screamer_setup.wav');
-load('screamer_trigger', 'assets/sounds/screamer_trigger.mp3');
-load('switch_off', 'assets/sounds/switch_off.wav', 0.7);
-load('switch_on', 'assets/sounds/switch_on.wav');
-load('trap_trigger', 'assets/sounds/trap_trigger.mp3', 0.8);
-load('trap_setup', 'assets/sounds/trap_setup.m4a', 0.5);
-load('trap_destroy', 'assets/sounds/trap_destroy.wav', 0.5);
+loadSound('bgm', 'assets/sounds/bgm.mp3', 0.5, true);
+loadSound('door_close', 'assets/sounds/door_close.wav');
+loadSound('door_open', 'assets/sounds/door_open.wav');
+loadSound('ghost_lose', 'assets/sounds/ghost_lose.wav');
+loadSound('ghost_win', 'assets/sounds/ghost_win.wav');
+loadSound('player_move', 'assets/sounds/player_move.wav', 0, true);
+loadSound('radio', 'assets/sounds/radio.wav');
+loadSound('reveal', 'assets/sounds/reveal.wav');
+loadSound('spell', 'assets/sounds/spell.wav');
+loadSound('screamer_setup', 'assets/sounds/screamer_setup.wav');
+loadSound('screamer_trigger', 'assets/sounds/screamer_trigger.mp3');
+loadSound('switch_off', 'assets/sounds/switch_off.wav', 0.7);
+loadSound('switch_on', 'assets/sounds/switch_on.wav');
+loadSound('trap_trigger', 'assets/sounds/trap_trigger.mp3', 0.8);
+loadSound('trap_setup', 'assets/sounds/trap_setup.m4a', 0.5);
+loadSound('trap_destroy', 'assets/sounds/trap_destroy.wav', 0.5);
 
-export default class SoundManager {
+export default class SoundService {
 
   static sound(key) {
     if (typeof key !== 'string') throw new Error('Must provide key string');
