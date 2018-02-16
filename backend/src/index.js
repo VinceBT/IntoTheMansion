@@ -18,7 +18,7 @@ const vrs = new Set();
 const externals = new Set();
 
 const DEBUG = process.env.NODE_ENV !== 'production';
-const SAVE_MAPS = false;
+const SAVE_MAPS = true;
 
 const mergeSet = (...sets) => {
   invariant(Array.isArray(sets), 'You must indicate an array of sets');
@@ -46,22 +46,22 @@ const broadcastToSet = (set, ...args) => {
 };
 
 const generateMap = (nbrooms = 10, maxWidth = 50, maxHeight = 50, seed) => {
-  const floorDungeon = new Dungeon({
+  const dungeon = new Dungeon({
     size: [maxWidth, maxHeight],
     rooms: {
       initial: {
         min_size: [3, 3],
-        max_size: [3, 3],
-        max_exits: 1,
+        max_size: [10, 10],
+        max_exits: 2,
       },
       exit: {
         min_size: [3, 3],
-        max_size: [3, 3],
-        max_exits: 1,
+        max_size: [10, 10],
+        max_exits: 2,
       },
       any: {
         min_size: [3, 3],
-        max_size: [13, 13],
+        max_size: [10, 10],
         max_exits: 3,
       },
     },
@@ -74,16 +74,16 @@ const generateMap = (nbrooms = 10, maxWidth = 50, maxHeight = 50, seed) => {
     room_count: nbrooms,
   });
   try {
-    floorDungeon.generate();
+    dungeon.generate();
     // floorDungeon.print();
     const floorData = [];
     const floorSize = {
-      width: floorDungeon.size[0],
-      height: floorDungeon.size[1],
+      width: dungeon.size[0],
+      height: dungeon.size[1],
     };
     for (let y = 0; y < floorSize.height; y++) {
       for (let x = 0; x < floorSize.width; x++) {
-        if (floorDungeon.walls.get([x, y]))
+        if (dungeon.walls.get([x, y]))
           floorData.push('W');
         else
           floorData.push('F');
@@ -93,35 +93,44 @@ const generateMap = (nbrooms = 10, maxWidth = 50, maxHeight = 50, seed) => {
       doors: [],
       lights: [],
     };
-    for (const piece of floorDungeon.children) {
+    const ghostSpawns = [];
+    for (const piece of dungeon.children) {
+      let centerOfPiece = [
+        piece.position[0] + piece.size[0] / 2 - 0.5,
+        piece.position[1] + piece.size[1] / 2 - 0.5,
+      ];
+      if (piece.tag !== 'initial') {
+        ghostSpawns.push({
+          spawn: centerOfPiece,
+        });
+      }
       floorObjects.lights.push({
         id: `${piece.tag}_light_${Math.floor(Math.random() * 1000000)}`,
-        position: [
-          piece.position[0] + piece.size[0] / 2 - 0.5,
-          piece.position[1] + piece.size[1] / 2 - 0.5,
-        ],
+        position: centerOfPiece,
         on: true,
       });
       // piece.position; //[x, y] position of top left corner of the piece within dungeon
       // piece.tag; // 'any', 'initial' or any other key of 'rooms' options property
       // piece.size; //[width, height]
       for (const exit of piece.exits) {
-        const [[piece_exit_x, piece_exit_y], angle] = exit; // local position of exit and piece it exits to
+        const [[piece_exit_x, piece_exit_y], angle, dest_piece] = exit; // local position of exit and piece it exits to
         const [exit_x, exit_y] = piece.global_pos([piece_exit_x, piece_exit_y]); // [x, y] global pos of the exit
-        console.log(exit);
         const doorExists = floorObjects.doors.some((door) => {
           return (door.position[0] === exit_x && door.position[1] === exit_y);
         });
         if (doorExists) continue;
         floorData[exit_y * floorSize.width + exit_x] = 'D';
         const doorId = `${piece.tag}_door_${Math.floor(Math.random() * 1000000)}`;
-        floorObjects.doors.push({
+        let door = {
           id: doorId,
           position: [exit_x, exit_y],
           align: angle % 180 === 0 ? 'h' : 'v',
-        });
+        };
+        if (dest_piece.tag === 'exit')
+          door.admin = true;
+        floorObjects.doors.push(door);
       }
-      piece.local_pos(floorDungeon.start_pos); // get local position within the piece of dungeon's global position
+      // piece.local_pos(floorDungeon.start_pos); // get local position within the piece of dungeon's global position
     }
     const randomExitIndex = Math.floor(Math.random() * floorObjects.doors.length);
     floorObjects.doors[randomExitIndex].exit = true;
@@ -132,11 +141,9 @@ const generateMap = (nbrooms = 10, maxWidth = 50, maxHeight = 50, seed) => {
         map: floorData,
       },
       player: {
-        spawn: floorDungeon.start_pos,
+        spawn: dungeon.start_pos,
       },
-      ghost: {
-        spawn: [0, 0],
-      },
+      ghosts: ghostSpawns,
       objects: floorObjects,
     };
   } catch (e) {
@@ -199,10 +206,10 @@ io.on('connection', (socket) => {
     } else if (data.type === 'EXTERNAL') {
       externals.add(socket);
     } else {
-      if (done) done({ success: false, error: `Received incorrect type ${data.type}` });
+      if (done) done({success: false, error: `Received incorrect type ${data.type}`});
       return;
     }
-    if (done) done({ success: true });
+    if (done) done({success: true});
   });
 
   // GET_MAP_DEBUG
