@@ -19,6 +19,12 @@ Trap.prototype = {
           break;
         }
       }
+        this.model.skillmanager.remove.chrono = 1;
+        this.model.skillmanager.remove.info.loadTexture(this.model.skillmanager.remove.name, 0);
+        setTimeout(function(r){
+            r.chrono = 0;
+
+        },this.model.skillmanager.remove.cooldown,this.model.skillmanager.remove)
     }
   }
 }

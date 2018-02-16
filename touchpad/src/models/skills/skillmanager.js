@@ -13,9 +13,9 @@ function SkillManager(model){
     this.info.events.onDragStart.add(this.onDragStart, this);
     this.info.events.onDragStop.add(this.onDragStop, this);
     this.radius;
-    this.addShowPath();
-    this.addReveal();
-    this.addRemoveTrap();
+    this.showpath = this.addShowPath();
+    this.reveal = this.addReveal();
+    this.remove = this.addRemoveTrap();
 
 
 }
@@ -35,8 +35,8 @@ SkillManager.prototype = {
     showSkills: function(){
         for(var i = 0; i < this.skills.length;i++){
             var tmp = this.model.cache.getImage(this.skills[i].name);
-            this.skills[i].info.x = this.info.x+(i+1)*(tmp.width+10) + 10
-            this.skills[i].info.y = this.info.y;
+            this.skills[i].info.x = this.info.x+(i+1)*(tmp.width+10) + 10 +tmp.width/2
+            this.skills[i].info.y = this.info.y+tmp.height/2;
             this.skills[i].info.visible = true;
 
         }
@@ -63,6 +63,7 @@ SkillManager.prototype = {
       var tmp = this.model.cache.getImage('remove-trap');
       var skill = new RemoveTrap(this,this.info.x+(this.skills.length+1)*tmp.width+10,this.info.y);
       this.skills.push(skill);
+      return skill;
   },
   isRemoveTrapActive: function(){
     for(var i = 0; i < this.skills.length; i ++){
@@ -75,6 +76,7 @@ SkillManager.prototype = {
         var tmp = this.model.cache.getImage('show-path');
         var skill = new ShowPath(this,this.info.x+(this.skills.length+1)*tmp.width+10,this.info.y);
         this.skills.push(skill);
+        return skill;
     },
     isShowPathActive: function(){
         for(var i = 0; i < this.skills.length; i ++){
@@ -85,8 +87,9 @@ SkillManager.prototype = {
     },
     addReveal: function() {
         var tmp = this.model.cache.getImage('reveal');
-        var skill = new Reveal(this,this.info.x+(this.skills.length+1)*tmp.width+10,this.info.y);
+        var skill = new Reveal(this,this.info.x+(this.skills.length+1)*tmp.width+10,this.info.y+tmp.height/2);
         this.skills.push(skill);
+        return skill;
     },
     isRevealActive: function(){
         for(var i = 0; i < this.skills.length; i ++){

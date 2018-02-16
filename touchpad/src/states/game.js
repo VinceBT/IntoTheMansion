@@ -12,6 +12,7 @@ IntoTheMansion.Game = function() {
 IntoTheMansion.Game.prototype = {
     preload: function() {
         var model = this;
+        console.log(this);
             IntoTheMansion.socket.emit('GET_MAP', "mansion1", function (data) {
                 model.parser = new Parser(data);
                 model.cache.addTilemap('dynamicMap', null, model.parser.map.tiles, Phaser.Tilemap.CSV);
@@ -24,18 +25,28 @@ IntoTheMansion.Game.prototype = {
 
                 model.skillmanager = new SkillManager(model);
                 model.input.addMoveCallback(model.draw, model);
+
+                model.player = new Player(model,
+                    model.parser.pcoord[0]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE,
+                    model.parser.pcoord[1]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE);
+
+                model.ghosts.push(new Ghost(model,0,
+                    model.parser.gcoord[0][0]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE,
+                    model.parser.gcoord[0][1]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE));
+                model.ghosts.push(new Ghost(model,1,
+                    model.parser.gcoord[1][0]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE,
+                    model.parser.gcoord[1][1]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE));
+
                 model.circle = model.add.graphics(0,0);
                 model.circle.lineStyle(1,0xffffff);
-                model.circle.drawCircle(0,0,model.skillmanager.getRadius());
+                model.circle.drawCircle(model.player.info.x,model.player.info.y,model.skillmanager.getRadius()*2);
                 model.circle.visible = false;
                 model.hasMap = true;
             });
         IntoTheMansion.socket.on('PLAYER_POSITION_UPDATE',function(json){
             if(!model.hasMap)return;
-            if(!model.player){
-                model.player = new Player(model);
-            }
             else{
+                model.player.info.visible = true;
                 model.player.info.x = json.position[0]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE;
                 model.player.info.y = json.position[1]*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE;
                 model.player.info.angle = json.rotation.y*180/Math.PI;
@@ -45,13 +56,6 @@ IntoTheMansion.Game.prototype = {
         });
         IntoTheMansion.socket.on('GHOST_POSITION_UPDATE',function(json){
             if(!model.hasMap)return;
-            if(model.ghosts.length < 2){
-                if(model.ghosts.length == 0)
-                    model.ghosts.push(new Ghost(model,json.id));
-
-                else if(model.ghosts.length == 1 && model.ghosts[0].id != json.id)
-                    model.ghosts.push(new Ghost(model,json.id));
-            }
             for(var i = 0; i < model.ghosts.length; i ++){
                 if(model.ghosts[i].id == json.id){
                     model.ghosts[i].info.x = json.position[0]*IntoTheMansion._TILE_SIZE * 2 + IntoTheMansion._TILE_SIZE ;
@@ -119,6 +123,14 @@ IntoTheMansion.Game.prototype = {
             model.preload();
         });
     },
+    debug_trap: function(id,x,y){
+        new Trap(
+            this,
+            id,
+            x*IntoTheMansion._TILE_SIZE*2 +IntoTheMansion._TILE_SIZE ,
+            y*IntoTheMansion._TILE_SIZE*2 + IntoTheMansion._TILE_SIZE
+        );
+    },
     create: function() {
         this.stage.backgroundColor = "#66665e";
         new LoopListener(this);
@@ -126,14 +138,14 @@ IntoTheMansion.Game.prototype = {
     draw: function(pointer,x,y){
 
         if(pointer.isDown && this.skillmanager.isShowPathActive() && this.parser.map.data[this.layer.getTileX(x)][this.layer.getTileY(y)]){
-
             var show = this.skillmanager.getShowPathSkill();
             if(
               !show.allowAdd(this.layer.getTileX(x),this.layer.getTileY(y),this) ||
-              show.tilesChanged.length > show.tileLimit ||
               show.containsTile(this.layer.getTileX(x),this.layer.getTileY(y)))
                 return;
-
+            if(this.skillmanager.showpath.chrono == 0){
+                this.skillmanager.showpath.chrono = 1;
+            }
             if(!show.start){
                 show.start = true;
                 setTimeout(this.remove,show.timer,this);
@@ -150,6 +162,41 @@ IntoTheMansion.Game.prototype = {
             model.map.fill(model.parser.map.data[show.tilesChanged[i][0]][show.tilesChanged[i][1]], show.tilesChanged[i][0], show.tilesChanged[i][1], 1, 1);
         }
         show.clearTiles();
+        model.skillmanager.showpath.info.loadTexture(model.skillmanager.showpath.name, 0);
+        model.skillmanager.showpath.chrono = 2;
+        model.skillmanager.showpath.active = false;
+        setTimeout(function(r){
+            r.chrono = 0;
+        },model.skillmanager.showpath.cooldown,model.skillmanager.showpath);
+    },
+    update: function(){
+        if(!this.hasMap)return;
+        if(this.skillmanager.reveal.chrono == 1){
+            this.skillmanager.reveal.info.rotation+=0.1;
+        }
+        else if(this.skillmanager.reveal.chrono == 2) {
+            this.skillmanager.reveal.info.rotation+=1;
+        }
+        else{
+            this.skillmanager.reveal.info.rotation=0;
+        }
+
+        if(this.skillmanager.remove.chrono == 1){
+            this.skillmanager.remove.info.rotation+=1;
+        }
+        else{
+            this.skillmanager.remove.info.rotation=0;
+        }
+
+        if(this.skillmanager.showpath.chrono == 1){
+            this.skillmanager.showpath.info.rotation+=0.1;
+        }
+        else if(this.skillmanager.showpath.chrono == 2){
+            this.skillmanager.showpath.info.rotation+=1;
+        }
+        else{
+            this.skillmanager.showpath.info.rotation=0;
+        }
     },
 
     restart: function(){

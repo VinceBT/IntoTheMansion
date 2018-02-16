@@ -8,7 +8,7 @@ var IntoTheMansion = {
     FLOOR: 6,
     EXIT: 95,
     PATH: 1,
-    socket : io('http://localhost:8080')
+    socket : io('http://192.168.43.163:8080')
 };
 IntoTheMansion.Boot = function(game) {}
 IntoTheMansion.Boot.prototype = {
@@ -51,6 +51,10 @@ IntoTheMansion.Boot.prototype = {
             this.game.scale.startFullScreen(false);
             this.game.scale.refresh();
         }
-        this.game.state.start('Preload');
+        if(this.game.state.current == "Game"){
+            this.game.state.restart();
+        }
+        else
+            this.game.state.start('Preload');
     }
 };
