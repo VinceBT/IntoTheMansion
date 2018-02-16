@@ -8,6 +8,7 @@ import serverStatus from '../assets/status.json';
 import mansionSample from '../assets/mansion_sample.json';
 import Protocol from './Protocol';
 import Dungeon from 'dungeon-generator';
+import {shuffleArray} from "./utils";
 
 const io = require('socket.io')();
 const middleware = require('socketio-wildcard')();
@@ -126,14 +127,18 @@ const generateMap = (nbrooms = 10, maxWidth = 50, maxHeight = 50, seed) => {
           position: [exit_x, exit_y],
           align: angle % 180 === 0 ? 'h' : 'v',
         };
-        if (dest_piece.tag === 'exit')
-          door.admin = true;
+        console.log(piece.tag, dest_piece.tag);
+        if (piece.tag === 'exit' || dest_piece.tag === 'exit') {
+          door.exit = true;
+        }
         floorObjects.doors.push(door);
       }
       // piece.local_pos(floorDungeon.start_pos); // get local position within the piece of dungeon's global position
     }
+    /*
     const randomExitIndex = Math.floor(Math.random() * floorObjects.doors.length);
     floorObjects.doors[randomExitIndex].exit = true;
+    */
     return {
       name: 'Mansion',
       terrain: {
@@ -143,7 +148,7 @@ const generateMap = (nbrooms = 10, maxWidth = 50, maxHeight = 50, seed) => {
       player: {
         spawn: dungeon.start_pos,
       },
-      ghosts: ghostSpawns,
+      ghosts: shuffleArray(ghostSpawns),
       objects: floorObjects,
     };
   } catch (e) {
@@ -232,7 +237,7 @@ io.on('connection', (socket) => {
         callback(obj);
       } else {
         console.log('File does not exist, generating...');
-        const obj = generateMap(15, 50, 30, seed);
+        const obj = generateMap(40, 50, 30, seed);
         callback(obj);
         if (SAVE_MAPS) {
           console.log('Saving...');

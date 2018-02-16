@@ -93,13 +93,14 @@ canvas {
 .hud {
     margin: 10px;
     color: #fff;
-    font-family: Roboto;
+    font-family: Roboto, Arial, sans-serif;
 }
 
 .scoreInfo {
     font-family: "Creepster", "Times New Roman", serif;
     width: 275px;
     border: 3px ridge white;
+    background-color: rgba(0, 0, 0, .6);
 }
 
 .scoreText {

@@ -33,7 +33,7 @@ const register = () => new Promise((resolve, reject) => {
 });
 
 const getMap = () => new Promise((resolve, reject) => {
-  external.emit(Protocol.GET_MAP_DEBUG, (mapData) => {
+  external.emit(Protocol.GET_MAP, 'mansion1', (mapData) => {
     if (mapData)
       resolve(mapData);
     else reject();

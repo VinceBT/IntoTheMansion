@@ -14,11 +14,11 @@ import ModelServices from '../services/ModelServices';
 
 const DEBUG_MAP_LOAD = false;
 
-const GHOST_RANGE_SIZE = 7;
+const GHOST_RANGE_SIZE = 6;
 const GHOST_NUMBER = 2;
 const GHOST_AVAILABLE_COLORS = [0xff0000, 0x00ff00, 0xffff00, 0xff00ff, 0x0000ff];
 const GHOST_COLORS = shuffleArray(GHOST_AVAILABLE_COLORS).slice(0, GHOST_NUMBER);
-const EXPLORER_COLOR = '#00ffff';
+const EXPLORER_COLOR = 0x00ffff;
 
 const DISTANCE_THRESHOLD = 0.1;
 
@@ -31,16 +31,17 @@ let ghostScores = Array(GHOST_NUMBER).fill(0);
 
 function printScore($el) {
   $el.empty();
+  let immExplorerColor = new Color(EXPLORER_COLOR);
   $el.append(`
-    <div class="scoreValue" style="color: ${EXPLORER_COLOR}; background-color: rgba(0, 255, 255, 0.2)">
+    <div class="scoreValue" style="color: ${immExplorerColor.hex()}; background-color: ${immExplorerColor.alpha(0.2).rgb()}">
         <div class="avatar avatarExplorer"/>
         <p>Explorer: ${explorerScore}</p>
     </div>
   `);
   ghostScores.forEach((score, i) => {
-    let immColor = new Color(GHOST_COLORS[i]);
+    let immGhostColor = new Color(GHOST_COLORS[i]);
     $el.append(`
-      <div class="scoreValue" style="color: ${immColor.hex()}; background-color: ${immColor.alpha(0.2).rgb()}">
+      <div class="scoreValue" style="color: ${immGhostColor.hex()}; background-color: ${immGhostColor.alpha(0.2).rgb()}">
           <div class="avatar avatarHunter1"/>
           <p>Ghost ${i + 1}: ${score}</p>
       </div>
@@ -53,13 +54,11 @@ const $hud = $(`
 <div class="absolutefill hud">
   <div class="scoreInfo">
     <div class="scoreText">Score</div>
-    <div class="scoreValues">
-    </div>
+    <div class="scoreValues"></div>
   </div>
   <div class="scoreInfo reversed bottomAbsolute">
     <div class="scoreText">Score</div>
-    <div class="scoreValues">
-    </div>
+    <div class="scoreValues"></div>
   </div>
 </div>
 `);
@@ -97,13 +96,6 @@ const $youwin = $(`
 </div>
 `);
 $youwin.hide();
-
-function endScreenMessage(playerId, deathType) {
-  if (deathType === 'trap') {
-    return (`Hunter ${playerId} has killed the explorer with a trap`);
-  }
-  return (`Ghost ${playerId} has killed the explorer`);
-}
 
 class SceneWidget extends TUIOWidget {
 
@@ -355,7 +347,7 @@ class SceneWidget extends TUIOWidget {
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
         if (flooredIntersectPosition === null) return;
         flooredIntersectPosition.setY(1);
-        const fakeWallGeometry = new THREE.BoxGeometry(1, 5, 1);
+        const fakeWallGeometry = new THREE.BoxGeometry(1, 10, 1);
         const fakeWallMaterial = new THREE.MeshBasicMaterial({
           color: GHOST_COLORS[tagData.player],
           transparent: true,
@@ -502,7 +494,7 @@ class SceneWidget extends TUIOWidget {
 
   buildScene() {
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000);
+    this.camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1000);
     this.renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
     this.renderer.setClearColor(0xffffff, 0);
 
@@ -531,7 +523,7 @@ class SceneWidget extends TUIOWidget {
 
     const playerConeGeometry = new THREE.ConeGeometry(0.3, 1.5, 8);
     this.playerMaterial = new THREE.MeshBasicMaterial({
-      color: 0x00ffff,
+      color: EXPLORER_COLOR,
       transparent: true,
       opacity: 0.7,
     });
@@ -628,7 +620,7 @@ class SceneWidget extends TUIOWidget {
         ghostGroup.position.z = ghost.spawn[1];
       });
 
-      console.log(playerGroup.position);
+      // console.log(playerGroup.position);
 
       const cameraWidthMinDistance = (mapWidth / 2) / Math.tan(this.camera.fov * this.camera.aspect / 2 * Math.PI / 180);
       const cameraHeightMinDistance = (mapHeight / 2) / Math.tan((this.camera.fov) / 2 * Math.PI / 180);
@@ -694,7 +686,7 @@ class SceneWidget extends TUIOWidget {
         const light = new THREE.Mesh(lightGeometry, lightMaterial.clone());
         light.position.x = lightData.position[0];
         light.position.z = lightData.position[1];
-        light.position.y = 5;
+        light.position.y = 8;
         const texLoader = new THREE.TextureLoader();
         const spriteMaterial = new THREE.SpriteMaterial({
           map: texLoader.load('../../assets/images/glow.png'),
@@ -705,6 +697,7 @@ class SceneWidget extends TUIOWidget {
         const sprite = light.sprite = new THREE.Sprite(spriteMaterial);
         sprite.scale.set(3, 3, 3);
         const pointLight = light.pointLight = new THREE.PointLight(0xffffff, 1, 15, 1);
+        pointLight.position.y = -6;
         light.add(pointLight);
         light.add(sprite);
         this.lightsMap.set(lightData.id, light);
@@ -725,7 +718,7 @@ class SceneWidget extends TUIOWidget {
       playerGroup.rotation.y = -playerPositionData.rotation.y;
 
       const distance = Math.sqrt(Math.pow(playerPositionData.position[0] - this.previousPosition[0], 2) + Math.pow(playerPositionData.position[1] - this.previousPosition[1], 2));
-      console.log(distance);
+      // console.log(distance);
       if (distance > DISTANCE_THRESHOLD) {
         SoundService.volume('player_move', 0.7);
         this._handlePlayerMove();
@@ -817,13 +810,16 @@ class SceneWidget extends TUIOWidget {
       const $scoreValues = $('.scoreValues');
       if (gameOverData.won === true) {
         SoundService.play('ghost_lose');
-        explorerScore.value++;
+        explorerScore++;
         printScore($scoreValues);
         $youlost.show();
       } else {
         SoundService.play('ghost_win');
-        ghostScores[gameOverData.killedBy] = ghostScores[gameOverData.killedBy]++;
-        $youwin.find('.message').text(endScreenMessage(gameOverData.killedBy + 1, gameOverData.deathType));
+        let killerGhostId = gameOverData.killedBy || 0;
+        ghostScores[killerGhostId] = (ghostScores[killerGhostId]) + 1;
+        if (gameOverData.deathType === 'trap') {
+          $youwin.find('.message').text(`Ghost ${gameOverData.killedBy + 1} has killed the explorer with a trap`);
+        } else $youwin.find('.message').text(`Ghost ${gameOverData.killedBy + 1} has eaten the explorer`);
         printScore($scoreValues);
         $youwin.show();
       }

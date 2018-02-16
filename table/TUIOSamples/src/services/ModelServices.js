@@ -22,13 +22,13 @@ export default class ModelServices {
       const assetSrc = modelUriMap.get(key);
       const jsonLoader = new THREE.JSONLoader();
       jsonLoader.load(assetSrc, (geometry) => {
-        console.log(`Loaded ${key} -> ${assetSrc}`);
+        console.log(`[MODEL] Loaded ${key} -> ${assetSrc}`);
         modelMap.set(key, geometry);
         resolve(geometry);
       }, (xhr) => {
-        // console.log(`Loading ${key} -> ${assetSrc} ${xhr.loaded / xhr.total * 100}% loaded`);
+        // console.log(`[MODEL] Loading ${key} -> ${assetSrc} ${xhr.loaded / xhr.total * 100}% loaded`);
       }, (err) => {
-        console.log(`An error happened: ${err}`);
+        console.log(`[MODEL] An error happened: ${err}`);
       });
     });
   }
