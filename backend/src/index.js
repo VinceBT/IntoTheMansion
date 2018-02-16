@@ -237,7 +237,7 @@ io.on('connection', (socket) => {
         callback(obj);
       } else {
         console.log('File does not exist, generating...');
-        const obj = generateMap(40, 50, 30, seed);
+        const obj = generateMap(20, 50, 30, seed);
         callback(obj);
         if (SAVE_MAPS) {
           console.log('Saving...');
