@@ -10,6 +10,7 @@ IntoTheMansion.MainMenu.prototype = {
         t.events.onInputDown.add(this.startGame, this);
     },
     startGame: function() {
+        console.log(this.game.state);
         this.game.scale.setGameSize(2000, 2000);
         this.game.state.start('Game');
     }

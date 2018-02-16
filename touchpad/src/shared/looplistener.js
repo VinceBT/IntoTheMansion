@@ -6,10 +6,9 @@ function LoopListener(model){
     setInterval(function(model,distance){
         for(var i = 0; i < model.entities.length;i++){
             if (model.entities[i].name == "trap" &&
-                distance(model.player,model.entities[i]) < model.skillmanager.getRadius()**2
+                distance(model.player,model.entities[i]) <= model.skillmanager.getRadius()**2
             ){
-                console.log("ok");
-              model.entities[i].info.visible = model.skillmanager.isRevealActive();
+              model.entities[i].info.visible = model.skillmanager.reveal.chrono == 1 ? true:false;
             }
         }
     },200,model,distance);

@@ -4,15 +4,17 @@ function Parser(json){
         this.height = this.json.terrain.height;
         this.floors = this.json.terrain.floors;
         this.map = new Map(this.width,this.height);
+        this.pcoord = json.player.spawn;
+        this.gcoord = [json.ghosts[0].spawn,json.ghosts[1].spawn];
         this.parse();
 }
     Parser.prototype = {
 
     parse: function(){
-      var exit;
+      var exit = [];
       for(let i = 0; i < this.json.objects.doors.length;i++){
         if(this.json.objects.doors[i].exit){
-          exit = this.json.objects.doors[i].position;
+          exit.push(this.json.objects.doors[i].position);
         }
       }
         for(let i = 0; i < this.json.terrain.map.length; i ++){
@@ -24,10 +26,15 @@ function Parser(json){
                     this.map.push(IntoTheMansion.FLOOR);
                     break;
                 case 'D':
-                    if(i == exit[0] + (exit[1]) * this.width)
-                      this.map.push(IntoTheMansion.EXIT);
-                    else
-                      this.map.push(IntoTheMansion.DOOR);
+                    var done = false;
+                    for(var k = 0; k < exit.length; k++) {
+                        if (i == exit[k][0] + (exit[k][1]) * this.width) {
+                            this.map.push(IntoTheMansion.EXIT);
+                            done = true;
+                        }
+                    }
+                    if(!done)
+                        this.map.push(IntoTheMansion.DOOR);
                     break;
                 default: break;
             }
