@@ -3,10 +3,10 @@ var IntoTheMansion = {
     _HEIGHT: window.innerHeight * window.devicePixelRatio,
     _TILE_SIZE: 16,
     _TILE_RENDERING:16,
-    WALL: 11,
+    WALL: 66,
     DOOR: 47,
-    FLOOR: 6,
-    EXIT: 95,
+    FLOOR: 65,
+    EXIT: 64,
     PATH: 1,
     socket : io('http://localhost:8080')
 };
