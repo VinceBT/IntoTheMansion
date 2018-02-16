@@ -1,15 +1,14 @@
 import $ from 'jquery/dist/jquery.min';
 import TUIOManager from 'tuiomanager/core/TUIOManager';
 import io from 'socket.io-client';
-import SoundManager from './SoundManager';
+import SoundService from './services/SoundService';
 import SceneWidget from './widgets/SceneWidget';
 import status from '../assets/status.json';
-import ZoomWidget from './widgets/ZoomWidget';
 
 const tuioManager = new TUIOManager();
 tuioManager.start();
 
-SoundManager.play('bgm');
+SoundService.play('bgm');
 
 const fullRemote = `http://${status.devRemote}:${status.port}`;
 const socket = io(fullRemote);
@@ -32,9 +31,7 @@ const removeWidgets = () => {
 
 const buildApp = () => {
   const sceneWidget = new SceneWidget(socket);
-  const zoomWidget = new ZoomWidget();
   addWidget(sceneWidget);
-  // addWidget(zoomWidget);
 };
 
 $(window).ready(() => {
