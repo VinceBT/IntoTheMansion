@@ -17,7 +17,8 @@ const DEBUG_MAP_LOAD = false;
 const GHOST_RANGE_SIZE = 6;
 const GHOST_NUMBER = 2;
 const GHOST_AVAILABLE_COLORS = [0xff0000, 0x00ff00, 0xffff00, 0xff00ff, 0x0000ff];
-const GHOST_COLORS = shuffleArray(GHOST_AVAILABLE_COLORS).slice(0, GHOST_NUMBER);
+const GHOST_COLORS = GHOST_AVAILABLE_COLORS.slice(0, GHOST_NUMBER);
+// const GHOST_COLORS = shuffleArray(GHOST_AVAILABLE_COLORS).slice(0, GHOST_NUMBER);
 const EXPLORER_COLOR = 0x00ffff;
 
 const DISTANCE_THRESHOLD = 0.1;
@@ -26,8 +27,13 @@ let ghostDirectionGeometry = new THREE.ConeGeometry(2, 5, 20);
 let trapGeometry = new THREE.BoxGeometry(1, 2, 1);
 let screamerGeometry = new THREE.BoxGeometry(1, 2, 1);
 
+const lightGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+const lightMaterial = new THREE.MeshBasicMaterial({color: 0xffff00, transparent: true, opacity: 0.7});
+
 let explorerScore = 0;
 let ghostScores = Array(GHOST_NUMBER).fill(0);
+
+const textureLoader = new THREE.TextureLoader();
 
 function printScore($el) {
   $el.empty();
@@ -433,9 +439,14 @@ class SceneWidget extends TUIOWidget {
           this.doorsMap.get(trappedDoorId).mesh.material.color.setHex(GHOST_COLORS[tagData.player]);
 
 
-
           const currentPlayerEntities = this.playerEntities[tagData.player];
-          currentPlayerEntities.traps.unshift({ id: hash, tagId: tuioTag.id, mesh: this.doorsMap.get(trappedDoorId).mesh, type: 'ScreamerType', door: trappedDoorId });
+          currentPlayerEntities.traps.unshift({
+            id: hash,
+            tagId: tuioTag.id,
+            mesh: this.doorsMap.get(trappedDoorId).mesh,
+            type: 'ScreamerType',
+            door: trappedDoorId
+          });
           SoundManager.play('trap_trigger');
           if (currentPlayerEntities.traps.length > 3) {
             const oldTrap = currentPlayerEntities.traps.pop();
@@ -494,7 +505,7 @@ class SceneWidget extends TUIOWidget {
 
   buildScene() {
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1000);
+    this.camera = new THREE.PerspectiveCamera(15, window.innerWidth / window.innerHeight, 0.1, 1000);
     this.renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
     this.renderer.setClearColor(0xffffff, 0);
 
@@ -567,7 +578,7 @@ class SceneWidget extends TUIOWidget {
         side: THREE.DoubleSide,
       });
       const ghostRange = ghostGroup.ghostRange = new THREE.Mesh(ghostRangeGeometry, ghostRangeMaterial);
-      ghostRange.position.y = 3;
+      ghostRange.position.y = 1;
       ghostRange.rotation.x = -Math.PI / 2;
       ghostGroup.add(ghostRange);
       const pointLight = ghostGroup.pointLight = new THREE.PointLight(ghostColor, 1, 8, 1);
@@ -589,6 +600,15 @@ class SceneWidget extends TUIOWidget {
 
     ModelServices.load('direction').then(geometry => {
       ghostDirectionGeometry = geometry;
+    });
+
+    ModelServices.load('chandelier').then(geometry => {
+      Array.from(this.lightsMap.values()).forEach((light) => {
+        const lightModel = light.model = new THREE.Mesh(geometry, lightMaterial.clone());
+        lightModel.scale.multiplyScalar(1.2);
+        lightModel.rotation.y = Math.random() * Math.PI * 2;
+        light.add(lightModel);
+      });
     });
 
     ModelServices.load('trap').then(geometry => {
@@ -622,9 +642,10 @@ class SceneWidget extends TUIOWidget {
 
       // console.log(playerGroup.position);
 
-      const cameraWidthMinDistance = (mapWidth / 2) / Math.tan(this.camera.fov * this.camera.aspect / 2 * Math.PI / 180);
-      const cameraHeightMinDistance = (mapHeight / 2) / Math.tan((this.camera.fov) / 2 * Math.PI / 180);
+      const cameraWidthMinDistance = ((mapWidth / 2) + 0.5) / Math.tan(this.camera.fov * this.camera.aspect / 2 * Math.PI / 180);
+      const cameraHeightMinDistance = ((mapHeight / 2) + 0.5) / Math.tan((this.camera.fov) / 2 * Math.PI / 180);
       this.camera.position.y = Math.max(cameraWidthMinDistance, cameraHeightMinDistance) + 10;
+      // this.camera.position.y = 30;
       console.log(this.camera, 'CAMERA COMPUTED ', cameraWidthMinDistance, cameraHeightMinDistance);
 
       SoundService.play('player_move');
@@ -634,16 +655,21 @@ class SceneWidget extends TUIOWidget {
       SoundService.volume('radio', 0.05);
 
       const wallGeometry = new THREE.BoxGeometry(1, 8, 1);
-      const wallMaterial = new THREE.MeshLambertMaterial({color: 0x252525});
+      const wallMaterial = new THREE.MeshPhongMaterial({
+        color: 0x252525,
+        normalMap: textureLoader.load("./assets/textures/brick_floor_normal.png"),
+      });
 
-      const floorGeometry = new THREE.BoxGeometry(1, 1, 1);
-      const floorMaterial = new THREE.MeshLambertMaterial({color: 0x444444});
+      const floorGeometry = new THREE.BoxGeometry(1, 0.1, 1);
+      const floorMaterial = new THREE.MeshPhongMaterial({
+        color: 0x444444,
+        normalMap: textureLoader.load("./assets/textures/brick_floor_normal.png"),
+        shininess: 1,
+        normalScale: new THREE.Vector2(0.7, 0.7),
+      });
 
       const doorGeometry = new THREE.BoxGeometry(1, 5, 0.3);
       const doorMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
-
-      const lightGeometry = new THREE.SphereGeometry(0.5, 32, 32);
-      const lightMaterial = new THREE.MeshBasicMaterial({color: 0xffff00, transparent: true});
 
       map.forEach((elt, index) => {
         const posX = Math.floor(index % mapWidth);
@@ -683,7 +709,7 @@ class SceneWidget extends TUIOWidget {
       });
 
       mapData.objects.lights.forEach((lightData) => {
-        const light = new THREE.Mesh(lightGeometry, lightMaterial.clone());
+        const light = new THREE.Object3D();
         light.position.x = lightData.position[0];
         light.position.z = lightData.position[1];
         light.position.y = 8;
@@ -695,7 +721,7 @@ class SceneWidget extends TUIOWidget {
           blending: THREE.AdditiveBlending,
         });
         const sprite = light.sprite = new THREE.Sprite(spriteMaterial);
-        sprite.scale.set(3, 3, 3);
+        sprite.scale.set(2, 2, 2);
         const pointLight = light.pointLight = new THREE.PointLight(0xffffff, 1, 15, 1);
         pointLight.position.y = -6;
         light.add(pointLight);
