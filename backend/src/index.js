@@ -18,6 +18,7 @@ const vrs = new Set();
 const externals = new Set();
 
 const DEBUG = process.env.NODE_ENV !== 'production';
+const SAVE_MAPS = false;
 
 const mergeSet = (...sets) => {
   invariant(Array.isArray(sets), 'You must indicate an array of sets');
@@ -44,28 +45,32 @@ const broadcastToSet = (set, ...args) => {
   });
 };
 
-const generateMap = (nbrooms = 20, maxWidth = 30, maxHeight = 30, seed) => {
+const generateMap = (nbrooms = 10, maxWidth = 50, maxHeight = 50, seed) => {
   const floorDungeon = new Dungeon({
     size: [maxWidth, maxHeight],
-    seed,
     rooms: {
       initial: {
         min_size: [3, 3],
-        max_size: [5, 5],
-        max_exits: 2,
+        max_size: [3, 3],
+        max_exits: 1,
+      },
+      exit: {
+        min_size: [3, 3],
+        max_size: [3, 3],
+        max_exits: 1,
       },
       any: {
         min_size: [3, 3],
-        max_size: [20, 20],
-        max_exits: 4,
+        max_size: [13, 13],
+        max_exits: 3,
       },
     },
-    max_corridor_length: 1,
-    min_corridor_length: 1,
+    max_corridor_length: 0,
+    min_corridor_length: 0,
     corridor_density: 0,
-    symmetric_rooms: true,
-    interconnects: 1,
-    max_interconnect_length: 1,
+    symmetric_rooms: false,
+    interconnects: 10,
+    max_interconnect_length: 1000,
     room_count: nbrooms,
   });
   try {
@@ -103,7 +108,7 @@ const generateMap = (nbrooms = 20, maxWidth = 30, maxHeight = 30, seed) => {
       for (const exit of piece.exits) {
         const [[piece_exit_x, piece_exit_y], angle] = exit; // local position of exit and piece it exits to
         const [exit_x, exit_y] = piece.global_pos([piece_exit_x, piece_exit_y]); // [x, y] global pos of the exit
-        console.log(floorData.length, exit_y,exit_x);
+        console.log(exit);
         const doorExists = floorObjects.doors.some((door) => {
           return (door.position[0] === exit_x && door.position[1] === exit_y);
         });
@@ -222,8 +227,10 @@ io.on('connection', (socket) => {
         console.log('File does not exist, generating...');
         const obj = generateMap(15, 50, 30, seed);
         callback(obj);
-        console.log('Saving...');
-        fs.writeFileSync(jsonPath, JSON.stringify(obj));
+        if (SAVE_MAPS) {
+          console.log('Saving...');
+          fs.writeFileSync(jsonPath, JSON.stringify(obj));
+        } else console.log('Not saving');
       }
     } catch (primaryErr) {
       console.error(primaryErr);
