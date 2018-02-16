@@ -8,7 +8,7 @@ import serverStatus from '../assets/status.json';
 import mansionSample from '../assets/mansion_sample.json';
 import Protocol from './Protocol';
 import Dungeon from 'dungeon-generator';
-import {shuffleArray} from "./utils";
+import { shuffleArray } from './utils';
 
 const io = require('socket.io')();
 const middleware = require('socketio-wildcard')();
@@ -96,7 +96,7 @@ const generateMap = (nbrooms = 10, maxWidth = 50, maxHeight = 50, seed) => {
     };
     const ghostSpawns = [];
     for (const piece of dungeon.children) {
-      let centerOfPiece = [
+      const centerOfPiece = [
         piece.position[0] + piece.size[0] / 2 - 0.5,
         piece.position[1] + piece.size[1] / 2 - 0.5,
       ];
@@ -122,15 +122,15 @@ const generateMap = (nbrooms = 10, maxWidth = 50, maxHeight = 50, seed) => {
         if (doorExists) continue;
         floorData[exit_y * floorSize.width + exit_x] = 'D';
         const doorId = `${piece.tag}_door_${Math.floor(Math.random() * 1000000)}`;
-        let door = {
+        const door = {
           id: doorId,
           position: [exit_x, exit_y],
           align: angle % 180 === 0 ? 'h' : 'v',
         };
         console.log(piece.tag, dest_piece.tag);
-        if (piece.tag === 'exit' || dest_piece.tag === 'exit') {
+        if (piece.tag === 'exit' || dest_piece.tag === 'exit')
           door.exit = true;
-        }
+
         floorObjects.doors.push(door);
       }
       // piece.local_pos(floorDungeon.start_pos); // get local position within the piece of dungeon's global position
@@ -211,10 +211,10 @@ io.on('connection', (socket) => {
     } else if (data.type === 'EXTERNAL') {
       externals.add(socket);
     } else {
-      if (done) done({success: false, error: `Received incorrect type ${data.type}`});
+      if (done) done({ success: false, error: `Received incorrect type ${data.type}` });
       return;
     }
-    if (done) done({success: true});
+    if (done) done({ success: true });
   });
 
   // GET_MAP_DEBUG
@@ -242,7 +242,7 @@ io.on('connection', (socket) => {
         if (SAVE_MAPS) {
           console.log('Saving...');
           fs.writeFileSync(jsonPath, JSON.stringify(obj));
-        } else console.log('Not saving');
+        } else { console.log('Not saving'); }
       }
     } catch (primaryErr) {
       console.error(primaryErr);

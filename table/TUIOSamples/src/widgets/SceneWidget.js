@@ -2,12 +2,13 @@ import $ from 'jquery/dist/jquery.min';
 import TUIOWidget from 'tuiomanager/core/TUIOWidget';
 import { WINDOW_HEIGHT, WINDOW_WIDTH } from 'tuiomanager/core/constants';
 import * as THREE from 'three';
+import TWEEN from 'tween.js';
 import Color from 'color';
 import WindowResize from 'three-window-resize';
 import debounce from 'throttle-debounce/debounce';
 
 import Protocol from '../Protocol';
-import { cunlerp, randomHash, shuffleArray } from '../utils';
+import { cunlerp, randomHash } from '../utils';
 import playerconfigs from '../../assets/playerconfigs.json';
 import SoundService from '../services/SoundService';
 import ModelServices from '../services/ModelServices';
@@ -72,7 +73,8 @@ $hud.find('.hud-wrapper')
     <div class="scoreText">Score</div>
     <div class="scoreValues"></div>
   </div>
-`).append(`
+`)
+  .append(`
   <div class="revealSpell">
     <div class="icon"></div>
     <div class="text">Scream ready</div>
@@ -112,6 +114,10 @@ const $youwin = $(`
 </div>
 `);
 $youwin.hide();
+
+const playerGroup = new THREE.Group();
+const ghostGroups = new Array(GHOST_NUMBER).fill(null)
+  .map(() => new THREE.Group());
 
 class SceneWidget extends TUIOWidget {
 
@@ -311,8 +317,10 @@ class SceneWidget extends TUIOWidget {
         SoundService.play('switch_off');
         console.log(`[LIGHTS] Shutting off light ${lightId}`);
         const lightElement = this.lightsMap.get(lightId);
-        lightElement.material.opacity = 0.2;
-        lightElement.children.forEach(c => c.visible = false);
+        lightElement.model.material.opacity = 0.2;
+        lightElement.children.forEach((c) => {
+          if (lightElement.model !== c) c.visible = false;
+        });
         this.rotateProgress = 0;
       }
     }
@@ -346,8 +354,21 @@ class SceneWidget extends TUIOWidget {
       } else if (tagData.type === 'reveal') {
         if (this.canRevealPlayer) {
           this.canRevealPlayer = false;
-          $('.revealSpell').addClass('disabled').find('.text').text('Scream charging');
+          $('.revealSpell')
+            .addClass('disabled')
+            .find('.text')
+            .text('Scream charging');
           SoundService.play('reveal');
+          for (const ghostGroup of ghostGroups) {
+            const originalScale = ghostGroup.modelGhost.scale.clone();
+            new TWEEN.Tween(ghostGroup.modelGhost.scale)
+              .to({ x: 2, y: 2, z: 2 }, 200)
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .chain(new TWEEN.Tween(ghostGroup.modelGhost.scale)
+                .to(originalScale, 200)
+                .easing(TWEEN.Easing.Quadratic.Out))
+              .start();
+          }
           setTimeout(() => {
             this.revealPlayer = true;
             SoundService.play('screamer_trigger');
@@ -355,7 +376,10 @@ class SceneWidget extends TUIOWidget {
               this.revealPlayer = false;
               setTimeout(() => {
                 this.canRevealPlayer = true;
-                $('.revealSpell').removeClass('disabled').find('.text').text('Scream ready');
+                $('.revealSpell')
+                  .removeClass('disabled')
+                  .find('.text')
+                  .text('Scream ready');
                 SoundService.play('spell');
                 this.socket.emit(Protocol.GHOST_SCREAM);
               }, 10000);
@@ -404,7 +428,13 @@ class SceneWidget extends TUIOWidget {
             oldTrap.mesh.material.color.setHex(0xFFFFFF);
             this.doorsMap.get(oldTrap.door).trapped = false;
           } else {
-            this.scene.remove(oldTrap.mesh);
+            new TWEEN.Tween(oldTrap.mesh.scale)
+              .to({ x: 0, y: 0, z: 0 }, 400)
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .onComplete(() => {
+                this.scene.remove(oldTrap.mesh);
+              })
+              .start();
           }
           this.socket.emit(Protocol.REMOVE_TRAP, {
             id: oldTrap.id,
@@ -414,9 +444,9 @@ class SceneWidget extends TUIOWidget {
           if (i === 0) {
             trap.mesh.material.opacity = 1;
           } else if (i === 1) {
-            trap.mesh.material.opacity = 0.7;
+            trap.mesh.material.opacity = 0.75;
           } else {
-            trap.mesh.material.opacity = 0.4;
+            trap.mesh.material.opacity = 0.5;
           }
         });
         this.socket.emit(Protocol.CREATE_TRAP, {
@@ -551,10 +581,6 @@ class SceneWidget extends TUIOWidget {
     });
     */
 
-    const playerGroup = new THREE.Group();
-    const ghostGroups = new Array(GHOST_NUMBER).fill(null)
-      .map(() => new THREE.Group());
-
     const playerConeGeometry = new THREE.ConeGeometry(0.3, 1.5, 8);
     this.playerMaterial = new THREE.MeshBasicMaterial({
       color: EXPLORER_COLOR,
@@ -617,7 +643,7 @@ class SceneWidget extends TUIOWidget {
         for (const ghostGroup of ghostGroups) {
           const modelGhost = new THREE.Mesh(geometry, ghostGroup.ghostCone.material);
           modelGhost.position.y = 3;
-          modelGhost.scale.set(0.9, 0.9, 0.9);
+          modelGhost.scale.set(0.8, 0.8, 0.8);
           ghostGroup.modelGhost = modelGhost;
           ghostGroup.add(modelGhost);
         }
@@ -792,7 +818,11 @@ class SceneWidget extends TUIOWidget {
       } else {
         SoundService.play('switch_off');
       }
-      this.lightsMap.get(lightData.id).mesh.visible = !lightData.open;
+      const lightElement = this.lightsMap.get(lightData.id);
+      lightElement.model.material.opacity = 1;
+      lightElement.children.forEach((c) => {
+        if (lightElement.model !== c) c.visible = lightData.open;
+      });
     });
 
     this.socket.on(Protocol.CREATE_TRAP, (trapData) => {
@@ -885,9 +915,11 @@ class SceneWidget extends TUIOWidget {
           door.mesh.visible = true;
         });
       Array.from(this.lightsMap.values())
-        .forEach((light) => {
-          light.material.opacity = 1;
-          light.children.forEach(c => c.visible = true);
+        .forEach((lightElement) => {
+          lightElement.model.material.opacity = 1;
+          lightElement.children.forEach((c) => {
+            if (lightElement.model !== c) c.visible = true;
+          });
         });
       this.playerEntities.forEach((currPlayerEntities) => {
         currPlayerEntities.traps.forEach((trap) => {
@@ -901,6 +933,7 @@ class SceneWidget extends TUIOWidget {
 
     const animate = (time) => {
       requestAnimationFrame(animate);
+      TWEEN.update();
       let closestDistanceToPlayer = Infinity;
       for (let i = 0; i < ghostGroups.length; i++) {
         const ghostGroup = ghostGroups[i];
