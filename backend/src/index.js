@@ -274,6 +274,7 @@ io.on('connection', (socket) => {
   register(Protocol.TRAP_TRIGGERED);
   register(Protocol.GAME_OVER);
   register(Protocol.RESTART);
+  register(Protocol.GHOST_SCREAM);
   register(Protocol.PATH_CREATE);
   register(Protocol.REMOVE_PATH);
   register(Protocol.REQUEST_HELP);
