@@ -77,8 +77,14 @@ IntoTheMansion.Game.prototype = {
         });
 
         IntoTheMansion.socket.on('REQUEST_HELP',function(json){
-            let notif = document.getElementById('notification');
+            let notif = document.getElementsByClassName('helpText')[0];
+            if(!notif.className.includes('helpTextActivated')) notif.className += ' helpTextActivated' ;
+
+            let icon = document.getElementsByClassName('helpIcon')[0];
+            icon.className = 'helpIconActivated';
+
             if(json.type === 'TRAP'){
+
                 notif.innerText = 'The player needs help with a trap';
             }
             else if(json.type === 'DIRECTION'){
@@ -87,6 +93,8 @@ IntoTheMansion.Game.prototype = {
 
             setTimeout(() => {
                 notif.innerText = "";
+                notif.className = 'helpText';
+                icon.className = 'helpIcon';
             }, 5000)
 
         });
