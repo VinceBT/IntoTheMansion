@@ -430,7 +430,7 @@ class SceneWidget extends TUIOWidget {
         console.log(this.doorsMap.get(trappedDoorId));
         if (!this.doorsMap.get(trappedDoorId).trapped) {
           this.doorsMap.get(trappedDoorId).trapped = true;
-          this.doorsMap.get(trappedDoorId).mesh.material.color.setHex(0xFF0000);
+          this.doorsMap.get(trappedDoorId).mesh.material.color.setHex(GHOST_COLORS[tagData.player]);
 
 
 
@@ -756,7 +756,7 @@ class SceneWidget extends TUIOWidget {
       const trapMaterial = new THREE.MeshBasicMaterial({color: GHOST_COLORS[trapData.player]});
       const ghostTrap = new THREE.Mesh(trapData.type === 'DeathTrap' ? trapGeometry : screamerGeometry, trapMaterial);
       ghostTrap.position.x = trapData.position[0];
-      ghostTrap.position.y = 2;
+      ghostTrap.position.y = 1;
       ghostTrap.position.z = trapData.position[1];
       ghostTrap.rotation.y = Math.PI / 4;
       this.scene.add(ghostTrap);
