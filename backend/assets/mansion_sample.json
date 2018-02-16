@@ -49,9 +49,13 @@
   "player": {
     "spawn": [1,1]
   },
-  "ghost": {
+  "ghosts": [{
     "spawn": [7,7]
-  },
+  }, {
+    "spawn": [3,10]
+  }, {
+    "spawn": [10,10]
+  }],
   "objects": {
     "doors": [
       {

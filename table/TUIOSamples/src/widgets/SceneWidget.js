@@ -756,6 +756,7 @@ class SceneWidget extends TUIOWidget {
       const trapMaterial = new THREE.MeshBasicMaterial({color: GHOST_COLORS[trapData.player]});
       const ghostTrap = new THREE.Mesh(trapData.type === 'DeathTrap' ? trapGeometry : screamerGeometry, trapMaterial);
       ghostTrap.position.x = trapData.position[0];
+      ghostTrap.position.y = 2;
       ghostTrap.position.z = trapData.position[1];
       ghostTrap.rotation.y = Math.PI / 4;
       this.scene.add(ghostTrap);

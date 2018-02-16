@@ -47,9 +47,11 @@ const init = async () => {
   const mapData = await getMap();
   // console.log(mapData);
 
-  const playerCoords = { x: 3, z: 3, r: 0 };
-  const ghost1Coords = { x: 20, z: 20, r: 0 };
-  const ghost2Coords = { x: 3, z: 30, r: 0 };
+  const playerCoords = { x: mapData.player.spawn[0], z: mapData.player.spawn[1], r: 0 };
+  const ghost1Coords = { x: mapData.ghosts[0].spawn[0], z: mapData.ghosts[0].spawn[1], r: 0 };
+  const ghost2Coords = { x: mapData.ghosts[1].spawn[0], z: mapData.ghosts[1].spawn[1], r: 0 };
+
+  const FINAL_DESTINATION = {x: mapData.terrain.width / 2, z: mapData.terrain.height / 2};
 
   let intervalId;
 
@@ -69,7 +71,7 @@ const init = async () => {
     }, 1000);
   });
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 30; i++) {
     const id = `trap_${Math.round(Math.random() * 3000000).toString()}`;
     setTimeout(() => {
       external.emit(Protocol.CREATE_TRAP, {
@@ -79,7 +81,7 @@ const init = async () => {
           Math.round(Math.random() * mapData.terrain.width),
           Math.round(Math.random() * mapData.terrain.height),
         ],
-        type: Math.floor(Math.random() * 2) === 0 ? 'DeathTrap' : 'ScreamerTrap',
+        type: 'DeathTrap',
       });
       setTimeout(() => {
         external.emit(Protocol.TRAP_TRIGGERED, {
@@ -111,7 +113,7 @@ const init = async () => {
   }
 
   const tweenPlayer = new TWEEN.Tween(playerCoords)
-    .to({ x: 12, z: 12, r: Math.PI * 2 * 10 }, 5000)
+    .to({ ...FINAL_DESTINATION, r: Math.PI * 2 * 10 }, 5000)
     .onUpdate(() => {
       external.emit(Protocol.PLAYER_POSITION_UPDATE, {
         position: [playerCoords.x, playerCoords.z],
@@ -123,7 +125,7 @@ const init = async () => {
     })
     .start();
   const tweenGhost1 = new TWEEN.Tween(ghost1Coords)
-    .to({ x: 12, z: 12, r: Math.PI * 2 * 10 }, 5000)
+    .to({ ...FINAL_DESTINATION, r: Math.PI * 2 * 10 }, 5000)
     .onUpdate(() => {
       external.emit(Protocol.GHOST_POSITION_UPDATE, {
         id: 0,
@@ -136,7 +138,7 @@ const init = async () => {
     })
     .start();
   const tweenGhost2 = new TWEEN.Tween(ghost2Coords)
-    .to({ x: 10, z: 13, r: Math.PI * 2 * 10 }, 5000)
+    .to({ ...FINAL_DESTINATION, r: Math.PI * 2 * 10 }, 5000)
     .onUpdate(() => {
       external.emit(Protocol.GHOST_POSITION_UPDATE, {
         id: 1,
