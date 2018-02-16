@@ -389,7 +389,13 @@ class SceneWidget extends TUIOWidget {
         SoundService.play('trap_setup');
         if (currentPlayerEntities.traps.length > 3) {
           const oldTrap = currentPlayerEntities.traps.pop();
-          this.scene.remove(oldTrap.mesh);
+          if (oldTrap.type === 'ScreamerType') {
+            oldTrap.mesh.material.color.setHex(0xFFFFFF);
+            this.doorsMap.get(oldTrap.door).trapped = false;
+          }
+          else {
+            this.scene.remove(oldTrap.mesh);
+          }
           this.socket.emit(Protocol.REMOVE_TRAP, {
             id: oldTrap.id,
           });
@@ -401,6 +407,67 @@ class SceneWidget extends TUIOWidget {
           type: 'DeathTrap',
         });
       } else if (tagData.type === 'screamer') {
+
+        const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
+        if (flooredIntersectPosition === null) return;
+        flooredIntersectPosition.setY(1);
+
+        const closestDoor = () => {
+          const viewPortCoord = new THREE.Vector2(
+            ((tuioTag.x / this.width) * 2) - 1,
+            -((tuioTag.y / this.height) * 2) + 1,
+          );
+          this.raycaster.setFromCamera(viewPortCoord, this.camera);
+          const intersects = this.raycaster.intersectObjects(this.scene.children);
+          const closestIntersect = intersects[0];
+          let minDistance = null;
+          let closestDoorId;
+          for (const [key, value] of this.doorsMap.entries()) {
+            const dist = Math.sqrt(Math.pow(closestIntersect.point.x - value.mesh.position.x, 2) + Math.pow(closestIntersect.point.z - value.mesh.position.z, 2));
+            if (minDistance == null || dist < minDistance) {
+              minDistance = dist;
+              closestDoorId = key;
+            }
+          }
+          return closestDoorId;
+        };
+
+
+        const trappedDoorId = closestDoor();
+        console.log("Creating door trap");
+        console.log(this.doorsMap.get(trappedDoorId));
+        if (!this.doorsMap.get(trappedDoorId).trapped) {
+          this.doorsMap.get(trappedDoorId).trapped = true;
+          this.doorsMap.get(trappedDoorId).mesh.material.color.setHex(0xFF0000);
+
+
+
+          const currentPlayerEntities = this.playerEntities[tagData.player];
+          currentPlayerEntities.traps.unshift({ id: hash, tagId: tuioTag.id, mesh: this.doorsMap.get(trappedDoorId).mesh, type: 'ScreamerType', door: trappedDoorId });
+          SoundManager.play('trap_trigger');
+          if (currentPlayerEntities.traps.length > 3) {
+            const oldTrap = currentPlayerEntities.traps.pop();
+            if (oldTrap.type === 'ScreamerType') {
+              oldTrap.mesh.material.color.setHex(0xFFFFFF);
+              this.doorsMap.get(oldTrap.door).trapped = false;
+            }
+            else {
+              this.scene.remove(oldTrap.mesh);
+            }
+            this.socket.emit(Protocol.REMOVE_TRAP, {
+              id: oldTrap.id,
+            });
+          }
+          this.socket.emit(Protocol.CREATE_TRAP, {
+            name: hash,
+            player: tagData.player,
+            position: [flooredIntersectPosition.x, flooredIntersectPosition.z],
+            type: 'ScreamerTrap',
+            door: trappedDoorId
+          });
+        }
+
+        /*
         const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
         if (flooredIntersectPosition === null) return;
         flooredIntersectPosition.setY(1);
@@ -424,6 +491,7 @@ class SceneWidget extends TUIOWidget {
           position: [flooredIntersectPosition.x, flooredIntersectPosition.z],
           type: 'ScreamerTrap',
         });
+        */
       }
     }
   });

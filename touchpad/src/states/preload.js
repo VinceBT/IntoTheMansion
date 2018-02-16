@@ -9,6 +9,8 @@ IntoTheMansion.Preload.prototype = {
         this.load.image('trap', 'img/trap.png');
         this.load.spritesheet('remove-trap', 'img/remove-trap.png', 80, 80);
         this.load.spritesheet('remove-trap-active', 'img/remove-trap-active.png', 80, 80);
+        this.load.spritesheet('reveal', 'img/reveal.png', 80, 80);
+        this.load.spritesheet('reveal-active', 'img/reveal-active.png', 80, 80);
         this.load.spritesheet('show-path', 'img/show-path.png', 80, 80);
         this.load.spritesheet('show-path-active', 'img/show-path-active.png', 80, 80);
         this.load.spritesheet('skills', 'img/skills.png', 80, 80);
