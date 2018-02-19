@@ -55,3 +55,31 @@
     background-color: rgba(255, 255, 255, 0.2);
     border: 1px solid white;
   }
+
+  .endScreen
+  {
+      display: none;
+      position: absolute;
+      text-align: center;
+      font-family: "Creepster", "Arial", serif;
+      font-size: 55px;
+
+      width: 100%;
+      height: 100%;
+
+  }
+
+  .victory
+  {
+      display: table;
+      background-color: black;
+      color: green;
+
+  }
+
+  .gameOver
+  {
+      display: table;
+      background-color: black;
+      color: red;
+  }

@@ -92,7 +92,7 @@ IntoTheMansion.Game.prototype = {
             if(!notif.className.includes('helpTextActivated')) notif.className += ' helpTextActivated' ;
 
             let icon = document.getElementsByClassName('helpIcon')[0];
-            icon.className = 'helpIconActivated';
+            if(!icon.className.includes('helpIconActivated')) icon.className += ' helpIconActivated' ;
 
             if(json.type === 'TRAP'){
 
@@ -111,13 +111,24 @@ IntoTheMansion.Game.prototype = {
         });
 
         IntoTheMansion.socket.on('GAME_OVER',function(json){
-            if(!json.won)
-                model.game.state.start('GameOver');
-            else
-                model.game.state.start('Victory');
+            let endScreen = document.getElementsByClassName('endScreen')[0];
+
+            if(!json.won) {
+                if (!endScreen.className.includes('gameOver')) endScreen.className += ' gameOver';
+                endScreen.innerHTML = "<p style='display: table-cell; vertical-align: middle'>GAME OVER!<br\>The explorer has been captured by the ghosts</p>";
+            }
+            else {
+                if (!endScreen.className.includes('victory')) endScreen.className += ' victory';
+                endScreen.innerHTML = "<p style='display: table-cell; vertical-align: middle'>Congratulations!<br\>The explorer has successfully escaped the mansion</p>";
+            }
         });
 
         IntoTheMansion.socket.on('RESTART',function(json){
+            //Reset victory screen
+            document.getElementsByClassName('endScreen')[0].className = 'endScreen';
+            document.getElementsByClassName('endScreen')[0].innerHTML = '';
+
+
             model.restart();
             model.game.state.restart();
             model.preload();
