@@ -104,6 +104,19 @@ describe(`${serverStatus.name} backend server`, () => {
       });
       vr.emit(Protocol.PLAYER_POSITION_UPDATE, { position: { x: 7, y: 3, z: 7 }, rotation: { x: 0, y: 1.3, z: 0 } });
     });
+
+    it('should send the tablet a help request from the VR player', (done)=> {
+      const progress = generateProgress(1, () => {
+        done();
+      });
+
+      tablet.once(Protocol.REQUEST_HELP, ()=>{
+        progress();
+      });
+
+      vr.emit(Protocol.REQUEST_HELP, {type:'REMOVE_TRAP'}); // or type:'SHOW_PATH'
+    });
+
     it('should send the table and the tablet a ghost position update when receiving one from the VR', (done) => {
       const progress = generateProgress(2, () => {
         done();
