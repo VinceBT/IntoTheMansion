@@ -29,6 +29,7 @@
 		<script type="text/javascript" src="./src/states/gameover.js"></script>
 		<script type="text/javascript" src="./src/states/victory.js"></script>
 		<script type="text/javascript" src="./index.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 		<style>
 			@font-face {
 				font-family: "Oswald-Bold";
@@ -81,6 +82,10 @@
 		<div id="game"></div>
 		<div class="helpIcon"></div>
 		<div class="helpText"></div>
+		<div class="scoreInfo">
+			<div class="scoreText">Score</div>
+			<div class="scoreValues"></div>
+		</div>
 		<div class="endScreen"></div>
 		<script>
 			gameBootstrapper.init("game");

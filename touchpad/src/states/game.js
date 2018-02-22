@@ -111,6 +111,15 @@ IntoTheMansion.Game.prototype = {
         });
 
         IntoTheMansion.socket.on('GAME_OVER',function(json){
+            //Update scores
+            if(json.won){
+                explorerScore++;
+            } else {
+                ghostScores[json.killedBy-1]++;
+            }
+            printScore($('.scoreValues'));
+
+            //Display end of game screen
             let endScreen = document.getElementsByClassName('endScreen')[0];
 
             if(!json.won) {
@@ -127,11 +136,15 @@ IntoTheMansion.Game.prototype = {
             //Reset victory screen
             document.getElementsByClassName('endScreen')[0].className = 'endScreen';
             document.getElementsByClassName('endScreen')[0].innerHTML = '';
-
+        
 
             model.restart();
             model.game.state.restart();
             model.preload();
+        });
+        $(document).ready(function(){
+            $('.scoreValues').show();
+            printScore($('.scoreValues'));
         });
     },
     debug_trap: function(id,x,y){
@@ -220,4 +233,36 @@ IntoTheMansion.Game.prototype = {
         delete this.layer;
         delete this.hasMap;
     }
+};
+
+
+//Handle score display
+const GHOST_NUMBER = 2;
+const GHOST_AVAILABLE_COLORS = [0xff0000, 0x00ff00, 0xffff00, 0xff00ff, 0x0000ff];
+const GHOST_COLORS = GHOST_AVAILABLE_COLORS.slice(0, GHOST_NUMBER);
+// const GHOST_COLORS = shuffleArray(GHOST_AVAILABLE_COLORS).slice(0, GHOST_NUMBER);
+const EXPLORER_COLOR = 0x00ffff;
+let explorerScore = 0;
+const ghostScores = Array(GHOST_NUMBER)
+  .fill(0);
+
+printScore = function($el) {
+    $el.empty();
+    const immExplorerColor = EXPLORER_COLOR;
+    $el.append(`
+        <div class="scoreValue" style="color: ${immExplorerColor};">
+            <div class="avatar avatarExplorer"/>
+            Explorer: ${explorerScore}
+        </div>
+    `);
+    ghostScores.forEach((score, i) => {
+        console.log(GHOST_COLORS[i]);
+        const immGhostColor = GHOST_COLORS[i];
+        $el.append(`
+        <div class="scoreValue" style="color: ${immGhostColor};">
+            <div class="avatar avatarHunter1"/>
+            Ghost ${i + 1}: ${score}
+        </div>
+        `);
+    });
 };
