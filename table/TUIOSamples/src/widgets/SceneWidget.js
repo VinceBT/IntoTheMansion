@@ -506,6 +506,7 @@ class SceneWidget extends TUIOWidget {
             const oldTrap = currentPlayerEntities.traps.pop();
             if (oldTrap.type === 'ScreamerType') {
               oldTrap.mesh.material.color.setHex(0xFFFFFF);
+              oldTrap.mesh.material.opacity = 1;
               this.doorsMap.get(oldTrap.door).trapped = false;
             } else {
               this.scene.remove(oldTrap.mesh);
@@ -514,6 +515,15 @@ class SceneWidget extends TUIOWidget {
               id: oldTrap.id,
             });
           }
+          currentPlayerEntities.traps.forEach((trap, i) => {
+            if (i === 0) {
+              trap.mesh.material.opacity = 1;
+            } else if (i === 1) {
+              trap.mesh.material.opacity = 0.75;
+            } else {
+              trap.mesh.material.opacity = 0.5;
+            }
+          });
           this.socket.emit(Protocol.CREATE_TRAP, {
             id: hash,
             player: tagData.player,
@@ -710,7 +720,7 @@ class SceneWidget extends TUIOWidget {
       });
 
       const doorGeometry = new THREE.BoxGeometry(1, 8, 0.3);
-      const doorMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const doorMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true });
 
       map.forEach((elt, index) => {
         const posX = Math.floor(index % mapWidth);
@@ -834,7 +844,8 @@ class SceneWidget extends TUIOWidget {
       ghostTrap.rotation.y = Math.PI / 4;
       this.scene.add(ghostTrap);
       const currentPlayerEntities = this.playerEntities[trapData.player];
-      currentPlayerEntities.traps.unshift({ id: trapData.name, tagId: '0', mesh: ghostTrap, type: trapData.type });
+      currentPlayerEntities.traps.unshift({ id: trapData.id, tagId: '0', mesh: ghostTrap, type: trapData.type });
+      console.log(currentPlayerEntities);
       SoundService.play(trapData.type === 'DeathTrap' ? 'trap_setup' : 'screamer_setup');
     });
 
@@ -843,7 +854,14 @@ class SceneWidget extends TUIOWidget {
         const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === trapData.id);
         if (trapsToDelete.length > 0) {
           trapsToDelete.forEach((trapToDelete) => {
-            this.scene.remove(trapToDelete.mesh);
+            if (trapToDelete.type === 'ScreamerType') {
+              trapToDelete.mesh.material.color.setHex(0xFFFFFF);
+              trapToDelete.mesh.material.opacity = 1;
+              this.doorsMap.get(trapToDelete.door).trapped = false;
+            } else {
+              this.scene.remove(trapToDelete.mesh);
+            }
+            //this.scene.remove(trapToDelete.mesh);
           });
           SoundService.play('trap_destroy');
         }
@@ -856,7 +874,6 @@ class SceneWidget extends TUIOWidget {
       if (!trapData.id) throw new Error('Trap id is undefined');
       let matched = this.playerEntities[0].traps.find(trap => trap.id === trapData.id);
       if (matched === undefined) matched = this.playerEntities[1].traps.find(trap => trap.id === trapData.id);
-      console.log(matched);
       if (matched !== undefined) {
         if (matched.type === 'ScreamerTrap') {
           console.log('Revealing player');
@@ -873,7 +890,14 @@ class SceneWidget extends TUIOWidget {
         const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === trapData.id);
         if (trapsToDelete.length > 0) {
           trapsToDelete.forEach((trapToDelete) => {
-            this.scene.remove(trapToDelete.mesh);
+            if (trapToDelete.type === 'ScreamerType') {
+              trapToDelete.mesh.material.color.setHex(0xFFFFFF);
+              trapToDelete.mesh.material.opacity = 1;
+              this.doorsMap.get(trapToDelete.door).trapped = false;
+            } else {
+              this.scene.remove(trapToDelete.mesh);
+            }
+           // this.scene.remove(trapToDelete.mesh);
           });
         }
         currPlayerEntities.traps = currPlayerEntities.traps.filter(trap => trap.id !== trapData.id);
