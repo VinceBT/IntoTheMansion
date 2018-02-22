@@ -515,7 +515,7 @@ class SceneWidget extends TUIOWidget {
             });
           }
           this.socket.emit(Protocol.CREATE_TRAP, {
-            name: hash,
+            id: hash,
             player: tagData.player,
             position: [flooredIntersectPosition.x, flooredIntersectPosition.z],
             type: 'ScreamerTrap',
