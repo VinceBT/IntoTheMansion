@@ -376,7 +376,7 @@ class SceneWidget extends TUIOWidget {
             new TWEEN.Tween(playerGroup.modelPlayer.scale)
               .to({ x: 2, y: 2, z: 2 }, 200)
               .easing(TWEEN.Easing.Quadratic.Out)
-              .chain(new TWEEN.Tween(playerGroup.modelPlayer.modelGhost.scale)
+              .chain(new TWEEN.Tween(playerGroup.modelPlayer.scale)
                 .to(playerOriginalScale, 200)
                 .easing(TWEEN.Easing.Quadratic.Out))
               .start();
@@ -916,7 +916,7 @@ class SceneWidget extends TUIOWidget {
           new TWEEN.Tween(playerGroup.modelPlayer.scale)
             .to({ x: 2, y: 2, z: 2 }, 200)
             .easing(TWEEN.Easing.Quadratic.Out)
-            .chain(new TWEEN.Tween(playerGroup.modelPlayer.modelGhost.scale)
+            .chain(new TWEEN.Tween(playerGroup.modelPlayer.scale)
               .to(playerOriginalScale, 200)
               .easing(TWEEN.Easing.Quadratic.Out))
             .start();
