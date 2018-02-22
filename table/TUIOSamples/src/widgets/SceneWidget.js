@@ -8,7 +8,7 @@ import WindowResize from 'three-window-resize';
 import debounce from 'throttle-debounce/debounce';
 
 import Protocol from '../Protocol';
-import { cunlerp, randomHash } from '../utils';
+import { clerp, cunlerp, randomHash } from '../utils';
 import playerconfigs from '../../assets/playerconfigs.json';
 import SoundService from '../services/SoundService';
 import ModelServices from '../services/ModelServices';
@@ -1012,6 +1012,11 @@ class SceneWidget extends TUIOWidget {
           ghostGroup.modelGhost.position.y = 5 + 0.3 * Math.sin(((Math.PI / 2) * i) + (time * 0.002));
         }
         closestDistanceToPlayer = Math.min(closestDistanceToPlayer, ghostGroup.position.distanceTo(playerGroup.position));
+        const currentPlayerEntities = this.playerEntities[i];
+        if (currentPlayerEntities.traps.length === 3) {
+          const lastTrap = currentPlayerEntities.traps[2];
+          lastTrap.mesh.material.opacity = 0.4 + Math.abs(Math.sin(time / 300) / 3);
+        }
       }
       this.playerMaterial.opacity = 1 - cunlerp(GHOST_RANGE_SIZE - 3, GHOST_RANGE_SIZE, closestDistanceToPlayer);
       if (playerGroup.modelPlayer) {
