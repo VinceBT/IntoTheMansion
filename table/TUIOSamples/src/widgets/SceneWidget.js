@@ -501,7 +501,7 @@ class SceneWidget extends TUIOWidget {
             type: 'ScreamerType',
             door: trappedDoorId,
           });
-          SoundManager.play('trap_trigger');
+          SoundService.play('trap_trigger');
           if (currentPlayerEntities.traps.length > 3) {
             const oldTrap = currentPlayerEntities.traps.pop();
             if (oldTrap.type === 'ScreamerType') {
