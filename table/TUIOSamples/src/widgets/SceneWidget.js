@@ -360,18 +360,26 @@ class SceneWidget extends TUIOWidget {
             .text('Scream charging');
           SoundService.play('reveal');
           for (const ghostGroup of ghostGroups) {
-            const originalScale = ghostGroup.modelGhost.scale.clone();
+            const ghostOriginalScale = ghostGroup.modelGhost.scale.clone();
             new TWEEN.Tween(ghostGroup.modelGhost.scale)
               .to({ x: 2, y: 2, z: 2 }, 200)
               .easing(TWEEN.Easing.Quadratic.Out)
               .chain(new TWEEN.Tween(ghostGroup.modelGhost.scale)
-                .to(originalScale, 200)
+                .to(ghostOriginalScale, 200)
                 .easing(TWEEN.Easing.Quadratic.Out))
               .start();
           }
           setTimeout(() => {
             this.revealPlayer = true;
             SoundService.play('screamer_trigger');
+            const playerOriginalScale = playerGroup.modelPlayer.scale.clone();
+            new TWEEN.Tween(playerGroup.modelPlayer.scale)
+              .to({ x: 2, y: 2, z: 2 }, 200)
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .chain(new TWEEN.Tween(playerGroup.modelPlayer.modelGhost.scale)
+                .to(playerOriginalScale, 200)
+                .easing(TWEEN.Easing.Quadratic.Out))
+              .start();
             setTimeout(() => {
               this.revealPlayer = false;
               setTimeout(() => {
@@ -425,7 +433,7 @@ class SceneWidget extends TUIOWidget {
         if (currentPlayerEntities.traps.length > 3) {
           const oldTrap = currentPlayerEntities.traps.pop();
           if (oldTrap.type === 'ScreamerType') {
-            oldTrap.mesh.trapped = false;
+            this.doorsMap.get(oldTrap.door).trapped = false;
             const originalScale = oldTrap.mesh.scale.clone();
             new TWEEN.Tween(oldTrap.mesh.scale)
               .to({ x: 1.2, y: 1.2, z: 1.2 }, 400)
@@ -904,6 +912,14 @@ class SceneWidget extends TUIOWidget {
             this.revealPlayer = false;
           }, 5000);
           SoundService.play('screamer_trigger');
+          const playerOriginalScale = playerGroup.modelPlayer.scale.clone();
+          new TWEEN.Tween(playerGroup.modelPlayer.scale)
+            .to({ x: 2, y: 2, z: 2 }, 200)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .chain(new TWEEN.Tween(playerGroup.modelPlayer.modelGhost.scale)
+              .to(playerOriginalScale, 200)
+              .easing(TWEEN.Easing.Quadratic.Out))
+            .start();
         } else if (matched.type === 'DeathTrap') {
           SoundService.play('trap_trigger');
         }
@@ -911,13 +927,23 @@ class SceneWidget extends TUIOWidget {
       this.playerEntities.forEach((currPlayerEntities) => {
         const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === trapData.id);
         if (trapsToDelete.length > 0) {
-          trapsToDelete.forEach((trapToDelete) => {
-            if (trapToDelete.type === 'ScreamerType') {
-              trapToDelete.mesh.material.color.setHex(0xFFFFFF);
-              trapToDelete.mesh.material.opacity = 1;
-              this.doorsMap.get(trapToDelete.door).trapped = false;
+          trapsToDelete.forEach((oldTrap) => {
+            if (oldTrap.type === 'ScreamerType') {
+              this.doorsMap.get(oldTrap.door).trapped = false;
+              const originalScale = oldTrap.mesh.scale.clone();
+              new TWEEN.Tween(oldTrap.mesh.scale)
+                .to({ x: 1.2, y: 1.2, z: 1.2 }, 400)
+                .easing(TWEEN.Easing.Quadratic.Out)
+                .chain(new TWEEN.Tween(oldTrap.mesh.scale)
+                  .to(originalScale, 200)
+                  .easing(TWEEN.Easing.Quadratic.Out))
+                .onComplete(() => {
+                  oldTrap.mesh.material.color.setHex(0xFFFFFF);
+                  oldTrap.mesh.material.opacity = 1;
+                })
+                .start();
             } else {
-              this.scene.remove(trapToDelete.mesh);
+              this.scene.remove(oldTrap.mesh);
             }
           });
         }
