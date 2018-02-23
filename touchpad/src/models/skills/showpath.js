@@ -1,4 +1,4 @@
-function ShowPath(sm,x=-1, y=-1){
+function ShowPath(sm,x, y){
     this.name = "show-path";
     this.sm = sm;
     Skill.call(this);

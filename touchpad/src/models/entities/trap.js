@@ -1,4 +1,4 @@
-function Trap(model,id, x=-1, y=-1){
+function Trap(model,id, x, y){
     this.model = model;
     this.id = id;
     this.name = "trap";

@@ -88,10 +88,10 @@ IntoTheMansion.Game.prototype = {
         });
 
         IntoTheMansion.socket.on('REQUEST_HELP',function(json){
-            let notif = document.getElementsByClassName('helpText')[0];
+            var notif = document.getElementsByClassName('helpText')[0];
             if(!notif.className.includes('helpTextActivated')) notif.className += ' helpTextActivated' ;
 
-            let icon = document.getElementsByClassName('helpIcon')[0];
+            var icon = document.getElementsByClassName('helpIcon')[0];
             if(!icon.className.includes('helpIconActivated')) icon.className += ' helpIconActivated' ;
 
             if(json.type === 'TRAP'){
@@ -102,7 +102,7 @@ IntoTheMansion.Game.prototype = {
                 notif.innerText = 'The player wants to know where to go';
             }
 
-            setTimeout(() => {
+            setTimeout(function(){
                 notif.innerText = "";
                 notif.className = 'helpText';
                 icon.className = 'helpIcon';
@@ -120,7 +120,7 @@ IntoTheMansion.Game.prototype = {
             printScore($('.scoreValues'));
 
             //Display end of game screen
-            let endScreen = document.getElementsByClassName('endScreen')[0];
+            var endScreen = document.getElementsByClassName('endScreen')[0];
 
             if(!json.won) {
                 if (!endScreen.className.includes('gameOver')) endScreen.className += ' gameOver';
@@ -136,11 +136,11 @@ IntoTheMansion.Game.prototype = {
             //Reset victory screen
             document.getElementsByClassName('endScreen')[0].className = 'endScreen';
             document.getElementsByClassName('endScreen')[0].innerHTML = '';
-        
+
 
             model.restart();
-            model.game.state.restart();
-            model.preload();
+
+
         });
         $(document).ready(function(){
             $('.scoreValues').show();
@@ -223,15 +223,15 @@ IntoTheMansion.Game.prototype = {
         }
     },
 
-    restart: function(){
-        while(this.ghosts.length)this.ghosts.pop().info.destroy();
+    restart: function() {
+        this.player.info.x = this.player.start_x;
+        this.player.info.y = this.player.start_y;
+        for (var i = 0; i < this.ghosts.length; i++) {
+            this.ghosts[i].info.x = this.ghosts[i].start_x;
+            this.ghosts[i].info.y = this.ghosts[i].start_y;
 
-        while(this.entities.length)this.entities.pop().info.destroy();
-        delete this.player;
-        delete this.skillmanager;
-        delete this.map;
-        delete this.layer;
-        delete this.hasMap;
+        }
+        while (this.entities.length)this.entities.pop().info.destroy();
     }
 };
 
@@ -242,9 +242,11 @@ const GHOST_AVAILABLE_COLORS = [0xff0000, 0x00ff00, 0xffff00, 0xff00ff, 0x0000ff
 const GHOST_COLORS = GHOST_AVAILABLE_COLORS.slice(0, GHOST_NUMBER);
 // const GHOST_COLORS = shuffleArray(GHOST_AVAILABLE_COLORS).slice(0, GHOST_NUMBER);
 const EXPLORER_COLOR = 0x00ffff;
-let explorerScore = 0;
+var explorerScore = 0;
 const ghostScores = Array(GHOST_NUMBER)
-  .fill(0);
+for(var i = 0; i < ghostScores.length;i++){
+    ghostScores[i] = 0;
+}
 
 printScore = function($el) {
     $el.empty();
@@ -255,7 +257,7 @@ printScore = function($el) {
             Explorer: ${explorerScore}
         </div>
     `);
-    ghostScores.forEach((score, i) => {
+    ghostScores.forEach(function(score, i){
         console.log(GHOST_COLORS[i]);
         const immGhostColor = GHOST_COLORS[i];
         $el.append(`

@@ -1,4 +1,4 @@
-function RemoveTrap(sm,x=-1, y=-1){
+function RemoveTrap(sm,x, y){
     this.name = "remove-trap";
     this.sm = sm;
     Skill.call(this);
