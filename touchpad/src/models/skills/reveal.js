@@ -1,4 +1,4 @@
-function Reveal(sm,x=-1, y=-1){
+function Reveal(sm,x, y){
     this.name = "reveal";
     this.radius = 15*IntoTheMansion._TILE_SIZE;
     this.sm = sm;

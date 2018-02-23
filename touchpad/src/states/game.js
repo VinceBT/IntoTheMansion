@@ -12,7 +12,6 @@ IntoTheMansion.Game = function() {
 IntoTheMansion.Game.prototype = {
     preload: function() {
         var model = this;
-        console.log(this);
             IntoTheMansion.socket.emit('GET_MAP', "mansion1", function (data) {
                 model.parser = new Parser(data);
                 model.cache.addTilemap('dynamicMap', null, model.parser.map.tiles, Phaser.Tilemap.CSV);
@@ -88,11 +87,11 @@ IntoTheMansion.Game.prototype = {
         });
 
         IntoTheMansion.socket.on('REQUEST_HELP',function(json){
-            let notif = document.getElementsByClassName('helpText')[0];
+            var notif = document.getElementsByClassName('helpText')[0];
             if(!notif.className.includes('helpTextActivated')) notif.className += ' helpTextActivated' ;
 
-            let icon = document.getElementsByClassName('helpIcon')[0];
-            icon.className = 'helpIconActivated';
+            var icon = document.getElementsByClassName('helpIcon')[0];
+            if(!icon.className.includes('helpIconActivated')) icon.className += ' helpIconActivated' ;
 
             if(json.type === 'TRAP'){
 
@@ -102,7 +101,7 @@ IntoTheMansion.Game.prototype = {
                 notif.innerText = 'The player wants to know where to go';
             }
 
-            setTimeout(() => {
+            setTimeout(function(){
                 notif.innerText = "";
                 notif.className = 'helpText';
                 icon.className = 'helpIcon';
@@ -111,16 +110,40 @@ IntoTheMansion.Game.prototype = {
         });
 
         IntoTheMansion.socket.on('GAME_OVER',function(json){
-            if(!json.won)
-                model.game.state.start('GameOver');
-            else
-                model.game.state.start('Victory');
+            //Update scores
+            if(json.won){
+                explorerScore++;
+            } else {
+                ghostScores[json.killedBy-1]++;
+            }
+            printScore($('.scoreValues'));
+
+            //Display end of game screen
+            var endScreen = document.getElementsByClassName('endScreen')[0];
+
+            if(!json.won) {
+                if (!endScreen.className.includes('gameOver')) endScreen.className += ' gameOver';
+                endScreen.innerHTML = "<p style='display: table-cell; vertical-align: middle'>GAME OVER!<br\>The explorer has been captured by the ghosts</p>";
+            }
+            else {
+                if (!endScreen.className.includes('victory')) endScreen.className += ' victory';
+                endScreen.innerHTML = "<p style='display: table-cell; vertical-align: middle'>Congratulations!<br\>The explorer has successfully escaped the mansion</p>";
+            }
         });
 
         IntoTheMansion.socket.on('RESTART',function(json){
+            //Reset victory screen
+            document.getElementsByClassName('endScreen')[0].className = 'endScreen';
+            document.getElementsByClassName('endScreen')[0].innerHTML = '';
+
+
             model.restart();
-            model.game.state.restart();
-            model.preload();
+
+
+        });
+        $(document).ready(function(){
+            $('.scoreValues').show();
+            printScore($('.scoreValues'));
         });
     },
     debug_trap: function(id,x,y){
@@ -199,14 +222,47 @@ IntoTheMansion.Game.prototype = {
         }
     },
 
-    restart: function(){
-        while(this.ghosts.length)this.ghosts.pop().info.destroy();
+    restart: function() {
+        this.player.info.x = this.player.start_x;
+        this.player.info.y = this.player.start_y;
+        for (var i = 0; i < this.ghosts.length; i++) {
+            this.ghosts[i].info.x = this.ghosts[i].start_x;
+            this.ghosts[i].info.y = this.ghosts[i].start_y;
 
-        while(this.entities.length)this.entities.pop().info.destroy();
-        delete this.player;
-        delete this.skillmanager;
-        delete this.map;
-        delete this.layer;
-        delete this.hasMap;
+        }
+        while (this.entities.length)this.entities.pop().info.destroy();
     }
+};
+
+
+//Handle score display
+const GHOST_NUMBER = 2;
+const GHOST_AVAILABLE_COLORS = [0xff0000, 0x00ff00, 0xffff00, 0xff00ff, 0x0000ff];
+const GHOST_COLORS = GHOST_AVAILABLE_COLORS.slice(0, GHOST_NUMBER);
+// const GHOST_COLORS = shuffleArray(GHOST_AVAILABLE_COLORS).slice(0, GHOST_NUMBER);
+const EXPLORER_COLOR = 0x00ffff;
+var explorerScore = 0;
+const ghostScores = Array(GHOST_NUMBER)
+for(var i = 0; i < ghostScores.length;i++){
+    ghostScores[i] = 0;
+}
+
+printScore = function($el) {
+    $el.empty();
+    const immExplorerColor = EXPLORER_COLOR;
+    $el.append(`
+        <div class="scoreValue" style="color: ${immExplorerColor};">
+            <div class="avatar avatarExplorer"/>
+            Explorer: ${explorerScore}
+        </div>
+    `);
+    ghostScores.forEach(function(score, i){
+        const immGhostColor = GHOST_COLORS[i];
+        $el.append(`
+        <div class="scoreValue" style="color: ${immGhostColor};">
+            <div class="avatar avatarHunter1"/>
+            Ghost ${i + 1}: ${score}
+        </div>
+        `);
+    });
 };

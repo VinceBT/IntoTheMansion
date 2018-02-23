@@ -3,9 +3,11 @@
 		<title>Into The Mansion</title>
 		<link rel="shortcut icon" href="favicon.png" type="image/x-icon" />
 		<link rel="stylesheet" href="index.css">
+		<link href="https://fonts.googleapis.com/css?family=Creepster" rel="stylesheet">
+
 
 		<style> body { margin: 0; background: #2B2E31 url(img/screen-bg.png) repeat; } </style>
-		<script type="text/javascript" src="./lib/phaser.min.js"></script>
+		<script type="text/javascript" src="./lib/phaser.js"></script>
 		<script type="text/javascript" src="./lib/socket.io-client.js"></script>
 		<script type="text/javascript" src="./src/shared/coordinate.js"></script>
 		<script type="text/javascript" src="./src/shared/parser.js"></script>
@@ -27,6 +29,7 @@
 		<script type="text/javascript" src="./src/states/gameover.js"></script>
 		<script type="text/javascript" src="./src/states/victory.js"></script>
 		<script type="text/javascript" src="./index.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 		<style>
 			@font-face {
 				font-family: "Oswald-Bold";
@@ -79,8 +82,16 @@
 		<div id="game"></div>
 		<div class="helpIcon"></div>
 		<div class="helpText"></div>
+		<div class="scoreInfo">
+			<div class="scoreText">Score</div>
+			<div class="scoreValues"></div>
+		</div>
+		<div class="endScreen"></div>
 		<script>
 			gameBootstrapper.init("game");
 		</script>
+
+
+
 	</body>
 </html>

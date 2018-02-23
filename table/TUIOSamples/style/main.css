@@ -91,12 +91,22 @@ canvas {
 }
 
 .hud {
-    margin: 10px;
     color: #fff;
     font-family: Roboto, Arial, sans-serif;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.hud-wrapper {
+
 }
 
 .scoreInfo {
+    position: absolute;
+    top: 10px;
+    left: 10px;
     font-family: "Creepster", "Times New Roman", serif;
     width: 275px;
     border: 3px ridge white;
@@ -117,6 +127,36 @@ canvas {
     flex-direction: row;
     align-items: center;
     justify-content: center;
+}
+
+.revealSpell {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border-radius: 99999px;
+    padding: 5px 23px;
+    background-color: #0abb0a;
+}
+
+.revealSpell .icon {
+    display: inline-block;
+    vertical-align: middle;
+    width: 40px;
+    height: 40px;
+    margin-right: 5px;
+    background: url("../assets/images/reveal_spell.png") no-repeat center center;
+    background-size: contain
+}
+
+.revealSpell .text {
+    display: inline-block;
+    vertical-align: middle;
+    font-family: "Creepster", "Arial", sans-serif;
+    font-size: 20px;
+}
+
+.revealSpell.disabled {
+    background-color: #e40101;
 }
 
 .bottomAbsolute {

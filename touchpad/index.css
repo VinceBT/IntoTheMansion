@@ -4,7 +4,7 @@
     left: 100px; 
     background-size: cover; 
     background-repeat: no-repeat; 
-    background-image: url('https://cdn2.iconfinder.com/data/icons/flat-style-svg-icons-part-1/512/confirmation_verification-512.png'); 
+    background-image: url('img/hud/warning.png'); 
     width: 52px; height: 52px;
     border-radius: 50%;
     box-shadow: 0 0 0 rgba(204,169,44, 0.4);
@@ -42,7 +42,8 @@
   .helpText {
     position: absolute; 
     font-family: Arial;
-    font-size: 30px; 
+    font-size: 25px; 
+    padding: 5px;
     bottom: 10px; 
     text-align: left;
     width: 70%; 
@@ -55,3 +56,85 @@
     background-color: rgba(255, 255, 255, 0.2);
     border: 1px solid white;
   }
+
+  .endScreen
+  {
+      display: none;
+      position: absolute;
+      text-align: center;
+      font-family: "Creepster", "Arial", serif;
+      font-size: 55px;
+
+      width: 100%;
+      height: 100%;
+
+  }
+
+  .victory
+  {
+      display: table;
+      background-color: black;
+      color: green;
+      z-index: 1;
+
+  }
+
+  .gameOver
+  {
+      display: table;
+      background-color: black;
+      color: red;
+      z-index: 1;
+
+  }
+
+  .scoreInfo {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-family: "Creepster", "Times New Roman", serif;
+    width: 160px;
+    border: 3px ridge white;
+    background-color: rgba(255, 255, 255, .4);
+    z-index: 2;
+}
+
+.scoreText {
+    font-size: 20px;
+    text-align: center;
+    letter-spacing: 3px;
+    padding-left: 0.1em;
+}
+
+.scoreText p {
+    margin: 0px !important;
+}
+
+.scoreValue {
+    padding: 5px;
+    font-size: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar {
+    height: 20px;
+    width: 20px;
+    margin: 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.avatarExplorer {
+    background-image: url("img/hud/explorer.png");
+}
+
+.avatarHunter1 {
+    background-image: url("img/hud/ghost.png");
+}
+
+.avatarHunter2 {
+    background-image: url("img/hud/ghost.png");
+}

@@ -1,4 +1,4 @@
-function Trap(model,id, x=-1, y=-1){
+function Trap(model,id, x, y){
     this.model = model;
     this.id = id;
     this.name = "trap";
@@ -11,7 +11,7 @@ function Trap(model,id, x=-1, y=-1){
 Trap.prototype = {
   onTap: function(pointer,doubleTap){
     if(this.model.skillmanager.isRemoveTrapActive()){
-      IntoTheMansion.socket.emit("REMOVE_TRAP",{"id":this.id});
+      IntoTheMansion.socket.emit("REMOVE_TRAP",{"id":this.id, byAlly:true});
       this.info.destroy();
       for(var i = 0; i < this.model.entities.length; i++){
         if(this.model.entities[i] == this){

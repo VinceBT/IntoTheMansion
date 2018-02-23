@@ -71,8 +71,14 @@ const init = async () => {
     }, 1000);
   });
 
+  setTimeout(() => {
+    external.emit(Protocol.REQUEST_HELP, {
+      type: 'TRAP',
+    }, 1000);
+  });
+
   for (let i = 0; i < 30; i++) {
-    const id = `trap_${Math.round(Math.random() * 3000000).toString()}`;
+    const id = `trap_${Math.round(Math.random() * 3000000).toString()}`; 
     setTimeout(() => {
       external.emit(Protocol.CREATE_TRAP, {
         id,

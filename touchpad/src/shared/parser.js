@@ -3,6 +3,7 @@ function Parser(json){
         this.width = this.json.terrain.width;
         this.height = this.json.terrain.height;
         this.floors = this.json.terrain.floors;
+        this.doors = this.json.doors;
         this.map = new Map(this.width,this.height);
         this.pcoord = json.player.spawn;
         this.gcoord = [json.ghosts[0].spawn,json.ghosts[1].spawn];
@@ -12,12 +13,12 @@ function Parser(json){
 
     parse: function(){
       var exit = [];
-      for(let i = 0; i < this.json.objects.doors.length;i++){
+      for(var i = 0; i < this.json.objects.doors.length;i++){
         if(this.json.objects.doors[i].exit){
           exit.push(this.json.objects.doors[i].position);
         }
       }
-        for(let i = 0; i < this.json.terrain.map.length; i ++){
+        for(var i = 0; i < this.json.terrain.map.length; i ++){
             switch(this.json.terrain.map[i]){
                 case 'W':
                     this.map.push(IntoTheMansion.WALL);

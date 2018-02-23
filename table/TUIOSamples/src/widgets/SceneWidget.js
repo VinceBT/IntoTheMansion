@@ -1,13 +1,14 @@
 import $ from 'jquery/dist/jquery.min';
 import TUIOWidget from 'tuiomanager/core/TUIOWidget';
-import {WINDOW_HEIGHT, WINDOW_WIDTH} from 'tuiomanager/core/constants';
+import { WINDOW_HEIGHT, WINDOW_WIDTH } from 'tuiomanager/core/constants';
 import * as THREE from 'three';
+import TWEEN from 'tween.js';
 import Color from 'color';
 import WindowResize from 'three-window-resize';
 import debounce from 'throttle-debounce/debounce';
 
 import Protocol from '../Protocol';
-import {cunlerp, randomHash, shuffleArray} from '../utils';
+import { clerp, cunlerp, randomHash } from '../utils';
 import playerconfigs from '../../assets/playerconfigs.json';
 import SoundService from '../services/SoundService';
 import ModelServices from '../services/ModelServices';
@@ -27,27 +28,30 @@ let ghostDirectionGeometry = new THREE.ConeGeometry(2, 5, 20);
 let trapGeometry = new THREE.BoxGeometry(1, 2, 1);
 let screamerGeometry = new THREE.BoxGeometry(1, 2, 1);
 
-const lightGeometry = new THREE.SphereGeometry(0.3, 32, 32);
-const lightMaterial = new THREE.MeshBasicMaterial({color: 0xffff00, transparent: true, opacity: 0.7});
+const lightGeometry = new THREE.SphereGeometry(0.35, 32, 32);
+const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
 
 let explorerScore = 0;
-let ghostScores = Array(GHOST_NUMBER).fill(0);
+const ghostScores = Array(GHOST_NUMBER)
+  .fill(0);
 
 const textureLoader = new THREE.TextureLoader();
 
 function printScore($el) {
   $el.empty();
-  let immExplorerColor = new Color(EXPLORER_COLOR);
+  const immExplorerColor = new Color(EXPLORER_COLOR);
   $el.append(`
-    <div class="scoreValue" style="color: ${immExplorerColor.hex()}; background-color: ${immExplorerColor.alpha(0.2).rgb()}">
+    <div class="scoreValue" style="color: ${immExplorerColor.hex()}; background-color: ${immExplorerColor.alpha(0.2)
+    .rgb()}">
         <div class="avatar avatarExplorer"/>
         <p>Explorer: ${explorerScore}</p>
     </div>
   `);
   ghostScores.forEach((score, i) => {
-    let immGhostColor = new Color(GHOST_COLORS[i]);
+    const immGhostColor = new Color(GHOST_COLORS[i]);
     $el.append(`
-      <div class="scoreValue" style="color: ${immGhostColor.hex()}; background-color: ${immGhostColor.alpha(0.2).rgb()}">
+      <div class="scoreValue" style="color: ${immGhostColor.hex()}; background-color: ${immGhostColor.alpha(0.2)
+      .rgb()}">
           <div class="avatar avatarHunter1"/>
           <p>Ghost ${i + 1}: ${score}</p>
       </div>
@@ -58,15 +62,23 @@ function printScore($el) {
 const $interactions = $('<div class="absolutefill interactions">');
 const $hud = $(`
 <div class="absolutefill hud">
+  <div class="absolutefill hud-wrapper reversed"></div>
+  <div class="absolutefill hud-wrapper"></div>
+</div>
+`);
+
+$hud.find('.hud-wrapper')
+  .append(`
   <div class="scoreInfo">
     <div class="scoreText">Score</div>
     <div class="scoreValues"></div>
   </div>
-  <div class="scoreInfo reversed bottomAbsolute">
-    <div class="scoreText">Score</div>
-    <div class="scoreValues"></div>
+`)
+  .append(`
+  <div class="revealSpell">
+    <div class="icon"></div>
+    <div class="text">Scream ready</div>
   </div>
-</div>
 `);
 
 printScore($hud.find('.scoreValues'));
@@ -103,6 +115,10 @@ const $youwin = $(`
 `);
 $youwin.hide();
 
+const playerGroup = new THREE.Group();
+const ghostGroups = new Array(GHOST_NUMBER).fill(null)
+  .map(() => new THREE.Group());
+
 class SceneWidget extends TUIOWidget {
 
   constructor(socket) {
@@ -131,7 +147,7 @@ class SceneWidget extends TUIOWidget {
     const $scene = this.buildScene();
     const $container = $('<div class="container">');
     $container.append($scene);
-    $container.append($interactions);
+    // $container.append($interactions);
     $container.append($hud);
     $container.append($youlost);
     $container.append($youwin);
@@ -240,7 +256,7 @@ class SceneWidget extends TUIOWidget {
     return null;
   };
 
-  tagToScenePosition = (tuioTag, floored = false) => {
+  tagToScenePosition = (tuioTag, floored = false, triggerall = false) => {
     const viewPortCoord = new THREE.Vector2(
       ((tuioTag.x / this.width) * 2) - 1,
       -((tuioTag.y / this.height) * 2) + 1,
@@ -250,7 +266,7 @@ class SceneWidget extends TUIOWidget {
     // console.log(intersects.length);
     if (intersects.length !== 0) {
       const intersect = intersects[0];
-      if (!intersect.object.carpet) return null;
+      if (!triggerall && !intersect.object.carpet) return null;
       if (!floored) return intersect.point.clone();
       const flooredPosition = new THREE.Vector3(
         Math.floor(intersect.point.x),
@@ -263,7 +279,7 @@ class SceneWidget extends TUIOWidget {
   };
 
   handleTagRotate = debounce(500, (tuioTag) => {
-    const ROTATE_POINTS = 1;
+    const ROTATE_POINTS = 2;
     const closestLight = () => {
       const viewPortCoord = new THREE.Vector2(
         ((tuioTag.x / this.width) * 2) - 1,
@@ -278,7 +294,7 @@ class SceneWidget extends TUIOWidget {
       for (const [key, value] of this.lightsMap.entries()) {
         const dist = Math.sqrt(
           Math.pow(closestIntersect.point.x - value.position.x, 2) +
-          Math.pow(closestIntersect.point.z - value.position.z, 2)
+          Math.pow(closestIntersect.point.z - value.position.z, 2),
         );
         if (minDistance == null || dist < minDistance) {
           minDistance = dist;
@@ -301,8 +317,10 @@ class SceneWidget extends TUIOWidget {
         SoundService.play('switch_off');
         console.log(`[LIGHTS] Shutting off light ${lightId}`);
         const lightElement = this.lightsMap.get(lightId);
-        lightElement.material.opacity = 0.2;
-        lightElement.children.forEach(c => c.visible = false);
+        lightElement.model.material.opacity = 0.2;
+        lightElement.children.forEach((c) => {
+          if (lightElement.model !== c) c.visible = false;
+        });
         this.rotateProgress = 0;
       }
     }
@@ -322,7 +340,7 @@ class SceneWidget extends TUIOWidget {
         if (this.directionTags.has(tuioTag.id)) {
           ghostDirection = this.directionTags.get(tuioTag.id);
         } else {
-          const ghostDirectionMaterial = new THREE.MeshBasicMaterial({color: GHOST_COLORS[tagData.player]});
+          const ghostDirectionMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player] });
           ghostDirection = new THREE.Mesh(ghostDirectionGeometry, ghostDirectionMaterial);
           this.scene.add(ghostDirection);
           this.directionTags.set(tuioTag.id, ghostDirection);
@@ -337,21 +355,48 @@ class SceneWidget extends TUIOWidget {
       } else if (tagData.type === 'reveal') {
         if (this.canRevealPlayer) {
           this.canRevealPlayer = false;
+          $('.revealSpell')
+            .addClass('disabled')
+            .find('.text')
+            .text('Scream charging');
           SoundService.play('reveal');
+          for (const ghostGroup of ghostGroups) {
+            const ghostOriginalScale = ghostGroup.modelGhost.scale.clone();
+            new TWEEN.Tween(ghostGroup.modelGhost.scale)
+              .to({ x: 2, y: 2, z: 2 }, 200)
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .chain(new TWEEN.Tween(ghostGroup.modelGhost.scale)
+                .to(ghostOriginalScale, 200)
+                .easing(TWEEN.Easing.Quadratic.Out))
+              .start();
+          }
           setTimeout(() => {
             this.revealPlayer = true;
-            SoundService.play('scream');
+            SoundService.play('screamer_trigger');
+            const playerOriginalScale = playerGroup.modelPlayer.scale.clone();
+            new TWEEN.Tween(playerGroup.modelPlayer.scale)
+              .to({ x: 2, y: 2, z: 2 }, 200)
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .chain(new TWEEN.Tween(playerGroup.modelPlayer.scale)
+                .to(playerOriginalScale, 200)
+                .easing(TWEEN.Easing.Quadratic.Out))
+              .start();
             setTimeout(() => {
               this.revealPlayer = false;
               setTimeout(() => {
                 this.canRevealPlayer = true;
+                $('.revealSpell')
+                  .removeClass('disabled')
+                  .find('.text')
+                  .text('Scream ready');
                 SoundService.play('spell');
-              }, 5000);
+                this.socket.emit(Protocol.GHOST_SCREAM);
+              }, 10000);
             }, 2000);
           }, 500);
         }
       } else if (tagData.type === 'wall') {
-        const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
+        const flooredIntersectPosition = this.tagToScenePosition(tuioTag);
         if (flooredIntersectPosition === null) return;
         flooredIntersectPosition.setY(1);
         const fakeWallGeometry = new THREE.BoxGeometry(1, 10, 1);
@@ -363,7 +408,7 @@ class SceneWidget extends TUIOWidget {
         const fakeWall = new THREE.Mesh(fakeWallGeometry, fakeWallMaterial);
         this.scene.add(fakeWall);
         const currentPlayerEntities = this.playerEntities[tagData.player];
-        currentPlayerEntities.walls.unshift({id: hash, tagId: tuioTag.id, mesh: fakeWall});
+        currentPlayerEntities.walls.unshift({ id: hash, tagId: tuioTag.id, mesh: fakeWall });
         if (currentPlayerEntities.walls.length > 5) {
           const oldWall = currentPlayerEntities.walls.pop();
           this.scene.remove(oldWall.mesh);
@@ -375,25 +420,41 @@ class SceneWidget extends TUIOWidget {
           player: tagData.player,
         });
       } else if (tagData.type === 'trap') {
-        const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
+        const flooredIntersectPosition = this.tagToScenePosition(tuioTag, false, false);
         if (flooredIntersectPosition === null) return;
         flooredIntersectPosition.setY(1);
-        const trapMaterial = new THREE.MeshBasicMaterial({color: GHOST_COLORS[tagData.player]});
+        const trapMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player], transparent: true, opacity: 1 });
         const ghostTrap = new THREE.Mesh(trapGeometry, trapMaterial);
         ghostTrap.position.copy(flooredIntersectPosition);
         ghostTrap.rotation.y = Math.PI / 4;
         this.scene.add(ghostTrap);
         const currentPlayerEntities = this.playerEntities[tagData.player];
-        currentPlayerEntities.traps.unshift({id: hash, tagId: tuioTag.id, mesh: ghostTrap, type: 'DeathTrap'});
+        currentPlayerEntities.traps.unshift({ id: hash, tagId: tuioTag.id, mesh: ghostTrap, type: 'DeathTrap' });
         SoundService.play('trap_setup');
         if (currentPlayerEntities.traps.length > 3) {
           const oldTrap = currentPlayerEntities.traps.pop();
-          if (oldTrap.type === 'ScreamerType') {
-            oldTrap.mesh.material.color.setHex(0xFFFFFF);
+          if (oldTrap.type === 'ScreamerTrap') {
             this.doorsMap.get(oldTrap.door).trapped = false;
-          }
-          else {
-            this.scene.remove(oldTrap.mesh);
+            const originalScale = oldTrap.mesh.scale.clone();
+            new TWEEN.Tween(oldTrap.mesh.scale)
+              .to({ x: 1.2, y: 1.2, z: 1.2 }, 400)
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .chain(new TWEEN.Tween(oldTrap.mesh.scale)
+                .to(originalScale, 300)
+                .easing(TWEEN.Easing.Quadratic.Out))
+              .onComplete(() => {
+                oldTrap.mesh.material.color.setHex(0xFFFFFF);
+                oldTrap.mesh.material.opacity = oldTrap.open ? 0.3 : 1;
+              })
+              .start();
+          } else {
+            new TWEEN.Tween(oldTrap.mesh.scale)
+              .to({ x: 0, y: 0, z: 0 }, 400)
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .onComplete(() => {
+                this.scene.remove(oldTrap.mesh);
+              })
+              .start();
           }
           this.socket.emit(Protocol.REMOVE_TRAP, {
             id: oldTrap.id,
@@ -406,11 +467,9 @@ class SceneWidget extends TUIOWidget {
           type: 'DeathTrap',
         });
       } else if (tagData.type === 'screamer') {
-
-        const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
+        const flooredIntersectPosition = this.tagToScenePosition(tuioTag, false, true);
         if (flooredIntersectPosition === null) return;
         flooredIntersectPosition.setY(1);
-
         const closestDoor = () => {
           const viewPortCoord = new THREE.Vector2(
             ((tuioTag.x / this.width) * 2) - 1,
@@ -430,44 +489,60 @@ class SceneWidget extends TUIOWidget {
           }
           return closestDoorId;
         };
-
-
         const trappedDoorId = closestDoor();
-        console.log("Creating door trap");
+        console.log('Creating door trap');
         console.log(this.doorsMap.get(trappedDoorId));
         if (!this.doorsMap.get(trappedDoorId).trapped) {
           this.doorsMap.get(trappedDoorId).trapped = true;
-          this.doorsMap.get(trappedDoorId).mesh.material.color.setHex(GHOST_COLORS[tagData.player]);
-
-
+          this.doorsMap.get(trappedDoorId)
+            .mesh
+            .material
+            .color
+            .setHex(GHOST_COLORS[tagData.player]);
           const currentPlayerEntities = this.playerEntities[tagData.player];
           currentPlayerEntities.traps.unshift({
             id: hash,
             tagId: tuioTag.id,
             mesh: this.doorsMap.get(trappedDoorId).mesh,
-            type: 'ScreamerType',
-            door: trappedDoorId
+            type: 'ScreamerTrap',
+            door: trappedDoorId,
           });
-          SoundService.play('trap_trigger');
+          SoundService.play('screamer_setup');
           if (currentPlayerEntities.traps.length > 3) {
             const oldTrap = currentPlayerEntities.traps.pop();
-            if (oldTrap.type === 'ScreamerType') {
-              oldTrap.mesh.material.color.setHex(0xFFFFFF);
+            if (oldTrap.type === 'ScreamerTrap') {
               this.doorsMap.get(oldTrap.door).trapped = false;
-            }
-            else {
-              this.scene.remove(oldTrap.mesh);
+              const originalScale = oldTrap.mesh.scale.clone();
+              new TWEEN.Tween(oldTrap.mesh.scale)
+                .to({ x: 1.2, y: 1.2, z: 1.2 }, 400)
+                .easing(TWEEN.Easing.Quadratic.Out)
+                .chain(new TWEEN.Tween(oldTrap.mesh.scale)
+                  .to(originalScale, 300)
+                  .easing(TWEEN.Easing.Quadratic.Out))
+                .onComplete(() => {
+                  oldTrap.mesh.material.color.setHex(0xFFFFFF);
+                  oldTrap.mesh.material.opacity = oldTrap.open ? 0.3 : 1;
+                })
+                .start();
+            } else {
+              new TWEEN.Tween(oldTrap.mesh.scale)
+                .to({ x: 0, y: 0, z: 0 }, 400)
+                .easing(TWEEN.Easing.Quadratic.Out)
+                .onComplete(() => {
+                  this.scene.remove(oldTrap.mesh);
+                })
+                .start();
             }
             this.socket.emit(Protocol.REMOVE_TRAP, {
               id: oldTrap.id,
             });
           }
           this.socket.emit(Protocol.CREATE_TRAP, {
-            name: hash,
+            id: hash,
             player: tagData.player,
             position: [flooredIntersectPosition.x, flooredIntersectPosition.z],
             type: 'ScreamerTrap',
-            door: trappedDoorId
+            door: trappedDoorId,
           });
         }
 
@@ -507,7 +582,7 @@ class SceneWidget extends TUIOWidget {
   buildScene() {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(15, window.innerWidth / window.innerHeight, 0.1, 1000);
-    this.renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setClearColor(0xffffff, 0);
 
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -529,10 +604,6 @@ class SceneWidget extends TUIOWidget {
     });
     */
 
-    const playerGroup = new THREE.Group();
-    const ghostGroups = new Array(GHOST_NUMBER).fill(null)
-      .map(() => new THREE.Group());
-
     const playerConeGeometry = new THREE.ConeGeometry(0.3, 1.5, 8);
     this.playerMaterial = new THREE.MeshBasicMaterial({
       color: EXPLORER_COLOR,
@@ -547,13 +618,14 @@ class SceneWidget extends TUIOWidget {
     playerGroup.conePlayer = conePlayer;
     playerGroup.add(conePlayer);
 
-    ModelServices.load('player').then(geometry => {
-      const modelPlayer = new THREE.Mesh(geometry, this.playerMaterial);
-      modelPlayer.position.y = 3;
-      modelPlayer.scale.set(1.1, 1.1, 1.1);
-      playerGroup.modelPlayer = modelPlayer;
-      playerGroup.add(modelPlayer);
-    });
+    ModelServices.load('player')
+      .then((geometry) => {
+        const modelPlayer = new THREE.Mesh(geometry, this.playerMaterial);
+        modelPlayer.position.y = 3;
+        modelPlayer.scale.set(1.1, 1.1, 1.1);
+        playerGroup.modelPlayer = modelPlayer;
+        playerGroup.add(modelPlayer);
+      });
 
     this.scene.add(playerGroup);
 
@@ -589,38 +661,33 @@ class SceneWidget extends TUIOWidget {
       ghostGroup.position.x = (ghostGroups.indexOf(ghostGroup) + 1) * 3;
     }
 
-    ModelServices.load('ghost').then(geometry => {
-      for (const ghostGroup of ghostGroups) {
-        const modelGhost = new THREE.Mesh(geometry, ghostGroup.ghostCone.material);
-        modelGhost.position.y = 3;
-        modelGhost.scale.set(0.9, 0.9, 0.9);
-        ghostGroup.modelGhost = modelGhost;
-        ghostGroup.add(modelGhost);
-      }
-    });
-
-    ModelServices.load('direction').then(geometry => {
-      ghostDirectionGeometry = geometry;
-    });
-
-    ModelServices.load('chandelier').then(geometry => {
-      Array.from(this.lightsMap.values()).forEach((light) => {
-        const lightModel = light.model = new THREE.Mesh(geometry, lightMaterial.clone());
-        lightModel.scale.multiplyScalar(1.2);
-        lightModel.rotation.y = Math.random() * Math.PI * 2;
-        light.add(lightModel);
+    ModelServices.load('ghost')
+      .then((geometry) => {
+        for (const ghostGroup of ghostGroups) {
+          const modelGhost = new THREE.Mesh(geometry, ghostGroup.ghostCone.material);
+          modelGhost.position.y = 3;
+          modelGhost.scale.set(0.8, 0.8, 0.8);
+          ghostGroup.modelGhost = modelGhost;
+          ghostGroup.add(modelGhost);
+        }
       });
-    });
 
-    ModelServices.load('trap').then(geometry => {
-      trapGeometry = geometry;
-    });
+    ModelServices.load('direction')
+      .then((geometry) => {
+        ghostDirectionGeometry = geometry;
+      });
 
-    ModelServices.load('screamer').then(geometry => {
-      screamerGeometry = geometry;
-    });
+    ModelServices.load('trap')
+      .then((geometry) => {
+        trapGeometry = geometry;
+      });
 
-    this.socket.emit(Protocol.REGISTER, {type: 'TABLE'});
+    ModelServices.load('screamer')
+      .then((geometry) => {
+        screamerGeometry = geometry;
+      });
+
+    this.socket.emit(Protocol.REGISTER, { type: 'TABLE' });
 
     const onMapLoad = (mapData) => {
       const mapHeight = mapData.terrain.height;
@@ -656,21 +723,17 @@ class SceneWidget extends TUIOWidget {
       SoundService.volume('radio', 0.05);
 
       const wallGeometry = new THREE.BoxGeometry(1, 8, 1);
-      const wallMaterial = new THREE.MeshPhongMaterial({
+      const wallMaterial = new THREE.MeshLambertMaterial({
         color: 0x252525,
-        normalMap: textureLoader.load("./assets/textures/brick_floor_normal.png"),
       });
 
       const floorGeometry = new THREE.BoxGeometry(1, 0.1, 1);
-      const floorMaterial = new THREE.MeshPhongMaterial({
+      const floorMaterial = new THREE.MeshLambertMaterial({
         color: 0x444444,
-        normalMap: textureLoader.load("./assets/textures/brick_floor_normal.png"),
-        shininess: 1,
-        normalScale: new THREE.Vector2(0.7, 0.7),
       });
 
-      const doorGeometry = new THREE.BoxGeometry(1, 5, 0.3);
-      const doorMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
+      const doorGeometry = new THREE.BoxGeometry(1, 8, 0.3);
+      const doorMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true });
 
       map.forEach((elt, index) => {
         const posX = Math.floor(index % mapWidth);
@@ -705,7 +768,7 @@ class SceneWidget extends TUIOWidget {
         if (doorData.align === 'v') {
           door.rotation.y = Math.PI / 2;
         }
-        this.doorsMap.set(doorData.id, {mesh: door, trapped: false});
+        this.doorsMap.set(doorData.id, { mesh: door, trapped: false, open: false });
         this.scene.add(door);
       });
 
@@ -723,8 +786,10 @@ class SceneWidget extends TUIOWidget {
         });
         const sprite = light.sprite = new THREE.Sprite(spriteMaterial);
         sprite.scale.set(2, 2, 2);
-        const pointLight = light.pointLight = new THREE.PointLight(0xffffff, 1, 15, 1);
-        pointLight.position.y = -6;
+        const pointLight = light.pointLight = new THREE.PointLight(0xffffff, 1, 13, 1);
+        pointLight.position.y = -4;
+        const lightModel = light.model = new THREE.Mesh(lightGeometry, lightMaterial.clone());
+        light.add(lightModel);
         light.add(pointLight);
         light.add(sprite);
         this.lightsMap.set(lightData.id, light);
@@ -767,20 +832,25 @@ class SceneWidget extends TUIOWidget {
       } else {
         SoundService.play('door_close');
       }
-      this.doorsMap.get(doorData.id).mesh.visible = !doorData.open;
+      this.doorsMap.get(doorData.id).mesh.material.opacity = doorData.open ? 0.3 : 1;
+      this.doorsMap.get(doorData.id).open = doorData.open;
     });
 
     this.socket.on(Protocol.LIGHT_UPDATE, (lightData) => {
-      if (lightData.open) {
+      if (lightData.mode === 'on') {
         SoundService.play('switch_on');
       } else {
         SoundService.play('switch_off');
       }
-      this.lightsMap.get(lightData.id).mesh.visible = !lightData.open;
+      const lightElement = this.lightsMap.get(lightData.id);
+      lightElement.model.material.opacity = 1;
+      lightElement.children.forEach((c) => {
+        if (lightElement.model !== c) c.visible = lightData.mode === 'on' ? true : false;
+      });
     });
 
     this.socket.on(Protocol.CREATE_TRAP, (trapData) => {
-      const trapMaterial = new THREE.MeshBasicMaterial({color: GHOST_COLORS[trapData.player]});
+      const trapMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[trapData.player] });
       const ghostTrap = new THREE.Mesh(trapData.type === 'DeathTrap' ? trapGeometry : screamerGeometry, trapMaterial);
       ghostTrap.position.x = trapData.position[0];
       ghostTrap.position.y = 1;
@@ -788,7 +858,8 @@ class SceneWidget extends TUIOWidget {
       ghostTrap.rotation.y = Math.PI / 4;
       this.scene.add(ghostTrap);
       const currentPlayerEntities = this.playerEntities[trapData.player];
-      currentPlayerEntities.traps.unshift({id: trapData.name, tagId: '0', mesh: ghostTrap, type: trapData.type});
+      currentPlayerEntities.traps.unshift({ id: trapData.id, tagId: '0', mesh: ghostTrap, type: trapData.type });
+      console.log(currentPlayerEntities);
       SoundService.play(trapData.type === 'DeathTrap' ? 'trap_setup' : 'screamer_setup');
     });
 
@@ -797,7 +868,14 @@ class SceneWidget extends TUIOWidget {
         const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === trapData.id);
         if (trapsToDelete.length > 0) {
           trapsToDelete.forEach((trapToDelete) => {
-            this.scene.remove(trapToDelete.mesh);
+            if (trapToDelete.type === 'ScreamerTrap') {
+              trapToDelete.mesh.material.color.setHex(0xFFFFFF);
+              oldTrap.mesh.material.opacity = oldTrap.open ? 0.3 : 1;
+              this.doorsMap.get(trapToDelete.door).trapped = false;
+            } else {
+              this.scene.remove(trapToDelete.mesh);
+            }
+            //this.scene.remove(trapToDelete.mesh);
           });
           SoundService.play('trap_destroy');
         }
@@ -806,11 +884,12 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.TRAP_TRIGGERED, (trapData) => {
+		console.log(222, trapData);
       if (!trapData) throw new Error('Trap data is undefined');
       if (!trapData.id) throw new Error('Trap id is undefined');
       let matched = this.playerEntities[0].traps.find(trap => trap.id === trapData.id);
       if (matched === undefined) matched = this.playerEntities[1].traps.find(trap => trap.id === trapData.id);
-      console.log(matched);
+	  console.log(111, matched)
       if (matched !== undefined) {
         if (matched.type === 'ScreamerTrap') {
           console.log('Revealing player');
@@ -819,6 +898,14 @@ class SceneWidget extends TUIOWidget {
             this.revealPlayer = false;
           }, 5000);
           SoundService.play('screamer_trigger');
+          const playerOriginalScale = playerGroup.modelPlayer.scale.clone();
+          new TWEEN.Tween(playerGroup.modelPlayer.scale)
+            .to({ x: 2, y: 2, z: 2 }, 200)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .chain(new TWEEN.Tween(playerGroup.modelPlayer.scale)
+              .to(playerOriginalScale, 200)
+              .easing(TWEEN.Easing.Quadratic.Out))
+            .start();
         } else if (matched.type === 'DeathTrap') {
           SoundService.play('trap_trigger');
         }
@@ -826,8 +913,23 @@ class SceneWidget extends TUIOWidget {
       this.playerEntities.forEach((currPlayerEntities) => {
         const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === trapData.id);
         if (trapsToDelete.length > 0) {
-          trapsToDelete.forEach((trapToDelete) => {
-            this.scene.remove(trapToDelete.mesh);
+          trapsToDelete.forEach((oldTrap) => {
+            if (oldTrap.type === 'ScreamerTrap') {
+              this.doorsMap.get(oldTrap.door).trapped = false;
+              const originalScale = oldTrap.mesh.scale.clone();
+              new TWEEN.Tween(oldTrap.mesh.scale)
+                .to({ x: 1.2, y: 1.2, z: 1.2 }, 400)
+                .easing(TWEEN.Easing.Quadratic.Out)
+                .chain(new TWEEN.Tween(oldTrap.mesh.scale)
+                  .to(originalScale, 200)
+                  .easing(TWEEN.Easing.Quadratic.Out))
+                .onComplete(() => {
+                  oldTrap.mesh.material.color.setHex(0xFFFFFF);
+                })
+                .start();
+            } else {
+              this.scene.remove(oldTrap.mesh);
+            }
           });
         }
         currPlayerEntities.traps = currPlayerEntities.traps.filter(trap => trap.id !== trapData.id);
@@ -843,11 +945,15 @@ class SceneWidget extends TUIOWidget {
         $youlost.show();
       } else {
         SoundService.play('ghost_win');
-        let killerGhostId = gameOverData.killedBy || 0;
+        const killerGhostId = gameOverData.killedBy || 0;
         ghostScores[killerGhostId] = (ghostScores[killerGhostId]) + 1;
         if (gameOverData.deathType === 'trap') {
-          $youwin.find('.message').text(`Ghost ${gameOverData.killedBy + 1} has killed the explorer with a trap`);
-        } else $youwin.find('.message').text(`Ghost ${gameOverData.killedBy + 1} has eaten the explorer`);
+          $youwin.find('.message')
+            .text(`Ghost ${gameOverData.killedBy + 1} has killed the explorer with a trap`);
+        } else {
+          $youwin.find('.message')
+            .text(`Ghost ${gameOverData.killedBy + 1} has eaten the explorer`);
+        }
         printScore($scoreValues);
         $youwin.show();
       }
@@ -862,16 +968,23 @@ class SceneWidget extends TUIOWidget {
       this.directionTags.clear();
       Array.from(this.doorsMap.values())
         .forEach((door) => {
-          door.mesh.visible = true;
+          door.mesh.material.opacity = 1;
         });
       Array.from(this.lightsMap.values())
-        .forEach((light) => {
-          light.material.opacity = 1;
-          light.children.forEach(c => c.visible = true);
+        .forEach((lightElement) => {
+          lightElement.model.material.opacity = 1;
+          lightElement.children.forEach((c) => {
+            if (lightElement.model !== c) c.visible = true;
+          });
         });
       this.playerEntities.forEach((currPlayerEntities) => {
-        currPlayerEntities.traps.forEach((trap) => {
-          this.scene.remove(trap.mesh);
+        currPlayerEntities.traps.forEach((oldTrap) => {
+		  if (oldTrap.type === 'ScreamerTrap') {
+              this.doorsMap.get(oldTrap.door).trapped = false;
+              oldTrap.mesh.material.color.setHex(0xFFFFFF);
+            } else {
+              this.scene.remove(oldTrap.mesh);
+            }
         });
         currPlayerEntities.traps = [];
       });
@@ -881,6 +994,7 @@ class SceneWidget extends TUIOWidget {
 
     const animate = (time) => {
       requestAnimationFrame(animate);
+      TWEEN.update();
       let closestDistanceToPlayer = Infinity;
       for (let i = 0; i < ghostGroups.length; i++) {
         const ghostGroup = ghostGroups[i];
@@ -888,6 +1002,11 @@ class SceneWidget extends TUIOWidget {
           ghostGroup.modelGhost.position.y = 5 + 0.3 * Math.sin(((Math.PI / 2) * i) + (time * 0.002));
         }
         closestDistanceToPlayer = Math.min(closestDistanceToPlayer, ghostGroup.position.distanceTo(playerGroup.position));
+        const currentPlayerEntities = this.playerEntities[i];
+        if (currentPlayerEntities.traps.length === 3) {
+          const lastTrap = currentPlayerEntities.traps[2];
+          lastTrap.mesh.material.opacity = 0.4 + Math.abs(Math.sin(time / 300) / 3);
+        }
       }
       this.playerMaterial.opacity = 1 - cunlerp(GHOST_RANGE_SIZE - 3, GHOST_RANGE_SIZE, closestDistanceToPlayer);
       if (playerGroup.modelPlayer) {
@@ -898,7 +1017,7 @@ class SceneWidget extends TUIOWidget {
       Array.from(this.lightsMap.values())
         .forEach((light) => {
           light.pointLight.intensity = (1 - INTENSITY_DELTA) + (Math.random() * INTENSITY_DELTA);
-          light.sprite.scale.copy(new THREE.Vector3(3, 3, 3).multiplyScalar((1 - INTENSITY_DELTA) + (Math.random() * 0.5 * INTENSITY_DELTA)));
+          light.sprite.scale.copy(new THREE.Vector3(2, 2, 2).multiplyScalar((1 - INTENSITY_DELTA) + (Math.random() * 0.5 * INTENSITY_DELTA)));
         });
       if (this.revealPlayer) this.playerMaterial.opacity = 1;
       this.renderer.render(this.scene, this.camera);
