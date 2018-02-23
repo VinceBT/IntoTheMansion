@@ -1004,7 +1004,7 @@ class SceneWidget extends TUIOWidget {
         const currentPlayerEntities = this.playerEntities[i];
         if (currentPlayerEntities.traps.length === 3) {
           const lastTrap = currentPlayerEntities.traps[2];
-          lastTrap.mesh.material.opacity = 0.4 + Math.abs(Math.sin(time / 300) / 3);
+          lastTrap.mesh.material.opacity = 0.3 + Math.abs(Math.sin(time / 200) / 2);
         }
       }
       this.playerMaterial.opacity = 1 - cunlerp(GHOST_RANGE_SIZE - 3, GHOST_RANGE_SIZE, closestDistanceToPlayer);

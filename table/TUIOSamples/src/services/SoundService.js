@@ -22,13 +22,12 @@ loadSound('ghost_win', 'assets/sounds/ghost_win.wav');
 loadSound('ghost_move_1', 'assets/sounds/ghost_move_1.wav', 0.6);
 loadSound('ghost_move_2', 'assets/sounds/ghost_move_2.wav', 0.6);
 loadSound('ghost_move_3', 'assets/sounds/ghost_move_3.wav', 0.6);
-loadSound('ghost_move_4', 'assets/sounds/ghost_move_4.wav', 0.6);
 loadSound('player_move', 'assets/sounds/player_move.wav', 0, true);
 loadSound('radio', 'assets/sounds/radio.wav', 0.015);
-loadSound('ghost_bg', 'assets/sounds/ghost_bg.wav', 0.015);
+loadSound('ghost_bg', 'assets/sounds/ghost_bg.wav', 0.03, true);
 loadSound('reveal', 'assets/sounds/reveal.wav');
 loadSound('spell', 'assets/sounds/spell.wav');
-loadSound('screamer_setup', 'assets/sounds/screamer_setup.wav');
+loadSound('screamer_setup', 'assets/sounds/screamer_setup.wav', 0.7);
 loadSound('screamer_trigger', 'assets/sounds/screamer_trigger.mp3');
 loadSound('switch_off', 'assets/sounds/switch_off.wav', 0.7);
 loadSound('switch_on', 'assets/sounds/switch_on.wav');
@@ -51,7 +50,7 @@ export default class SoundService {
     console.log(`[SOUND] Playing ${key}`);
     if (key === 'ghost_move') {
       soundMap.get('ghost_move_' + ghostMoveIt++).play();
-      if (ghostMoveIt > 4) ghostMoveIt = 1;
+      if (ghostMoveIt > 3) ghostMoveIt = 1;
     } else {
       if (!soundMap.has(key)) throw new Error('Unknown key');
       soundMap.get(key).play();
