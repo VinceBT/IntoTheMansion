@@ -328,6 +328,7 @@ class SceneWidget extends TUIOWidget {
           this.directionTags.set(tuioTag.id, ghostDirection);
         }
         ghostDirection.position.copy(intersectPosition);
+		SoundService.play('ghost_move');
         this.socket.emit(Protocol.REQUEST_GHOST_MOVEMENT, {
           id: tuioTag.id,
           player: tagData.player,
@@ -447,7 +448,7 @@ class SceneWidget extends TUIOWidget {
             type: 'ScreamerType',
             door: trappedDoorId
           });
-          SoundManager.play('trap_trigger');
+          SoundService.play('trap_trigger');
           if (currentPlayerEntities.traps.length > 3) {
             const oldTrap = currentPlayerEntities.traps.pop();
             if (oldTrap.type === 'ScreamerType') {
