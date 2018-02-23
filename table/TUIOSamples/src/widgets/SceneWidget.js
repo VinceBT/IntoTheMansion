@@ -717,10 +717,9 @@ class SceneWidget extends TUIOWidget {
       console.log(this.camera, 'CAMERA COMPUTED ', cameraWidthMinDistance, cameraHeightMinDistance);
 
       SoundService.play('player_move');
-      SoundService.volume('player_move', 0);
 
       SoundService.play('radio');
-      SoundService.volume('radio', 0.05);
+      SoundService.play('ghost_bg');
 
       const wallGeometry = new THREE.BoxGeometry(1, 8, 1);
       const wallMaterial = new THREE.MeshLambertMaterial({

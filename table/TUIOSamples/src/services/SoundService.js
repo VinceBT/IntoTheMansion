@@ -1,4 +1,4 @@
-import { Howl } from 'howler';
+import {Howl} from 'howler';
 
 const MUTE = false;
 
@@ -19,9 +19,13 @@ loadSound('door_close', 'assets/sounds/door_close.wav');
 loadSound('door_open', 'assets/sounds/door_open.wav');
 loadSound('ghost_lose', 'assets/sounds/ghost_lose.wav');
 loadSound('ghost_win', 'assets/sounds/ghost_win.wav');
-loadSound('ghost_move', 'assets/sounds/ghost_move.wav', 0.7);
+loadSound('ghost_move_1', 'assets/sounds/ghost_move_1.wav', 0.6);
+loadSound('ghost_move_2', 'assets/sounds/ghost_move_2.wav', 0.6);
+loadSound('ghost_move_3', 'assets/sounds/ghost_move_3.wav', 0.6);
+loadSound('ghost_move_4', 'assets/sounds/ghost_move_4.wav', 0.6);
 loadSound('player_move', 'assets/sounds/player_move.wav', 0, true);
-loadSound('radio', 'assets/sounds/radio.wav', 0);
+loadSound('radio', 'assets/sounds/radio.wav', 0.015);
+loadSound('ghost_bg', 'assets/sounds/ghost_bg.wav', 0.015);
 loadSound('reveal', 'assets/sounds/reveal.wav');
 loadSound('spell', 'assets/sounds/spell.wav');
 loadSound('screamer_setup', 'assets/sounds/screamer_setup.wav');
@@ -31,6 +35,8 @@ loadSound('switch_on', 'assets/sounds/switch_on.wav');
 loadSound('trap_trigger', 'assets/sounds/trap_trigger.mp3', 0.8);
 loadSound('trap_setup', 'assets/sounds/trap_setup.m4a', 0.5);
 loadSound('trap_destroy', 'assets/sounds/trap_destroy.wav', 0.5);
+
+let ghostMoveIt = 1;
 
 export default class SoundService {
 
@@ -42,9 +48,14 @@ export default class SoundService {
 
   static play(key) {
     if (typeof key !== 'string') throw new Error('Must provide key string');
-    if (!soundMap.has(key)) throw new Error('Unknown key');
     console.log(`[SOUND] Playing ${key}`);
-    soundMap.get(key).play();
+    if (key === 'ghost_move') {
+      soundMap.get('ghost_move_' + ghostMoveIt++).play();
+      if (ghostMoveIt > 4) ghostMoveIt = 1;
+    } else {
+      if (!soundMap.has(key)) throw new Error('Unknown key');
+      soundMap.get(key).play();
+    }
     return this;
   }
 
