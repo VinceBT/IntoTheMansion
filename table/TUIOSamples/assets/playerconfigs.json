@@ -1,6 +1,6 @@
 [
   {
-    "direction": "10",
+    "direction": "B2",
 	"trap": "B3",
     "screamer": "3",
     "light": "9A",
@@ -10,7 +10,7 @@
   {
     "direction": "B4",
 	"trap": "B5",
-    "screamer": "199",
+    "screamer": "10",
     "light": "YY",
     "wall": "33",
     "reveal": "XX"
