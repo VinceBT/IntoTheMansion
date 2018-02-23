@@ -853,7 +853,7 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.LIGHT_UPDATE, (lightData) => {
-      if (lightData.open) {
+      if (lightData.mode === 'on') {
         SoundService.play('switch_on');
       } else {
         SoundService.play('switch_off');
@@ -861,7 +861,7 @@ class SceneWidget extends TUIOWidget {
       const lightElement = this.lightsMap.get(lightData.id);
       lightElement.model.material.opacity = 1;
       lightElement.children.forEach((c) => {
-        if (lightElement.model !== c) c.visible = lightData.open;
+        if (lightElement.model !== c) c.visible = lightData.mode === 'on' ? true : false;
       });
     });
 
