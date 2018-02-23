@@ -256,7 +256,7 @@ class SceneWidget extends TUIOWidget {
     return null;
   };
 
-  tagToScenePosition = (tuioTag, floored = false) => {
+  tagToScenePosition = (tuioTag, floored = false, triggerall = false) => {
     const viewPortCoord = new THREE.Vector2(
       ((tuioTag.x / this.width) * 2) - 1,
       -((tuioTag.y / this.height) * 2) + 1,
@@ -266,7 +266,7 @@ class SceneWidget extends TUIOWidget {
     // console.log(intersects.length);
     if (intersects.length !== 0) {
       const intersect = intersects[0];
-      if (!intersect.object.carpet) return null;
+      if (!triggerall && !intersect.object.carpet) return null;
       if (!floored) return intersect.point.clone();
       const flooredPosition = new THREE.Vector3(
         Math.floor(intersect.point.x),
@@ -279,7 +279,7 @@ class SceneWidget extends TUIOWidget {
   };
 
   handleTagRotate = debounce(500, (tuioTag) => {
-    const ROTATE_POINTS = 1;
+    const ROTATE_POINTS = 2;
     const closestLight = () => {
       const viewPortCoord = new THREE.Vector2(
         ((tuioTag.x / this.width) * 2) - 1,
@@ -395,7 +395,7 @@ class SceneWidget extends TUIOWidget {
           }, 500);
         }
       } else if (tagData.type === 'wall') {
-        const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
+        const flooredIntersectPosition = this.tagToScenePosition(tuioTag);
         if (flooredIntersectPosition === null) return;
         flooredIntersectPosition.setY(1);
         const fakeWallGeometry = new THREE.BoxGeometry(1, 10, 1);
@@ -419,7 +419,7 @@ class SceneWidget extends TUIOWidget {
           player: tagData.player,
         });
       } else if (tagData.type === 'trap') {
-        const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
+        const flooredIntersectPosition = this.tagToScenePosition(tuioTag, false, false);
         if (flooredIntersectPosition === null) return;
         flooredIntersectPosition.setY(1);
         const trapMaterial = new THREE.MeshBasicMaterial({ color: GHOST_COLORS[tagData.player], transparent: true, opacity: 1 });
@@ -432,18 +432,18 @@ class SceneWidget extends TUIOWidget {
         SoundService.play('trap_setup');
         if (currentPlayerEntities.traps.length > 3) {
           const oldTrap = currentPlayerEntities.traps.pop();
-          if (oldTrap.type === 'ScreamerType') {
+          if (oldTrap.type === 'ScreamerTrap') {
             this.doorsMap.get(oldTrap.door).trapped = false;
             const originalScale = oldTrap.mesh.scale.clone();
             new TWEEN.Tween(oldTrap.mesh.scale)
               .to({ x: 1.2, y: 1.2, z: 1.2 }, 400)
               .easing(TWEEN.Easing.Quadratic.Out)
               .chain(new TWEEN.Tween(oldTrap.mesh.scale)
-                .to(originalScale, 200)
+                .to(originalScale, 300)
                 .easing(TWEEN.Easing.Quadratic.Out))
               .onComplete(() => {
                 oldTrap.mesh.material.color.setHex(0xFFFFFF);
-                oldTrap.mesh.material.opacity = 1;
+                oldTrap.mesh.material.opacity = oldTrap.open ? 0.3 : 1;
               })
               .start();
           } else {
@@ -459,15 +459,6 @@ class SceneWidget extends TUIOWidget {
             id: oldTrap.id,
           });
         }
-        currentPlayerEntities.traps.forEach((trap, i) => {
-          if (i === 0) {
-            trap.mesh.material.opacity = 1;
-          } else if (i === 1) {
-            trap.mesh.material.opacity = 0.75;
-          } else {
-            trap.mesh.material.opacity = 0.5;
-          }
-        });
         this.socket.emit(Protocol.CREATE_TRAP, {
           id: hash,
           player: tagData.player,
@@ -475,7 +466,7 @@ class SceneWidget extends TUIOWidget {
           type: 'DeathTrap',
         });
       } else if (tagData.type === 'screamer') {
-        const flooredIntersectPosition = this.tagToScenePosition(tuioTag, true);
+        const flooredIntersectPosition = this.tagToScenePosition(tuioTag, false, true);
         if (flooredIntersectPosition === null) return;
         flooredIntersectPosition.setY(1);
         const closestDoor = () => {
@@ -512,24 +503,24 @@ class SceneWidget extends TUIOWidget {
             id: hash,
             tagId: tuioTag.id,
             mesh: this.doorsMap.get(trappedDoorId).mesh,
-            type: 'ScreamerType',
+            type: 'ScreamerTrap',
             door: trappedDoorId,
           });
           SoundService.play('screamer_setup');
           if (currentPlayerEntities.traps.length > 3) {
             const oldTrap = currentPlayerEntities.traps.pop();
-            if (oldTrap.type === 'ScreamerType') {
+            if (oldTrap.type === 'ScreamerTrap') {
               this.doorsMap.get(oldTrap.door).trapped = false;
               const originalScale = oldTrap.mesh.scale.clone();
               new TWEEN.Tween(oldTrap.mesh.scale)
                 .to({ x: 1.2, y: 1.2, z: 1.2 }, 400)
                 .easing(TWEEN.Easing.Quadratic.Out)
                 .chain(new TWEEN.Tween(oldTrap.mesh.scale)
-                  .to(originalScale, 200)
+                  .to(originalScale, 300)
                   .easing(TWEEN.Easing.Quadratic.Out))
                 .onComplete(() => {
                   oldTrap.mesh.material.color.setHex(0xFFFFFF);
-                  oldTrap.mesh.material.opacity = 1;
+                  oldTrap.mesh.material.opacity = oldTrap.open ? 0.3 : 1;
                 })
                 .start();
             } else {
@@ -545,15 +536,6 @@ class SceneWidget extends TUIOWidget {
               id: oldTrap.id,
             });
           }
-          currentPlayerEntities.traps.forEach((trap, i) => {
-            if (i === 0) {
-              trap.mesh.material.opacity = 1;
-            } else if (i === 1) {
-              trap.mesh.material.opacity = 0.75;
-            } else {
-              trap.mesh.material.opacity = 0.5;
-            }
-          });
           this.socket.emit(Protocol.CREATE_TRAP, {
             id: hash,
             player: tagData.player,
@@ -785,7 +767,7 @@ class SceneWidget extends TUIOWidget {
         if (doorData.align === 'v') {
           door.rotation.y = Math.PI / 2;
         }
-        this.doorsMap.set(doorData.id, { mesh: door, trapped: false });
+        this.doorsMap.set(doorData.id, { mesh: door, trapped: false, open: false });
         this.scene.add(door);
       });
 
@@ -849,7 +831,8 @@ class SceneWidget extends TUIOWidget {
       } else {
         SoundService.play('door_close');
       }
-      this.doorsMap.get(doorData.id).mesh.visible = !doorData.open;
+      this.doorsMap.get(doorData.id).mesh.material.opacity = doorData.open ? 0.3 : 1;
+      this.doorsMap.get(doorData.id).open = doorData.open;
     });
 
     this.socket.on(Protocol.LIGHT_UPDATE, (lightData) => {
@@ -884,9 +867,9 @@ class SceneWidget extends TUIOWidget {
         const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === trapData.id);
         if (trapsToDelete.length > 0) {
           trapsToDelete.forEach((trapToDelete) => {
-            if (trapToDelete.type === 'ScreamerType') {
+            if (trapToDelete.type === 'ScreamerTrap') {
               trapToDelete.mesh.material.color.setHex(0xFFFFFF);
-              trapToDelete.mesh.material.opacity = 1;
+              oldTrap.mesh.material.opacity = oldTrap.open ? 0.3 : 1;
               this.doorsMap.get(trapToDelete.door).trapped = false;
             } else {
               this.scene.remove(trapToDelete.mesh);
@@ -900,10 +883,12 @@ class SceneWidget extends TUIOWidget {
     });
 
     this.socket.on(Protocol.TRAP_TRIGGERED, (trapData) => {
+		console.log(222, trapData);
       if (!trapData) throw new Error('Trap data is undefined');
       if (!trapData.id) throw new Error('Trap id is undefined');
       let matched = this.playerEntities[0].traps.find(trap => trap.id === trapData.id);
       if (matched === undefined) matched = this.playerEntities[1].traps.find(trap => trap.id === trapData.id);
+	  console.log(111, matched)
       if (matched !== undefined) {
         if (matched.type === 'ScreamerTrap') {
           console.log('Revealing player');
@@ -928,7 +913,7 @@ class SceneWidget extends TUIOWidget {
         const trapsToDelete = currPlayerEntities.traps.filter(trap => trap.id === trapData.id);
         if (trapsToDelete.length > 0) {
           trapsToDelete.forEach((oldTrap) => {
-            if (oldTrap.type === 'ScreamerType') {
+            if (oldTrap.type === 'ScreamerTrap') {
               this.doorsMap.get(oldTrap.door).trapped = false;
               const originalScale = oldTrap.mesh.scale.clone();
               new TWEEN.Tween(oldTrap.mesh.scale)
@@ -939,7 +924,6 @@ class SceneWidget extends TUIOWidget {
                   .easing(TWEEN.Easing.Quadratic.Out))
                 .onComplete(() => {
                   oldTrap.mesh.material.color.setHex(0xFFFFFF);
-                  oldTrap.mesh.material.opacity = 1;
                 })
                 .start();
             } else {
@@ -983,7 +967,7 @@ class SceneWidget extends TUIOWidget {
       this.directionTags.clear();
       Array.from(this.doorsMap.values())
         .forEach((door) => {
-          door.mesh.visible = true;
+          door.mesh.material.opacity = 1;
         });
       Array.from(this.lightsMap.values())
         .forEach((lightElement) => {
@@ -993,8 +977,13 @@ class SceneWidget extends TUIOWidget {
           });
         });
       this.playerEntities.forEach((currPlayerEntities) => {
-        currPlayerEntities.traps.forEach((trap) => {
-          this.scene.remove(trap.mesh);
+        currPlayerEntities.traps.forEach((oldTrap) => {
+		  if (oldTrap.type === 'ScreamerTrap') {
+              this.doorsMap.get(oldTrap.door).trapped = false;
+              oldTrap.mesh.material.color.setHex(0xFFFFFF);
+            } else {
+              this.scene.remove(oldTrap.mesh);
+            }
         });
         currPlayerEntities.traps = [];
       });
