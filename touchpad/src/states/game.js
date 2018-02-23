@@ -12,7 +12,6 @@ IntoTheMansion.Game = function() {
 IntoTheMansion.Game.prototype = {
     preload: function() {
         var model = this;
-        console.log(this);
             IntoTheMansion.socket.emit('GET_MAP', "mansion1", function (data) {
                 model.parser = new Parser(data);
                 model.cache.addTilemap('dynamicMap', null, model.parser.map.tiles, Phaser.Tilemap.CSV);
@@ -258,7 +257,6 @@ printScore = function($el) {
         </div>
     `);
     ghostScores.forEach(function(score, i){
-        console.log(GHOST_COLORS[i]);
         const immGhostColor = GHOST_COLORS[i];
         $el.append(`
         <div class="scoreValue" style="color: ${immGhostColor};">
