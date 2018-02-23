@@ -15,6 +15,7 @@ IntoTheMansion.Preload.prototype = {
         this.load.spritesheet('show-path-active', 'img/show-path-active.png', 80, 80);
         this.load.spritesheet('skills', 'img/skills.png', 80, 80);
         this.load.spritesheet('skills-active', 'img/skills-active.png', 80, 80);
+        this.load.image("background", "img/start.jpg");
     },
 
     create: function(){

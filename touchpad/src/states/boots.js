@@ -8,7 +8,7 @@ var IntoTheMansion = {
     FLOOR: 65,
     EXIT: 64,
     PATH: 1,
-    socket : io('http://192.168.1.77:8080')
+    socket : io('http://localhost:8080')
 };
 IntoTheMansion.Boot = function(game) {}
 IntoTheMansion.Boot.prototype = {
